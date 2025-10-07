@@ -572,17 +572,35 @@
         .led-icon {
             background: linear-gradient(45deg, #FF6B35, #FFD700);
             box-shadow: 0 0 10px rgba(255, 107, 53, 0.5);
+            transition: all 0.3s ease;
         }
 
         .led-icon.on {
             background: linear-gradient(45deg, #FFD700, #FF6B35);
-            box-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
-            animation: ledBlink 1s infinite;
+            box-shadow: 0 0 25px rgba(255, 215, 0, 1), 0 0 50px rgba(255, 107, 53, 0.6);
+            animation: ledBlink 0.8s infinite, ledPulse 2s infinite;
+            transform: scale(1.2);
+            filter: brightness(1.5);
         }
 
         @keyframes ledBlink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.6; }
+            0%, 100% { 
+                opacity: 1; 
+                box-shadow: 0 0 25px rgba(255, 215, 0, 1), 0 0 50px rgba(255, 107, 53, 0.6);
+            }
+            50% { 
+                opacity: 0.7; 
+                box-shadow: 0 0 15px rgba(255, 215, 0, 0.8), 0 0 30px rgba(255, 107, 53, 0.4);
+            }
+        }
+
+        @keyframes ledPulse {
+            0%, 100% { 
+                transform: scale(1.2);
+            }
+            50% { 
+                transform: scale(1.3);
+            }
         }
 
         .component-name {
@@ -997,11 +1015,14 @@ void loop() {
 
         // Pin Toggle Function
         function togglePin(pin) {
+            console.log(`Toggling pin ${pin}...`);
             if (gameState.pins.hasOwnProperty(pin)) {
                 gameState.pins[pin] = !gameState.pins[pin];
+                console.log(`Pin D${pin} is now: ${gameState.pins[pin] ? 'ON' : 'OFF'}`);
                 updatePinVisual(pin);
                 updateComponentStates();
-                console.log(`Pin D${pin}: ${gameState.pins[pin] ? 'ON' : 'OFF'}`);
+            } else {
+                console.log(`Pin ${pin} not found in gameState.pins`);
             }
         }
 
@@ -1052,10 +1073,12 @@ void loop() {
             gameState.components.forEach(component => {
                 const componentBox = document.createElement('div');
                 componentBox.className = `component-box ${component.connected ? 'connected' : ''}`;
+                componentBox.setAttribute('data-component-id', component.id);
                 componentBox.onclick = () => toggleComponentConnection(component.id);
 
+                const isLedOn = component.connected && gameState.pins[component.pin];
                 componentBox.innerHTML = `
-                    <div class="component-icon led-icon ${component.connected && gameState.pins[component.pin] ? 'on' : ''}">
+                    <div class="component-icon led-icon ${isLedOn ? 'on' : ''}" style="${isLedOn ? 'transform: scale(1.2); filter: brightness(1.5);' : ''}">
                         💡
                     </div>
                     <div class="component-name">LED</div>
@@ -1071,11 +1094,16 @@ void loop() {
         }
 
         function toggleComponentConnection(componentId) {
+            console.log(`Toggling connection for component ${componentId}`);
             const component = gameState.components.find(c => c.id === componentId);
-            if (!component) return;
+            if (!component) {
+                console.log(`Component ${componentId} not found`);
+                return;
+            }
 
             if (component.connected) {
                 // Disconnect
+                console.log(`Disconnecting component ${componentId} from pin ${component.pin}`);
                 delete gameState.connections[component.pin];
                 component.connected = false;
                 component.pin = null;
@@ -1084,6 +1112,7 @@ void loop() {
                 const availablePins = Object.keys(gameState.pins).filter(pin => !gameState.connections[pin]);
                 if (availablePins.length > 0) {
                     const pin = availablePins[0];
+                    console.log(`Connecting component ${componentId} to pin ${pin}`);
                     component.pin = pin;
                     component.connected = true;
                     gameState.connections[pin] = componentId;
@@ -1136,16 +1165,39 @@ void loop() {
         }
 
         function updateComponentStates() {
+            console.log('Updating component states...', gameState.components);
             gameState.components.forEach(component => {
                 if (component.connected) {
-                    const componentBox = document.querySelector(`[onclick*="${component.id}"]`);
+                    console.log(`Updating component ${component.id} on pin ${component.pin}, pin state: ${gameState.pins[component.pin]}`);
+                    
+                    // Try multiple selectors to find the component
+                    let componentBox = document.querySelector(`[onclick*="${component.id}"]`);
+                    if (!componentBox) {
+                        // Alternative selector - look for component by data attribute
+                        componentBox = document.querySelector(`[data-component-id="${component.id}"]`);
+                    }
+                    
                     if (componentBox) {
                         const ledIcon = componentBox.querySelector('.led-icon');
-                        if (gameState.pins[component.pin]) {
-                            ledIcon.classList.add('on');
+                        if (ledIcon) {
+                            console.log(`Found LED icon for component ${component.id}`);
+                            if (gameState.pins[component.pin]) {
+                                ledIcon.classList.add('on');
+                                // Add a more dramatic visual effect
+                                ledIcon.style.transform = 'scale(1.2)';
+                                ledIcon.style.filter = 'brightness(1.5)';
+                                console.log(`LED ${component.id} turned ON`);
+                            } else {
+                                ledIcon.classList.remove('on');
+                                ledIcon.style.transform = 'scale(1)';
+                                ledIcon.style.filter = 'brightness(1)';
+                                console.log(`LED ${component.id} turned OFF`);
+                            }
                         } else {
-                            ledIcon.classList.remove('on');
+                            console.log(`LED icon not found for component ${component.id}`);
                         }
+                    } else {
+                        console.log(`Component box not found for ${component.id}`);
                     }
                 }
             });
