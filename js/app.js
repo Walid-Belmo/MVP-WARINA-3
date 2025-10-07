@@ -10,7 +10,7 @@ class ArduinoLearningGame {
         this.componentManager = window.componentManager;
         this.arduinoParser = window.arduinoParser;
         this.codeEditor = window.codeEditor;
-        this.uiManager = window.uiManager;
+        this.uiManager = null; // Will be initialized after all dependencies are ready
     }
 
     /**
@@ -34,6 +34,18 @@ class ArduinoLearningGame {
      */
     start() {
         console.log('🎮 Starting Arduino Learning Game...');
+        
+        // Initialize UIManager now that all dependencies are ready
+        this.uiManager = new UIManager(
+            this.gameState,
+            this.pinManager,
+            this.componentManager,
+            this.arduinoParser,
+            this.codeEditor
+        );
+        
+        // Make UIManager globally available
+        window.uiManager = this.uiManager;
         
         // Initialize UI
         this.uiManager.init();

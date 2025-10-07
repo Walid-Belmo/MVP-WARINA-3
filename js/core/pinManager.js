@@ -133,7 +133,8 @@ class PinManager {
             console.log(`🎨 Updating visual for pin ${pin}:`, {
                 state: this.gameState.pins[pin],
                 mode: this.gameState.pinModes[pin],
-                isCodeControlled: isCodeControlled
+                isCodeControlled: isCodeControlled,
+                elementFound: true
             });
             
             // Remove all state classes and info
@@ -147,9 +148,9 @@ class PinManager {
             
             if (this.gameState.pins[pin]) {
                 pinElement.classList.add('active');
-                console.log(`✅ Pin ${pin} is now ACTIVE`);
+                console.log(`✅ Pin ${pin} is now ACTIVE - class added`);
             } else {
-                console.log(`❌ Pin ${pin} is now INACTIVE`);
+                console.log(`❌ Pin ${pin} is now INACTIVE - class removed`);
             }
             
             if (this.gameState.pinModes[pin] === 'PWM') {
@@ -169,6 +170,9 @@ class PinManager {
                 pinElement.classList.add('code-controlled');
                 console.log(`⚡ Pin ${pin} is code-controlled`);
             }
+            
+            // Log final classes for debugging
+            console.log(`📋 Pin ${pin} final classes:`, pinElement.className);
         } else {
             console.error(`❌ Pin element not found for pin ${pin}`);
         }

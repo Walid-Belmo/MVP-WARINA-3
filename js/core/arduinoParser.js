@@ -84,10 +84,12 @@ class ArduinoParser {
     }
 
     /**
-     * Delay execution
+     * Delay execution - this is now handled by the UI manager
      */
     delay(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
+        // Delay is now handled by the UI manager for better responsiveness
+        // This method is kept for compatibility but doesn't actually delay
+        console.log(`Delay called for ${ms}ms - handled by UI manager`);
     }
 
     /**
@@ -133,34 +135,34 @@ class ArduinoParser {
     /**
      * Execute setup code
      */
-    async executeSetup(setupCode) {
+    executeSetup(setupCode) {
         console.log('Executing setup...');
-        await this.executeCodeBlock(setupCode);
+        this.executeCodeBlock(setupCode);
     }
 
     /**
      * Execute loop code
      */
-    async executeLoop(loopCode) {
+    executeLoop(loopCode) {
         console.log('Executing loop...');
-        await this.executeCodeBlock(loopCode);
+        this.executeCodeBlock(loopCode);
     }
 
     /**
      * Execute a block of code
      */
-    async executeCodeBlock(code) {
+    executeCodeBlock(code) {
         const lines = code.split('\n').filter(line => line.trim());
         
         for (const line of lines) {
-            await this.executeLine(line.trim());
+            this.executeLine(line.trim());
         }
     }
 
     /**
      * Execute a single line of code
      */
-    async executeLine(line) {
+    executeLine(line) {
         if (!line) return;
 
         console.log(`Executing line: "${line}"`);
@@ -229,7 +231,7 @@ class ArduinoParser {
                     throw new Error(`Delay value ${ms} is invalid. Use values 0-10000ms.`);
                 }
                 
-                await this.delay(ms);
+                this.delay(ms);
                 return;
             }
 

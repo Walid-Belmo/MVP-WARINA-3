@@ -12,6 +12,13 @@ class ArduinoCodeEditor {
         this.completionItems = [];
         this.selectedCompletionIndex = -1;
         
+        console.log('📝 CodeEditor initialized:', {
+            editor: !!this.editor,
+            lineNumbers: !!this.lineNumbers,
+            completion: !!this.completion,
+            cursorPosition: !!this.cursorPosition
+        });
+        
         // Arduino function completions
         this.arduinoFunctions = [
             { name: 'pinMode', desc: '(pin, mode) - Set pin as INPUT or OUTPUT' },
@@ -257,7 +264,9 @@ class ArduinoCodeEditor {
     }
     
     getValue() {
-        return this.editor.value;
+        const value = this.editor ? this.editor.value : '';
+        console.log('📖 CodeEditor.getValue() called, returning:', value);
+        return value;
     }
     
     setValue(value) {
