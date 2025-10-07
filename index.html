@@ -49,7 +49,7 @@
 
         /* Left Panel - Microcontroller */
         .left-panel {
-            width: 40%;
+            width: 60%;
             padding: 20px;
             display: flex;
             flex-direction: column;
@@ -61,9 +61,9 @@
         .microcontroller-container {
             background-color: #2a1f3d;
             border-radius: 12px;
-            padding: 30px;
+            padding: 40px;
             width: 100%;
-            max-width: 400px;
+            max-width: 500px;
             border: 2px solid #00d4ff;
             box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
             position: relative;
@@ -78,57 +78,56 @@
             position: relative;
             box-shadow: 0 0 15px rgba(0, 212, 255, 0.4);
             width: 200px;
-            height: 180px;
+            height: 320px;
             margin: 0 auto;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: space-between;
         }
 
         .microcontroller-text {
-            font-size: 18px;
+            font-size: 24px;
             font-weight: bold;
             color: #00d4ff;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
+            margin: 20px 0;
         }
 
-        /* Left and Right Pins */
-        .pins-left, .pins-right {
+        /* Top and Bottom Pins */
+        .pins-top, .pins-bottom {
             display: flex;
-            flex-direction: column;
-            gap: 15px;
+            justify-content: space-between;
             align-items: center;
+            width: 100%;
+            gap: 10px;
         }
 
         .pin {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 3px;
+            gap: 6px;
         }
 
         .pin-label {
-            font-size: 8px;
+            font-size: 11px;
             color: #b0b0b0;
             font-weight: bold;
         }
 
         .pin-circle {
-            width: 12px;
-            height: 12px;
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
             background-color: #666;
-            border: 1px solid #888;
+            border: 2px solid #888;
             transition: all 0.3s ease;
             cursor: pointer;
         }
 
         .pin-circle.active {
             background-color: #00d4ff;
-            box-shadow: 0 0 12px rgba(0, 212, 255, 0.8);
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.8);
         }
 
         .pin-circle:hover {
@@ -214,7 +213,7 @@
 
         /* Right Panel - Code Editor */
         .right-panel {
-            width: 60%;
+            width: 40%;
             padding: 20px;
             display: flex;
             flex-direction: column;
@@ -233,15 +232,15 @@
             background-color: #1a0f2e;
             border: 1px solid #4a3f5d;
             border-radius: 8px;
-            padding: 20px;
+            padding: 15px;
             font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
-            font-size: 14px;
-            line-height: 1.6;
+            font-size: 12px;
+            line-height: 1.5;
             color: #e0e0e0;
             resize: none;
             outline: none;
             flex: 1;
-            min-height: 300px;
+            min-height: 200px;
         }
 
         .code-editor:focus {
@@ -318,10 +317,8 @@
             <div class="microcontroller-container">
                 <!-- Microcontroller -->
                 <div class="microcontroller">
-                    <div class="microcontroller-text">µC</div>
-                    
-                    <!-- Left Pins -->
-                    <div class="pins-left">
+                    <!-- Top Pins -->
+                    <div class="pins-top">
                         <div class="pin">
                             <div class="pin-circle" data-pin="13"></div>
                             <div class="pin-label">D13</div>
@@ -335,17 +332,15 @@
                             <div class="pin-label">D11</div>
                         </div>
                         <div class="pin">
-                            <div class="pin-circle"></div>
-                            <div class="pin-label">GND</div>
-                        </div>
-                    </div>
-
-                    <!-- Right Pins -->
-                    <div class="pins-right">
-                        <div class="pin">
                             <div class="pin-circle" data-pin="10"></div>
                             <div class="pin-label">D10</div>
                         </div>
+                    </div>
+                    
+                    <div class="microcontroller-text">µC</div>
+                    
+                    <!-- Bottom Pins -->
+                    <div class="pins-bottom">
                         <div class="pin">
                             <div class="pin-circle" data-pin="9"></div>
                             <div class="pin-label">D9</div>
@@ -353,6 +348,10 @@
                         <div class="pin">
                             <div class="pin-circle" data-pin="8"></div>
                             <div class="pin-label">D8</div>
+                        </div>
+                        <div class="pin">
+                            <div class="pin-circle"></div>
+                            <div class="pin-label">GND</div>
                         </div>
                         <div class="pin">
                             <div class="pin-circle"></div>
