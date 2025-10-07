@@ -620,17 +620,17 @@
         }
 
         .motor-icon.slow {
-            animation: motorRotate 2s linear infinite;
+            animation: motorRotate 0.8s linear infinite;
             box-shadow: 0 0 15px rgba(139, 92, 246, 0.7);
         }
 
         .motor-icon.medium {
-            animation: motorRotate 1s linear infinite;
+            animation: motorRotate 0.4s linear infinite;
             box-shadow: 0 0 20px rgba(139, 92, 246, 0.8);
         }
 
         .motor-icon.fast {
-            animation: motorRotate 0.5s linear infinite;
+            animation: motorRotate 0.2s linear infinite;
             box-shadow: 0 0 25px rgba(139, 92, 246, 1);
         }
 
@@ -1157,17 +1157,33 @@ void loop() {
             console.log(`Toggling pin ${pin}...`);
             
             if (pKeyPressed) {
-                // Enter PWM mode
-                setPinMode(pin, 'PWM');
-                gameState.selectedPwmPin = pin;
-                console.log(`Pin D${pin} entered PWM mode`);
-                updatePinSelection();
+                // Cycle through modes: Digital → PWM → OFF → Digital
+                if (gameState.pinModes[pin] === 'DIGITAL') {
+                    // Digital → PWM
+                    setPinMode(pin, 'PWM');
+                    setDutyCycle(pin, 50); // Start at 50% duty cycle
+                    gameState.selectedPwmPin = pin;
+                    console.log(`Pin D${pin} entered PWM mode at 50%`);
+                    updatePinSelection();
+                } else if (gameState.pinModes[pin] === 'PWM') {
+                    // PWM → OFF
+                    setPinMode(pin, 'DIGITAL');
+                    gameState.pins[pin] = false;
+                    gameState.pwmValues[pin] = 0;
+                    gameState.dutyCycles[pin] = 0;
+                    gameState.selectedPwmPin = null;
+                    console.log(`Pin D${pin} turned OFF`);
+                    updatePinSelection();
+                    updatePinVisual(pin);
+                    updateComponentStates();
+                }
             } else {
                 // Normal pin toggle
                 if (gameState.pinModes[pin] === 'PWM') {
-                    // If in PWM mode, toggle between 0% and 50% duty cycle
-                    const currentDuty = gameState.dutyCycles[pin];
-                    setDutyCycle(pin, currentDuty > 0 ? 0 : 50);
+                    // If in PWM mode, just select the pin for keyboard control
+                    gameState.selectedPwmPin = pin;
+                    console.log(`Pin D${pin} selected for PWM control (current: ${gameState.dutyCycles[pin]}%)`);
+                    updatePinSelection();
                 } else {
                     // Normal digital toggle
                     if (gameState.pins.hasOwnProperty(pin)) {
