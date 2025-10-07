@@ -35,10 +35,82 @@
             color: #ffffff;
         }
 
-        .timer {
+        /* Dedicated Timer Panel */
+        .timer-panel {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #ff6b35, #ffd700);
+            border: 3px solid #ffd700;
+            border-radius: 15px;
+            padding: 20px 25px;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.6);
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+            animation: pulse 2s infinite;
+            z-index: 1000;
+            min-width: 200px;
+        }
+
+        .timer-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .clock-icon {
+            width: 24px;
+            height: 24px;
+            background-color: #ffffff;
+            border-radius: 50%;
+            position: relative;
+            border: 2px solid #ff6b35;
+        }
+
+        .clock-icon::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 2px;
+            height: 8px;
+            background-color: #ff6b35;
+            transform-origin: bottom center;
+            transform: translate(-50%, -100%) rotate(45deg);
+        }
+
+        .clock-icon::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 1px;
+            height: 6px;
+            background-color: #ff6b35;
+            transform-origin: bottom center;
+            transform: translate(-50%, -100%) rotate(90deg);
+        }
+
+        .timer-label {
             font-size: 16px;
-            color: #00d4ff;
             font-weight: bold;
+            color: #ffffff;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .timer {
+            font-size: 32px;
+            color: #ffffff;
+            font-weight: bold;
+            text-align: center;
+            font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.5); }
+            50% { box-shadow: 0 0 30px rgba(255, 215, 0, 0.8); }
+            100% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.5); }
         }
 
         /* Main Container */
@@ -215,6 +287,7 @@
         .right-panel {
             width: 40%;
             padding: 20px;
+            padding-right: 240px; /* Add space for the fixed timer panel */
             display: flex;
             flex-direction: column;
         }
@@ -296,6 +369,18 @@
                 width: 100%;
             }
             
+            .right-panel {
+                padding-right: 20px; /* Reset padding on mobile */
+            }
+            
+            .timer-panel {
+                position: relative;
+                top: auto;
+                right: auto;
+                margin: 10px 20px;
+                width: calc(100% - 40px);
+            }
+            
             .right-buttons {
                 flex-wrap: wrap;
             }
@@ -306,7 +391,15 @@
     <!-- Header Bar -->
     <div class="header">
         <div class="mission-title">🎯 MISSION 1: First Light</div>
-        <div class="timer">⏱️ 00:00</div>
+    </div>
+
+    <!-- Dedicated Timer Panel -->
+    <div class="timer-panel">
+        <div class="timer-header">
+            <div class="clock-icon"></div>
+            <div class="timer-label">TIME</div>
+        </div>
+        <div class="timer">00:00</div>
     </div>
 
     <!-- Main Container -->
