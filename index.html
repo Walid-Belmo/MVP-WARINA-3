@@ -583,6 +583,14 @@
             filter: brightness(1.5);
         }
 
+        .led-icon.pwm-brightness {
+            background: linear-gradient(45deg, #FFD700, #FF6B35);
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
+            transition: all 0.3s ease;
+            animation: ledBlink 0.8s infinite, ledPulse 2s infinite;
+            /* Brightness and opacity will be set dynamically via JavaScript */
+        }
+
         @keyframes ledBlink {
             0%, 100% { 
                 opacity: 1; 
@@ -1164,8 +1172,12 @@ void loop() {
                     // Normal digital toggle
                     if (gameState.pins.hasOwnProperty(pin)) {
                         gameState.pins[pin] = !gameState.pins[pin];
-                        gameState.pwmValues[pin] = gameState.pins[pin] ? 255 : 0;
-                        console.log(`Pin D${pin} is now: ${gameState.pins[pin] ? 'ON' : 'OFF'}`);
+                        // Only update PWM values if pin is in PWM mode
+                        if (gameState.pinModes[pin] === 'PWM') {
+                            gameState.pwmValues[pin] = gameState.pins[pin] ? 255 : 0;
+                            gameState.dutyCycles[pin] = gameState.pins[pin] ? 100 : 0;
+                        }
+                        console.log(`Pin D${pin} is now: ${gameState.pins[pin] ? 'ON' : 'OFF'} (${gameState.pinModes[pin]} mode)`);
                         updatePinVisual(pin);
                         updateComponentStates();
                     }
@@ -1198,11 +1210,18 @@ void loop() {
         // PWM Function for analog control (legacy)
         function setPWMValue(pin, value) {
             if (gameState.pwmValues.hasOwnProperty(pin)) {
-                gameState.pwmValues[pin] = Math.max(0, Math.min(255, value));
-                gameState.pins[pin] = value > 0;
-                updatePinVisual(pin);
-                updateComponentStates();
-                console.log(`Pin D${pin} PWM: ${gameState.pwmValues[pin]}`);
+                // Only allow PWM values if pin is in PWM mode
+                if (gameState.pinModes[pin] === 'PWM') {
+                    gameState.pwmValues[pin] = Math.max(0, Math.min(255, value));
+                    gameState.pins[pin] = value > 0;
+                    // Update duty cycle based on PWM value
+                    gameState.dutyCycles[pin] = Math.round((value / 255) * 100);
+                    updatePinVisual(pin);
+                    updateComponentStates();
+                    console.log(`Pin D${pin} PWM: ${gameState.pwmValues[pin]} (${gameState.dutyCycles[pin]}%)`);
+                } else {
+                    console.log(`Pin D${pin} is in ${gameState.pinModes[pin]} mode - PWM values not allowed`);
+                }
             }
         }
 
@@ -1313,14 +1332,33 @@ void loop() {
                 
                 if (component.type === 'LED') {
                     const isLedOn = component.connected && gameState.pins[component.pin];
+                    const pwmValue = component.connected ? gameState.pwmValues[component.pin] : 0;
+                    const dutyCycle = component.connected ? gameState.dutyCycles[component.pin] : 0;
+                    
+                    // Calculate brightness based on PWM duty cycle
+                    let brightnessStyle = '';
+                    let brightnessClass = '';
+                    
+                    if (isLedOn && gameState.pinModes[component.pin] === 'PWM') {
+                        // PWM mode - brightness based on duty cycle
+                        const brightness = Math.max(0.3, dutyCycle / 100); // Minimum 30% brightness
+                        brightnessStyle = `filter: brightness(${brightness}); opacity: ${brightness};`;
+                        brightnessClass = 'pwm-brightness';
+                    } else if (isLedOn) {
+                        // Digital mode - full brightness
+                        brightnessStyle = 'transform: scale(1.2); filter: brightness(1.5);';
+                        brightnessClass = 'on';
+                    }
+                    
                     componentHTML = `
-                        <div class="component-icon led-icon ${isLedOn ? 'on' : ''}" style="${isLedOn ? 'transform: scale(1.2); filter: brightness(1.5);' : ''}">
+                        <div class="component-icon led-icon ${brightnessClass}" style="${brightnessStyle}">
                             💡
                         </div>
                         <div class="component-name">LED</div>
                         <div class="component-pin ${component.connected ? 'connected' : ''}">
                             ${component.connected ? `D${component.pin}` : 'Click to connect'}
                         </div>
+                        ${component.connected && gameState.pinModes[component.pin] === 'PWM' ? `<div class="pwm-value">PWM: ${dutyCycle}%</div>` : ''}
                     `;
                 } else if (component.type === 'MOTOR') {
                     const pwmValue = component.connected ? gameState.pwmValues[component.pin] : 0;
@@ -1431,18 +1469,42 @@ void loop() {
                     if (componentBox) {
                         if (component.type === 'LED') {
                             const ledIcon = componentBox.querySelector('.led-icon');
+                            const pwmDisplay = componentBox.querySelector('.pwm-value');
                             if (ledIcon) {
                                 console.log(`Found LED icon for component ${component.id}`);
+                                
+                                // Remove all brightness classes
+                                ledIcon.classList.remove('on', 'pwm-brightness');
+                                
                                 if (gameState.pins[component.pin]) {
-                                    ledIcon.classList.add('on');
-                                    // Add a more dramatic visual effect
-                                    ledIcon.style.transform = 'scale(1.2)';
-                                    ledIcon.style.filter = 'brightness(1.5)';
-                                    console.log(`LED ${component.id} turned ON`);
+                                    if (gameState.pinModes[component.pin] === 'PWM') {
+                                        // PWM mode - brightness based on duty cycle
+                                        const dutyCycle = gameState.dutyCycles[component.pin];
+                                        const brightness = Math.max(0.3, dutyCycle / 100);
+                                        ledIcon.classList.add('pwm-brightness');
+                                        ledIcon.style.filter = `brightness(${brightness})`;
+                                        ledIcon.style.opacity = brightness;
+                                        ledIcon.style.transform = 'scale(1)';
+                                        
+                                        // Update PWM display
+                                        if (pwmDisplay) {
+                                            pwmDisplay.textContent = `PWM: ${dutyCycle}%`;
+                                        }
+                                        
+                                        console.log(`LED ${component.id} PWM brightness: ${dutyCycle}%`);
+                                    } else {
+                                        // Digital mode - full brightness
+                                        ledIcon.classList.add('on');
+                                        ledIcon.style.transform = 'scale(1.2)';
+                                        ledIcon.style.filter = 'brightness(1.5)';
+                                        ledIcon.style.opacity = '1';
+                                        console.log(`LED ${component.id} turned ON (digital)`);
+                                    }
                                 } else {
-                                    ledIcon.classList.remove('on');
+                                    // LED is off
                                     ledIcon.style.transform = 'scale(1)';
-                                    ledIcon.style.filter = 'brightness(1)';
+                                    ledIcon.style.filter = 'brightness(0.3)';
+                                    ledIcon.style.opacity = '0.3';
                                     console.log(`LED ${component.id} turned OFF`);
                                 }
                             } else {
