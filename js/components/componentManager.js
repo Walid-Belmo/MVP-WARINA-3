@@ -171,46 +171,14 @@ class ComponentManager {
 
     /**
      * Update connection lines between components and pins
+     * DISABLED: Connection lines are not needed
      */
     updateConnectionLines() {
+        // Connection lines are disabled - no visual lines will be drawn
         const connectionLines = document.getElementById('connectionLines');
-        if (!connectionLines) return;
-        
-        connectionLines.innerHTML = '';
-
-        this.gameState.components.forEach(component => {
-            if (component.connected) {
-                const line = document.createElement('div');
-                line.className = 'connection-line active';
-                line.id = `line_${component.id}`;
-                
-                // Calculate line position
-                const componentBox = document.querySelector(`[data-component-id="${component.id}"]`);
-                const pinElement = document.querySelector(`.pin-circle[data-pin="${component.pin}"]`);
-                
-                if (componentBox && pinElement) {
-                    const componentRect = componentBox.getBoundingClientRect();
-                    const pinRect = pinElement.getBoundingClientRect();
-                    const containerRect = document.querySelector('.left-panel').getBoundingClientRect();
-                    
-                    const startX = componentRect.left + componentRect.width / 2 - containerRect.left;
-                    const startY = componentRect.top - containerRect.top;
-                    const endX = pinRect.left + pinRect.width / 2 - containerRect.left;
-                    const endY = pinRect.top + pinRect.height / 2 - containerRect.top;
-                    
-                    const length = Math.sqrt(Math.pow(endX - startX, 2) + Math.pow(endY - startY, 2));
-                    const angle = Math.atan2(endY - startY, endX - startX) * 180 / Math.PI;
-                    
-                    line.style.left = startX + 'px';
-                    line.style.top = startY + 'px';
-                    line.style.width = length + 'px';
-                    line.style.transform = `rotate(${angle}deg)`;
-                    line.style.transformOrigin = '0 0';
-                }
-                
-                connectionLines.appendChild(line);
-            }
-        });
+        if (connectionLines) {
+            connectionLines.innerHTML = '';
+        }
     }
 
     /**
