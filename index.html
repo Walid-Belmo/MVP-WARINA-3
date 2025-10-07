@@ -358,7 +358,7 @@
 
         /* Left Panel - Microcontroller */
         .left-panel {
-            width: 60%;
+            width: 35%;
             padding: 20px;
             display: flex;
             flex-direction: column;
@@ -440,6 +440,19 @@
             background-color: #00D4FF;
             box-shadow: 0 0 25px rgba(0, 212, 255, 0.9);
             border-color: #0099FF;
+        }
+
+        .pin-circle.code-controlled {
+            animation: codePulse 1s infinite;
+        }
+
+        @keyframes codePulse {
+            0%, 100% { 
+                box-shadow: 0 0 25px rgba(0, 212, 255, 0.9);
+            }
+            50% { 
+                box-shadow: 0 0 35px rgba(0, 212, 255, 1), 0 0 50px rgba(0, 212, 255, 0.6);
+            }
         }
 
         .pin-circle:hover {
@@ -772,7 +785,7 @@
 
         /* Right Panel - Code Editor */
         .right-panel {
-            width: 40%;
+            width: 65%;
             padding: 20px;
             padding-right: 240px; /* Add space for the fixed timer panel */
             display: flex;
@@ -782,33 +795,222 @@
 
         .code-editor-container {
             background: linear-gradient(135deg, #1a2a3a, #2a3a4a);
-            border-radius: 12px;
-            padding: 20px;
+            border-radius: 16px;
+            padding: 25px;
             flex: 1;
             display: flex;
             flex-direction: column;
-            border: 1px solid #00D4FF;
-            box-shadow: 0 0 15px rgba(0, 212, 255, 0.2);
+            border: 2px solid #00D4FF;
+            box-shadow: 0 0 30px rgba(0, 212, 255, 0.4);
+            position: relative;
         }
+
+        .code-editor-wrapper {
+            position: relative;
+            flex: 1;
+            display: flex;
+        }
+
+        .code-editor-container::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, #00D4FF, #0099FF, #8B5CF6, #00D4FF);
+            border-radius: 16px;
+            z-index: -1;
+            opacity: 0.3;
+            animation: borderGlow 3s ease-in-out infinite;
+        }
+
+        @keyframes borderGlow {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.6; }
+        }
+
+        /* Editor Header */
+        .editor-header {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .editor-header h3 {
+            color: #00D4FF;
+            font-size: 24px;
+            font-weight: bold;
+            margin: 0 0 8px 0;
+            text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+        }
+
+        .editor-info {
+            color: #b0b0b0;
+            font-size: 14px;
+            font-style: italic;
+        }
+
 
         .code-editor {
             background: linear-gradient(135deg, #0a1a2a, #1a2a3a);
-            border: 1px solid #00D4FF;
-            border-radius: 8px;
-            padding: 15px;
+            border: 2px solid #00D4FF;
+            border-radius: 12px;
+            padding: 25px;
             font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
-            font-size: 12px;
-            line-height: 1.5;
+            font-size: 16px;
+            line-height: 1.8;
             color: #e0e0e0;
             resize: none;
             outline: none;
             flex: 1;
-            min-height: 200px;
+            min-height: 500px;
+            width: 100%;
+            tab-size: 2;
+            white-space: pre;
+            overflow-wrap: normal;
+            overflow-x: auto;
+            box-shadow: 0 0 25px rgba(0, 212, 255, 0.3);
         }
 
         .code-editor:focus {
             border-color: #00D4FF;
             box-shadow: 0 0 15px rgba(0, 212, 255, 0.4);
+        }
+
+        /* Syntax highlighting styles */
+        .code-editor .keyword {
+            color: #FF6B35;
+            font-weight: bold;
+        }
+
+        .code-editor .function {
+            color: #00D4FF;
+            font-weight: bold;
+        }
+
+        .code-editor .number {
+            color: #FFD700;
+        }
+
+        .code-editor .string {
+            color: #8B5CF6;
+        }
+
+        .code-editor .comment {
+            color: #6B7280;
+            font-style: italic;
+        }
+
+        .code-editor .pin-number {
+            color: #FFD700;
+            font-weight: bold;
+        }
+
+        /* Line numbers */
+        .line-numbers {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 50px;
+            background: rgba(0, 0, 0, 0.3);
+            border-right: 1px solid #444;
+            padding: 25px 8px 25px 8px;
+            font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+            font-size: 16px;
+            line-height: 1.8;
+            color: #6B7280;
+            text-align: right;
+            user-select: none;
+            pointer-events: none;
+            z-index: 1;
+            border-radius: 8px 0 0 8px;
+            overflow: hidden;
+            white-space: pre;
+        }
+
+        .code-editor-with-lines {
+            padding-left: 60px;
+            padding-top: 25px;
+            padding-bottom: 25px;
+            padding-right: 25px;
+        }
+
+        /* Code completion dropdown */
+        .code-completion {
+            position: absolute;
+            background: #1a2a3a;
+            border: 1px solid #00D4FF;
+            border-radius: 4px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .completion-item {
+            padding: 8px 12px;
+            cursor: pointer;
+            border-bottom: 1px solid #333;
+            color: #e0e0e0;
+        }
+
+        .completion-item:hover,
+        .completion-item.selected {
+            background: #00D4FF;
+            color: #000;
+        }
+
+        .completion-item .function-name {
+            font-weight: bold;
+            color: inherit;
+        }
+
+        .completion-item .function-desc {
+            font-size: 12px;
+            color: #999;
+            margin-left: 8px;
+        }
+
+        /* Code editor status bar */
+        .editor-status {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 20px;
+            background: linear-gradient(90deg, rgba(0, 0, 0, 0.4), rgba(0, 212, 255, 0.1));
+            border-top: 1px solid #00D4FF;
+            font-size: 14px;
+            color: #e0e0e0;
+            border-radius: 0 0 12px 12px;
+            margin-top: 10px;
+        }
+
+        .cursor-position {
+            font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+        }
+
+        /* Auto-indentation helper */
+        .code-editor.auto-indent {
+            position: relative;
+        }
+
+        /* Better focus styling */
+        .code-editor:focus {
+            border-color: #00D4FF;
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.4);
+            outline: none;
+        }
+
+        /* Selection styling */
+        .code-editor::selection {
+            background: rgba(0, 212, 255, 0.3);
+        }
+
+        /* Placeholder styling */
+        .code-editor::placeholder {
+            color: #6B7280;
+            font-style: italic;
         }
 
         /* Right Panel Buttons */
@@ -849,7 +1051,54 @@
             box-shadow: 0 6px 25px rgba(255, 107, 53, 0.6);
         }
 
+        /* Code Execution Status */
+        .code-status {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            background: linear-gradient(135deg, #00D4FF, #0099FF);
+            border: 2px solid #00D4FF;
+            border-radius: 10px;
+            padding: 10px 15px;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .code-status.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .code-status.running {
+            animation: statusPulse 1.5s infinite;
+        }
+
+        @keyframes statusPulse {
+            0%, 100% { 
+                box-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+            }
+            50% { 
+                box-shadow: 0 0 30px rgba(0, 212, 255, 0.8);
+            }
+        }
+
         /* Responsive Design */
+        @media (max-width: 1200px) {
+            .left-panel {
+                width: 40%;
+            }
+            
+            .right-panel {
+                width: 60%;
+            }
+        }
+
         @media (max-width: 768px) {
             .main-container {
                 flex-direction: column;
@@ -873,6 +1122,15 @@
             
             .right-buttons {
                 flex-wrap: wrap;
+            }
+
+            .code-editor {
+                min-height: 400px;
+                font-size: 14px;
+            }
+
+            .editor-header h3 {
+                font-size: 20px;
             }
         }
     </style>
@@ -916,6 +1174,11 @@
             <div class="timer-label">TIME</div>
         </div>
         <div class="timer">00:00</div>
+    </div>
+
+    <!-- Code Execution Status -->
+    <div class="code-status" id="codeStatus">
+        <div>⚡ Code Running...</div>
     </div>
 
     <!-- Main Container -->
@@ -1029,13 +1292,28 @@
         <!-- Right Panel - Code Editor -->
         <div class="right-panel">
             <div class="code-editor-container">
-                <textarea class="code-editor" placeholder="Write your Arduino code here...">void setup() {
-  
+                <div class="editor-header">
+                    <h3>💻 Arduino Code Editor</h3>
+                    <div class="editor-info">Write your code and watch it execute on the microcontroller!</div>
+                </div>
+                <div class="code-editor-wrapper">
+                    <div class="line-numbers" id="lineNumbers"></div>
+                    <textarea class="code-editor code-editor-with-lines" id="codeEditor" placeholder="Write your Arduino code here...">void setup() {
+  pinMode(13, OUTPUT);
 }
 
 void loop() {
-  
+  digitalWrite(13, HIGH);
+  delay(1000);
+  digitalWrite(13, LOW);
+  delay(1000);
 }</textarea>
+                </div>
+                <div class="code-completion" id="codeCompletion" style="display: none;"></div>
+                <div class="editor-status">
+                    <span>Arduino IDE</span>
+                    <span class="cursor-position" id="cursorPosition">Line 1, Column 1</span>
+                </div>
             </div>
 
             <!-- Right Panel Buttons -->
@@ -1258,11 +1536,17 @@ void loop() {
         }
 
         // Update Pin Visual State
-        function updatePinVisual(pin) {
+        function updatePinVisual(pin, isCodeControlled = false) {
             const pinElement = document.querySelector(`.pin-circle[data-pin="${pin}"]`);
             if (pinElement) {
+                console.log(`🎨 Updating visual for pin ${pin}:`, {
+                    state: gameState.pins[pin],
+                    mode: gameState.pinModes[pin],
+                    isCodeControlled: isCodeControlled
+                });
+                
                 // Remove all state classes and info
-                pinElement.classList.remove('active', 'pwm-mode');
+                pinElement.classList.remove('active', 'pwm-mode', 'code-controlled');
                 
                 // Remove existing PWM info
                 const existingInfo = pinElement.querySelector('.pwm-info');
@@ -1272,6 +1556,9 @@ void loop() {
                 
                 if (gameState.pins[pin]) {
                     pinElement.classList.add('active');
+                    console.log(`✅ Pin ${pin} is now ACTIVE`);
+                } else {
+                    console.log(`❌ Pin ${pin} is now INACTIVE`);
                 }
                 
                 if (gameState.pinModes[pin] === 'PWM') {
@@ -1282,7 +1569,17 @@ void loop() {
                     pwmInfo.className = 'pwm-info';
                     pwmInfo.textContent = `${gameState.dutyCycles[pin]}%`;
                     pinElement.appendChild(pwmInfo);
+                    
+                    console.log(`🔧 Pin ${pin} is in PWM mode: ${gameState.dutyCycles[pin]}%`);
                 }
+                
+                // Add code-controlled class if pin is being controlled by code
+                if (isCodeControlled && gameState.pins[pin]) {
+                    pinElement.classList.add('code-controlled');
+                    console.log(`⚡ Pin ${pin} is code-controlled`);
+                }
+            } else {
+                console.error(`❌ Pin element not found for pin ${pin}`);
             }
         }
 
@@ -1619,11 +1916,588 @@ void loop() {
             });
         }
 
+        // Arduino Code Parser and Executor
+        class ArduinoParser {
+            constructor() {
+                this.pinModes = {};
+                this.pinStates = {};
+                this.pwmValues = {};
+                this.variables = {};
+                this.functions = {
+                    pinMode: this.pinMode.bind(this),
+                    digitalWrite: this.digitalWrite.bind(this),
+                    digitalRead: this.digitalRead.bind(this),
+                    analogWrite: this.analogWrite.bind(this),
+                    analogRead: this.analogRead.bind(this),
+                    delay: this.delay.bind(this)
+                };
+            }
+
+            pinMode(pin, mode) {
+                const pinNum = parseInt(pin);
+                if (pinNum >= 8 && pinNum <= 13) {
+                    this.pinModes[pinNum] = mode.toUpperCase();
+                    console.log(`✅ Pin ${pinNum} set to ${mode} mode`);
+                    return true;
+                }
+                console.error(`❌ Pin ${pinNum} is not available (use pins 8-13)`);
+                return false;
+            }
+
+            digitalWrite(pin, value) {
+                const pinNum = parseInt(pin);
+                if (pinNum >= 8 && pinNum <= 13) {
+                    this.pinStates[pinNum] = value === 'HIGH' || value === 1 || value === true;
+                    console.log(`✅ Pin ${pinNum} set to ${this.pinStates[pinNum] ? 'HIGH' : 'LOW'}`);
+                    return true;
+                }
+                console.error(`❌ Pin ${pinNum} is not available (use pins 8-13)`);
+                return false;
+            }
+
+            digitalRead(pin) {
+                const pinNum = parseInt(pin);
+                if (pinNum >= 8 && pinNum <= 13) {
+                    return this.pinStates[pinNum] ? 'HIGH' : 'LOW';
+                }
+                return 'LOW';
+            }
+
+            analogWrite(pin, value) {
+                const pinNum = parseInt(pin);
+                if (pinNum >= 8 && pinNum <= 13) {
+                    this.pwmValues[pinNum] = Math.max(0, Math.min(255, parseInt(value)));
+                    this.pinStates[pinNum] = this.pwmValues[pinNum] > 0;
+                    console.log(`Pin ${pinNum} PWM set to ${this.pwmValues[pinNum]}`);
+                    return true;
+                }
+                return false;
+            }
+
+            analogRead(pin) {
+                const pinNum = parseInt(pin);
+                if (pinNum >= 8 && pinNum <= 13) {
+                    return this.pwmValues[pinNum] || 0;
+                }
+                return 0;
+            }
+
+            delay(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+
+            parseCode(code) {
+                try {
+                    // Validate basic syntax
+                    if (!code || code.trim().length === 0) {
+                        throw new Error('Code is empty');
+                    }
+                    
+                    // Clean up the code
+                    let cleanCode = code.replace(/\/\*[\s\S]*?\*\//g, ''); // Remove block comments
+                    cleanCode = cleanCode.replace(/\/\/.*$/gm, ''); // Remove line comments
+                    
+                    // Extract setup and loop functions
+                    const setupMatch = cleanCode.match(/void\s+setup\s*\(\s*\)\s*\{([\s\S]*?)\}/);
+                    const loopMatch = cleanCode.match(/void\s+loop\s*\(\s*\)\s*\{([\s\S]*?)\}/);
+                    
+                    if (!setupMatch && !loopMatch) {
+                        throw new Error('Missing both setup() and loop() functions. At least one is required.');
+                    }
+                    
+                    if (!setupMatch) {
+                        console.warn('No setup() function found, using empty setup');
+                    }
+                    
+                    if (!loopMatch) {
+                        console.warn('No loop() function found, using empty loop');
+                    }
+
+                    return {
+                        setup: setupMatch ? setupMatch[1].trim() : '',
+                        loop: loopMatch ? loopMatch[1].trim() : ''
+                    };
+                } catch (error) {
+                    console.error('Code parsing error:', error);
+                    throw error;
+                }
+            }
+
+            async executeSetup(setupCode) {
+                console.log('Executing setup...');
+                await this.executeCodeBlock(setupCode);
+            }
+
+            async executeLoop(loopCode) {
+                console.log('Executing loop...');
+                await this.executeCodeBlock(loopCode);
+            }
+
+            async executeCodeBlock(code) {
+                const lines = code.split('\n').filter(line => line.trim());
+                
+                for (const line of lines) {
+                    await this.executeLine(line.trim());
+                }
+            }
+
+            async executeLine(line) {
+                if (!line) return;
+
+                console.log(`Executing line: "${line}"`);
+
+                try {
+                    // Handle pinMode calls
+                    const pinModeMatch = line.match(/pinMode\s*\(\s*(\d+)\s*,\s*(INPUT|OUTPUT)\s*\)/i);
+                    if (pinModeMatch) {
+                        const pin = parseInt(pinModeMatch[1]);
+                        const mode = pinModeMatch[2].toUpperCase();
+                        
+                        console.log(`Found pinMode: pin=${pin}, mode=${mode}`);
+                        
+                        if (pin < 8 || pin > 13) {
+                            throw new Error(`Pin ${pin} is not available. Use pins 8-13.`);
+                        }
+                        
+                        this.pinMode(pin, mode);
+                        return;
+                    }
+
+                    // Handle digitalWrite calls
+                    const digitalWriteMatch = line.match(/digitalWrite\s*\(\s*(\d+)\s*,\s*(HIGH|LOW)\s*\)/i);
+                    if (digitalWriteMatch) {
+                        const pin = parseInt(digitalWriteMatch[1]);
+                        const value = digitalWriteMatch[2].toUpperCase();
+                        
+                        console.log(`Found digitalWrite: pin=${pin}, value=${value}`);
+                        
+                        if (pin < 8 || pin > 13) {
+                            throw new Error(`Pin ${pin} is not available. Use pins 8-13.`);
+                        }
+                        
+                        this.digitalWrite(pin, value);
+                        return;
+                    }
+
+                    // Handle analogWrite calls
+                    const analogWriteMatch = line.match(/analogWrite\s*\(\s*(\d+)\s*,\s*(\d+)\s*\)/i);
+                    if (analogWriteMatch) {
+                        const pin = parseInt(analogWriteMatch[1]);
+                        const value = parseInt(analogWriteMatch[2]);
+                        
+                        console.log(`Found analogWrite: pin=${pin}, value=${value}`);
+                        
+                        if (pin < 8 || pin > 13) {
+                            throw new Error(`Pin ${pin} is not available. Use pins 8-13.`);
+                        }
+                        
+                        if (value < 0 || value > 255) {
+                            throw new Error(`PWM value ${value} is invalid. Use values 0-255.`);
+                        }
+                        
+                        this.analogWrite(pin, value);
+                        return;
+                    }
+
+                    // Handle delay calls
+                    const delayMatch = line.match(/delay\s*\(\s*(\d+)\s*\)/i);
+                    if (delayMatch) {
+                        const ms = parseInt(delayMatch[1]);
+                        
+                        console.log(`Found delay: ${ms}ms`);
+                        
+                        if (ms < 0 || ms > 10000) {
+                            throw new Error(`Delay value ${ms} is invalid. Use values 0-10000ms.`);
+                        }
+                        
+                        await this.delay(ms);
+                        return;
+                    }
+
+                    // Handle empty lines or comments (already filtered out)
+                    if (line.trim() === '' || line.trim().startsWith('//')) {
+                        console.log(`Skipping empty/comment line: "${line}"`);
+                        return;
+                    }
+
+                    // If we get here, it's an unrecognized command
+                    console.warn('Unrecognized line:', line);
+                    
+                } catch (error) {
+                    console.error(`Error executing line "${line}":`, error.message);
+                    throw error;
+                }
+            }
+
+            getPinState(pin) {
+                return {
+                    mode: this.pinModes[pin] || 'INPUT',
+                    state: this.pinStates[pin] || false,
+                    pwm: this.pwmValues[pin] || 0
+                };
+            }
+
+            reset() {
+                this.pinModes = {};
+                this.pinStates = {};
+                this.pwmValues = {};
+                this.variables = {};
+            }
+        }
+
+        // Global Arduino parser instance
+        const arduinoParser = new ArduinoParser();
+
+        // Enhanced Code Editor
+        class ArduinoCodeEditor {
+            constructor() {
+                this.editor = document.getElementById('codeEditor');
+                this.lineNumbers = document.getElementById('lineNumbers');
+                this.completion = document.getElementById('codeCompletion');
+                this.cursorPosition = document.getElementById('cursorPosition');
+                this.completionItems = [];
+                this.selectedCompletionIndex = -1;
+                
+                // Arduino function completions
+                this.arduinoFunctions = [
+                    { name: 'pinMode', desc: '(pin, mode) - Set pin as INPUT or OUTPUT' },
+                    { name: 'digitalWrite', desc: '(pin, value) - Write HIGH or LOW to pin' },
+                    { name: 'digitalRead', desc: '(pin) - Read HIGH or LOW from pin' },
+                    { name: 'analogWrite', desc: '(pin, value) - Write PWM value (0-255)' },
+                    { name: 'analogRead', desc: '(pin) - Read analog value (0-1023)' },
+                    { name: 'delay', desc: '(ms) - Wait for milliseconds' },
+                    { name: 'millis', desc: '() - Get milliseconds since start' },
+                    { name: 'setup', desc: '() - Initialize code (runs once)' },
+                    { name: 'loop', desc: '() - Main code (runs repeatedly)' }
+                ];
+                
+                this.arduinoKeywords = [
+                    'void', 'int', 'float', 'bool', 'char', 'byte', 'word', 'long', 'unsigned',
+                    'const', 'static', 'volatile', 'if', 'else', 'for', 'while', 'do', 'switch',
+                    'case', 'break', 'continue', 'return', 'true', 'false', 'HIGH', 'LOW',
+                    'INPUT', 'OUTPUT', 'INPUT_PULLUP'
+                ];
+                
+                this.init();
+            }
+            
+            init() {
+                this.updateLineNumbers();
+                this.setupEventListeners();
+                this.applySyntaxHighlighting();
+            }
+            
+            setupEventListeners() {
+                this.editor.addEventListener('input', () => {
+                    this.updateLineNumbers();
+                    this.updateCursorPosition();
+                    this.applySyntaxHighlighting();
+                });
+                
+                this.editor.addEventListener('scroll', () => {
+                    this.lineNumbers.scrollTop = this.editor.scrollTop;
+                });
+                
+                this.editor.addEventListener('keydown', (e) => {
+                    this.handleKeyDown(e);
+                });
+                
+                this.editor.addEventListener('keyup', (e) => {
+                    this.handleKeyUp(e);
+                });
+                
+                this.editor.addEventListener('click', () => {
+                    this.updateCursorPosition();
+                });
+                
+                this.editor.addEventListener('keyup', () => {
+                    this.updateCursorPosition();
+                });
+            }
+            
+            updateLineNumbers() {
+                const lines = this.editor.value.split('\n');
+                const lineNumbersHTML = lines.map((_, index) => index + 1).join('\n');
+                this.lineNumbers.textContent = lineNumbersHTML;
+            }
+            
+            updateCursorPosition() {
+                const cursorPos = this.editor.selectionStart;
+                const textBeforeCursor = this.editor.value.substring(0, cursorPos);
+                const lines = textBeforeCursor.split('\n');
+                const currentLine = lines.length;
+                const currentColumn = lines[lines.length - 1].length + 1;
+                
+                this.cursorPosition.textContent = `Line ${currentLine}, Column ${currentColumn}`;
+            }
+            
+            applySyntaxHighlighting() {
+                // This is a simplified syntax highlighting
+                // In a real implementation, you'd want to use a proper syntax highlighter
+                const code = this.editor.value;
+                
+                // For now, we'll just ensure the text is properly formatted
+                // The actual highlighting would require a more complex implementation
+                // that replaces the textarea with a contentEditable div or uses a library
+            }
+            
+            handleKeyDown(e) {
+                if (this.completion.style.display === 'block') {
+                    switch(e.key) {
+                        case 'ArrowDown':
+                            e.preventDefault();
+                            this.selectedCompletionIndex = Math.min(
+                                this.selectedCompletionIndex + 1, 
+                                this.completionItems.length - 1
+                            );
+                            this.updateCompletionSelection();
+                            break;
+                        case 'ArrowUp':
+                            e.preventDefault();
+                            this.selectedCompletionIndex = Math.max(
+                                this.selectedCompletionIndex - 1, 
+                                -1
+                            );
+                            this.updateCompletionSelection();
+                            break;
+                        case 'Enter':
+                            e.preventDefault();
+                            this.acceptCompletion();
+                            break;
+                        case 'Escape':
+                            this.hideCompletion();
+                            break;
+                    }
+                }
+                
+                // Handle Tab for indentation
+                if (e.key === 'Tab') {
+                    e.preventDefault();
+                    this.insertText('  '); // Insert 2 spaces for indentation
+                }
+                
+                // Handle Enter for auto-indentation
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    this.handleEnterKey();
+                }
+            }
+            
+            handleKeyUp(e) {
+                // Show completion on certain triggers
+                if (e.key === '.' || e.key === '(' || e.key === ' ') {
+                    this.showCompletion();
+                }
+            }
+            
+            insertText(text) {
+                const start = this.editor.selectionStart;
+                const end = this.editor.selectionEnd;
+                const value = this.editor.value;
+                
+                this.editor.value = value.substring(0, start) + text + value.substring(end);
+                this.editor.selectionStart = this.editor.selectionEnd = start + text.length;
+                this.updateLineNumbers();
+                this.updateCursorPosition();
+            }
+            
+            handleEnterKey() {
+                const cursorPos = this.editor.selectionStart;
+                const textBeforeCursor = this.editor.value.substring(0, cursorPos);
+                const lines = textBeforeCursor.split('\n');
+                const currentLine = lines[lines.length - 1];
+                
+                // Calculate indentation based on current line
+                let indent = '';
+                const match = currentLine.match(/^(\s*)/);
+                if (match) {
+                    indent = match[1];
+                }
+                
+                // Add extra indentation for opening braces
+                if (currentLine.includes('{')) {
+                    indent += '  ';
+                }
+                
+                // Insert newline with proper indentation
+                this.insertText('\n' + indent);
+            }
+            
+            showCompletion() {
+                const cursorPos = this.editor.selectionStart;
+                const textBeforeCursor = this.editor.value.substring(0, cursorPos);
+                const wordMatch = textBeforeCursor.match(/\w+$/);
+                
+                if (!wordMatch) {
+                    this.hideCompletion();
+                    return;
+                }
+                
+                const currentWord = wordMatch[0].toLowerCase();
+                this.completionItems = this.arduinoFunctions.filter(func => 
+                    func.name.toLowerCase().startsWith(currentWord)
+                );
+                
+                if (this.completionItems.length > 0) {
+                    this.renderCompletion();
+                    this.selectedCompletionIndex = 0;
+                    this.updateCompletionSelection();
+                } else {
+                    this.hideCompletion();
+                }
+            }
+            
+            renderCompletion() {
+                this.completion.innerHTML = '';
+                this.completionItems.forEach((item, index) => {
+                    const div = document.createElement('div');
+                    div.className = 'completion-item';
+                    div.innerHTML = `
+                        <span class="function-name">${item.name}</span>
+                        <span class="function-desc">${item.desc}</span>
+                    `;
+                    div.addEventListener('click', () => {
+                        this.selectedCompletionIndex = index;
+                        this.acceptCompletion();
+                    });
+                    this.completion.appendChild(div);
+                });
+                
+                // Position the completion dropdown
+                const rect = this.editor.getBoundingClientRect();
+                this.completion.style.left = '15px';
+                this.completion.style.top = '200px'; // Approximate position
+                this.completion.style.display = 'block';
+            }
+            
+            updateCompletionSelection() {
+                const items = this.completion.querySelectorAll('.completion-item');
+                items.forEach((item, index) => {
+                    item.classList.toggle('selected', index === this.selectedCompletionIndex);
+                });
+            }
+            
+            acceptCompletion() {
+                if (this.selectedCompletionIndex >= 0 && this.selectedCompletionIndex < this.completionItems.length) {
+                    const selectedItem = this.completionItems[this.selectedCompletionIndex];
+                    const cursorPos = this.editor.selectionStart;
+                    const textBeforeCursor = this.editor.value.substring(0, cursorPos);
+                    const wordMatch = textBeforeCursor.match(/\w+$/);
+                    
+                    if (wordMatch) {
+                        const start = cursorPos - wordMatch[0].length;
+                        const end = cursorPos;
+                        const value = this.editor.value;
+                        
+                        this.editor.value = value.substring(0, start) + selectedItem.name + value.substring(end);
+                        this.editor.selectionStart = this.editor.selectionEnd = start + selectedItem.name.length;
+                        this.updateLineNumbers();
+                    }
+                }
+                this.hideCompletion();
+            }
+            
+            hideCompletion() {
+                this.completion.style.display = 'none';
+                this.selectedCompletionIndex = -1;
+            }
+            
+            getValue() {
+                return this.editor.value;
+            }
+            
+            setValue(value) {
+                this.editor.value = value;
+                this.updateLineNumbers();
+                this.updateCursorPosition();
+                this.applySyntaxHighlighting();
+            }
+        }
+
+        // Initialize the enhanced code editor
+        const codeEditor = new ArduinoCodeEditor();
+
+        // Test function to verify pins are working
+        function testPins() {
+            console.log('🧪 Testing pin functionality...');
+            
+            // Test pin 13
+            console.log('Testing pin 13...');
+            gameState.pins[13] = true;
+            updatePinVisual(13);
+            
+            setTimeout(() => {
+                gameState.pins[13] = false;
+                updatePinVisual(13);
+                console.log('Pin 13 test completed');
+            }, 2000);
+        }
+
+        // Code status management
+        function showCodeStatus(message = '⚡ Code Running...') {
+            const status = document.getElementById('codeStatus');
+            if (status) {
+                status.innerHTML = `<div>${message}</div>`;
+                status.classList.add('show', 'running');
+            }
+        }
+
+        function hideCodeStatus() {
+            const status = document.getElementById('codeStatus');
+            if (status) {
+                status.classList.remove('show', 'running');
+            }
+        }
+
+        // Function to update visual pins based on parser state
+        function updateVisualPinsFromParser() {
+            console.log('🔄 Updating visual pins from parser...');
+            
+            for (let pin = 8; pin <= 13; pin++) {
+                const pinState = arduinoParser.getPinState(pin);
+                
+                console.log(`Pin ${pin} state:`, pinState);
+                
+                // Update game state
+                gameState.pins[pin] = pinState.state;
+                
+                // Determine pin mode based on parser state
+                if (pinState.pwm > 0 && pinState.pwm < 255) {
+                    // PWM mode (analogWrite with value between 0-255)
+                    gameState.pinModes[pin] = 'PWM';
+                } else {
+                    // Digital mode (pinMode OUTPUT or digitalWrite HIGH/LOW)
+                    gameState.pinModes[pin] = pinState.mode === 'OUTPUT' ? 'DIGITAL' : 'DIGITAL';
+                }
+                
+                gameState.pwmValues[pin] = pinState.pwm;
+                gameState.dutyCycles[pin] = Math.round((pinState.pwm / 255) * 100);
+                
+                console.log(`Updated game state for pin ${pin}:`, {
+                    state: gameState.pins[pin],
+                    mode: gameState.pinModes[pin],
+                    pwm: gameState.pwmValues[pin],
+                    dutyCycle: gameState.dutyCycles[pin]
+                });
+                
+                // Update visual representation with code-controlled flag
+                updatePinVisual(pin, true);
+            }
+            
+            // Update component states
+            updateComponentStates();
+        }
+
         // Basic functionality for the Arduino learning game
         document.addEventListener('DOMContentLoaded', function() {
             // Initialize the game
             console.log('Arduino Learning Game initialized');
             initializePins();
+            
+            // Test pins after a short delay
+            setTimeout(() => {
+                testPins();
+            }, 1000);
             
             // Start dynamic background effects
             startParticleSystem();
@@ -1745,24 +2619,94 @@ void loop() {
             });
             
             // Run Code button
-            runCodeBtn.addEventListener('click', function() {
-                const codeEditor = document.querySelector('.code-editor');
-                const code = codeEditor.value;
+            runCodeBtn.addEventListener('click', async function() {
+                const code = codeEditor.getValue();
                 console.log('Running code:', code);
-                // TODO: Implement code execution
+                
+                try {
+                    // Show status
+                    showCodeStatus('⚡ Parsing Code...');
+                    
+                    // Reset parser state
+                    arduinoParser.reset();
+                    
+                    // Parse the code
+                    const parsedCode = arduinoParser.parseCode(code);
+                    console.log('Parsed code:', parsedCode);
+                    
+                    // Show setup execution status
+                    showCodeStatus('⚡ Executing Setup...');
+                    
+                    // Execute setup once
+                    await arduinoParser.executeSetup(parsedCode.setup);
+                    
+                    // Update visual pins based on setup
+                    updateVisualPinsFromParser();
+                    
+                    // Show loop execution status
+                    showCodeStatus('⚡ Running Loop...');
+                    
+                    // Execute loop continuously (with a reasonable limit)
+                    let loopCount = 0;
+                    const maxLoops = 100; // Prevent infinite loops
+                    
+                    const loopInterval = setInterval(async () => {
+                        if (loopCount >= maxLoops) {
+                            clearInterval(loopInterval);
+                            hideCodeStatus();
+                            console.log('Loop execution stopped (max iterations reached)');
+                            return;
+                        }
+                        
+                        try {
+                            await arduinoParser.executeLoop(parsedCode.loop);
+                            updateVisualPinsFromParser();
+                            loopCount++;
+                            
+                            // Update status with loop count
+                            showCodeStatus(`⚡ Loop ${loopCount}/${maxLoops}`);
+                        } catch (error) {
+                            console.error('Loop execution error:', error);
+                            clearInterval(loopInterval);
+                            hideCodeStatus();
+                        }
+                    }, 100); // Run loop every 100ms
+                    
+                    // Store interval ID for potential stopping
+                    window.currentLoopInterval = loopInterval;
+                    
+                } catch (error) {
+                    console.error('Code execution error:', error);
+                    hideCodeStatus();
+                    alert('Code execution error: ' + error.message);
+                }
             });
             
             // Reset button
             resetBtn.addEventListener('click', function() {
-                const codeEditor = document.querySelector('.code-editor');
-                codeEditor.value = `void setup() {
+                // Stop any running loops
+                if (window.currentLoopInterval) {
+                    clearInterval(window.currentLoopInterval);
+                    window.currentLoopInterval = null;
+                    console.log('Stopped running loop');
+                }
+                
+                // Hide code status
+                hideCodeStatus();
+                
+                // Reset code editor
+                codeEditor.setValue(`void setup() {
   
 }
 
 void loop() {
   
-}`;
+}`);
                 console.log('Code editor reset');
+                
+                // Reset Arduino parser
+                arduinoParser.reset();
+                
                 // Reset all pins to OFF
                 Object.keys(gameState.pins).forEach(pin => {
                     gameState.pins[pin] = false;
@@ -1771,9 +2715,11 @@ void loop() {
                     gameState.dutyCycles[pin] = 0;
                     updatePinVisual(pin);
                 });
+                
                 // Reset PWM selection
                 gameState.selectedPwmPin = null;
                 updatePinSelection();
+                
                 // Reset components
                 gameState.components = [];
                 gameState.connections = {};
