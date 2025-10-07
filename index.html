@@ -61,54 +61,59 @@
         .microcontroller-container {
             background-color: #2a1f3d;
             border-radius: 12px;
-            padding: 20px;
+            padding: 30px;
             width: 100%;
-            max-width: 300px;
+            max-width: 400px;
             border: 2px solid #00d4ff;
             box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+            position: relative;
         }
 
         .microcontroller {
             background-color: #3a2f4d;
             border: 2px solid #00d4ff;
             border-radius: 8px;
-            padding: 30px 20px;
+            padding: 20px;
             text-align: center;
             position: relative;
             box-shadow: 0 0 15px rgba(0, 212, 255, 0.4);
+            width: 200px;
+            height: 180px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
 
         .microcontroller-text {
-            font-size: 24px;
+            font-size: 18px;
             font-weight: bold;
             color: #00d4ff;
-            margin-bottom: 20px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
         }
 
-        .pins-container {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 20px;
-        }
-
+        /* Left and Right Pins */
         .pins-left, .pins-right {
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 15px;
+            align-items: center;
         }
 
         .pin {
             display: flex;
+            flex-direction: column;
             align-items: center;
-            gap: 8px;
-            position: relative;
+            gap: 3px;
         }
 
         .pin-label {
-            font-size: 12px;
+            font-size: 8px;
             color: #b0b0b0;
-            min-width: 30px;
+            font-weight: bold;
         }
 
         .pin-circle {
@@ -118,51 +123,19 @@
             background-color: #666;
             border: 1px solid #888;
             transition: all 0.3s ease;
+            cursor: pointer;
         }
 
         .pin-circle.active {
             background-color: #00d4ff;
-            box-shadow: 0 0 8px rgba(0, 212, 255, 0.6);
+            box-shadow: 0 0 12px rgba(0, 212, 255, 0.8);
         }
 
-        /* LED Components */
-        .led-container {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            margin-left: 5px;
-        }
-
-        .led-connection {
-            width: 20px;
-            height: 2px;
-            background-color: #666;
-            border-radius: 1px;
-        }
-
-        .led-circle {
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            background-color: #666;
-            border: 2px solid #888;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 10px;
-        }
-
-        .led-circle.on {
-            background-color: #4ade80;
-            border-color: #22c55e;
-            box-shadow: 0 0 20px rgba(74, 222, 128, 0.8);
-        }
-
-        .led-circle:hover {
+        .pin-circle:hover {
             transform: scale(1.1);
         }
+
+
 
         /* Variables Section */
         .variables-section {
@@ -343,60 +316,47 @@
         <div class="left-panel">
             <!-- Microcontroller Visualization -->
             <div class="microcontroller-container">
+                <!-- Microcontroller -->
                 <div class="microcontroller">
                     <div class="microcontroller-text">µC</div>
-                    <div class="pins-container">
-                        <div class="pins-left">
-                            <div class="pin">
-                                <span class="pin-label">D13</span>
-                                <div class="pin-circle"></div>
-                                <div class="led-container">
-                                    <div class="led-connection"></div>
-                                    <div class="led-circle" data-pin="13">💡</div>
-                                </div>
-                            </div>
-                            <div class="pin">
-                                <span class="pin-label">D12</span>
-                                <div class="pin-circle"></div>
-                                <div class="led-container">
-                                    <div class="led-connection"></div>
-                                    <div class="led-circle" data-pin="12">💡</div>
-                                </div>
-                            </div>
-                            <div class="pin">
-                                <span class="pin-label">D11</span>
-                                <div class="pin-circle"></div>
-                                <div class="led-container">
-                                    <div class="led-connection"></div>
-                                    <div class="led-circle" data-pin="11">💡</div>
-                                </div>
-                            </div>
-                            <div class="pin">
-                                <span class="pin-label">GND</span>
-                                <div class="pin-circle"></div>
-                            </div>
+                    
+                    <!-- Left Pins -->
+                    <div class="pins-left">
+                        <div class="pin">
+                            <div class="pin-circle" data-pin="13"></div>
+                            <div class="pin-label">D13</div>
                         </div>
-                        <div class="pins-right">
-                            <div class="pin">
-                                <div class="led-container">
-                                    <div class="led-circle" data-pin="10">💡</div>
-                                    <div class="led-connection"></div>
-                                </div>
-                                <div class="pin-circle"></div>
-                                <span class="pin-label">D10</span>
-                            </div>
-                            <div class="pin">
-                                <div class="led-container">
-                                    <div class="led-circle" data-pin="9">💡</div>
-                                    <div class="led-connection"></div>
-                                </div>
-                                <div class="pin-circle"></div>
-                                <span class="pin-label">D9</span>
-                            </div>
-                            <div class="pin">
-                                <div class="pin-circle"></div>
-                                <span class="pin-label">5V</span>
-                            </div>
+                        <div class="pin">
+                            <div class="pin-circle" data-pin="12"></div>
+                            <div class="pin-label">D12</div>
+                        </div>
+                        <div class="pin">
+                            <div class="pin-circle" data-pin="11"></div>
+                            <div class="pin-label">D11</div>
+                        </div>
+                        <div class="pin">
+                            <div class="pin-circle"></div>
+                            <div class="pin-label">GND</div>
+                        </div>
+                    </div>
+
+                    <!-- Right Pins -->
+                    <div class="pins-right">
+                        <div class="pin">
+                            <div class="pin-circle" data-pin="10"></div>
+                            <div class="pin-label">D10</div>
+                        </div>
+                        <div class="pin">
+                            <div class="pin-circle" data-pin="9"></div>
+                            <div class="pin-label">D9</div>
+                        </div>
+                        <div class="pin">
+                            <div class="pin-circle" data-pin="8"></div>
+                            <div class="pin-label">D8</div>
+                        </div>
+                        <div class="pin">
+                            <div class="pin-circle"></div>
+                            <div class="pin-label">5V</div>
                         </div>
                     </div>
                 </div>
@@ -447,36 +407,37 @@ void loop() {
                 12: false,
                 11: false,
                 10: false,
-                9: false
+                9: false,
+                8: false
             },
             variables: []
         };
 
-        // LED Toggle Function
-        function toggleLED(pin) {
+        // Pin Toggle Function
+        function togglePin(pin) {
             if (gameState.pins.hasOwnProperty(pin)) {
                 gameState.pins[pin] = !gameState.pins[pin];
-                updateLEDVisual(pin);
-                console.log(`Pin ${pin} LED: ${gameState.pins[pin] ? 'ON' : 'OFF'}`);
+                updatePinVisual(pin);
+                console.log(`Pin D${pin}: ${gameState.pins[pin] ? 'ON' : 'OFF'}`);
             }
         }
 
-        // Update LED Visual State
-        function updateLEDVisual(pin) {
-            const ledElement = document.querySelector(`[data-pin="${pin}"]`);
-            if (ledElement) {
+        // Update Pin Visual State
+        function updatePinVisual(pin) {
+            const pinElement = document.querySelector(`.pin-circle[data-pin="${pin}"]`);
+            if (pinElement) {
                 if (gameState.pins[pin]) {
-                    ledElement.classList.add('on');
+                    pinElement.classList.add('active');
                 } else {
-                    ledElement.classList.remove('on');
+                    pinElement.classList.remove('active');
                 }
             }
         }
 
-        // Initialize all LEDs to OFF state
-        function initializeLEDs() {
+        // Initialize all pins to OFF state
+        function initializePins() {
             Object.keys(gameState.pins).forEach(pin => {
-                updateLEDVisual(pin);
+                updatePinVisual(pin);
             });
         }
 
@@ -484,14 +445,14 @@ void loop() {
         document.addEventListener('DOMContentLoaded', function() {
             // Initialize the game
             console.log('Arduino Learning Game initialized');
-            initializeLEDs();
+            initializePins();
             
-            // LED Click Event Listeners
-            const ledElements = document.querySelectorAll('.led-circle[data-pin]');
-            ledElements.forEach(led => {
-                led.addEventListener('click', function() {
-                    const pin = parseInt(this.getAttribute('data-pin'));
-                    toggleLED(pin);
+            // Pin Click Event Listeners
+            const pinElements = document.querySelectorAll('.pin-circle[data-pin]');
+            pinElements.forEach(pin => {
+                pin.addEventListener('click', function() {
+                    const pinNumber = parseInt(this.getAttribute('data-pin'));
+                    togglePin(pinNumber);
                 });
             });
             
@@ -533,10 +494,10 @@ void loop() {
   
 }`;
                 console.log('Code editor reset');
-                // Reset all LEDs to OFF
+                // Reset all pins to OFF
                 Object.keys(gameState.pins).forEach(pin => {
                     gameState.pins[pin] = false;
-                    updateLEDVisual(pin);
+                    updatePinVisual(pin);
                 });
             });
             
