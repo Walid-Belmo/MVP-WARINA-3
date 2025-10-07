@@ -1,0 +1,118 @@
+/* UI Components and Buttons */
+
+/* Variables Section */
+.variables-section {
+    background: linear-gradient(135deg, #1a2a3a, #2a3a4a);
+    border-radius: 12px;
+    padding: 15px;
+    width: 100%;
+    max-width: 300px;
+    border: 1px solid #00D4FF;
+    box-shadow: 0 0 15px rgba(0, 212, 255, 0.2);
+}
+
+.variables-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.variables-icon {
+    width: 16px;
+    height: 16px;
+    background: linear-gradient(45deg, #FF6B35, #FFD700);
+    border-radius: 3px;
+    box-shadow: 0 0 8px rgba(255, 107, 53, 0.5);
+}
+
+.variables-title {
+    color: #00D4FF;
+    font-size: 14px;
+    font-weight: bold;
+    text-shadow: 0 0 8px rgba(0, 212, 255, 0.5);
+}
+
+.variables-content {
+    color: #b0b0b0;
+    font-size: 12px;
+}
+
+/* Buttons */
+.btn {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: white;
+}
+
+.btn-play {
+    background: linear-gradient(90deg, #00D4FF, #0099FF, #8B5CF6);
+    box-shadow: 0 4px 15px rgba(0, 212, 255, 0.4);
+}
+
+.btn-play:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 25px rgba(0, 212, 255, 0.6);
+}
+
+.btn-replay {
+    background: linear-gradient(90deg, #4a5a6a, #6a7a8a);
+    box-shadow: 0 4px 15px rgba(74, 90, 106, 0.3);
+}
+
+.btn-replay:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(74, 90, 106, 0.5);
+}
+
+.btn-run {
+    background: linear-gradient(90deg, #00D4FF, #0099FF, #8B5CF6);
+    box-shadow: 0 4px 15px rgba(0, 212, 255, 0.4);
+}
+
+.btn-run:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 25px rgba(0, 212, 255, 0.6);
+}
+
+.btn-reset {
+    background: linear-gradient(90deg, #4a5a6a, #6a7a8a);
+    box-shadow: 0 4px 15px rgba(74, 90, 106, 0.3);
+}
+
+.btn-reset:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(74, 90, 106, 0.5);
+}
+
+.btn-hint {
+    background: linear-gradient(90deg, #FF6B35, #FFD700);
+    box-shadow: 0 4px 15px rgba(255, 107, 53, 0.4);
+}
+
+.btn-hint:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 25px rgba(255, 107, 53, 0.6);
+}
+
+/* Left Panel Buttons */
+.left-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+    max-width: 300px;
+}
+
+/* Right Panel Buttons */
+.right-buttons {
+    display: flex;
+    gap: 15px;
+    margin-top: 20px;
+    justify-content: center;
+}

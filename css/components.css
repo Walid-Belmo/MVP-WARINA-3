@@ -1,0 +1,204 @@
+/* Component Management Styles */
+
+/* Components Section */
+.components-section {
+    background: linear-gradient(135deg, #1a2a3a, #2a3a4a);
+    border-radius: 12px;
+    padding: 15px;
+    width: 100%;
+    max-width: 500px;
+    border: 1px solid #00D4FF;
+    box-shadow: 0 0 15px rgba(0, 212, 255, 0.2);
+    margin-bottom: 20px;
+}
+
+.components-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 15px;
+}
+
+.components-title {
+    color: #00D4FF;
+    font-size: 16px;
+    font-weight: bold;
+    text-shadow: 0 0 8px rgba(0, 212, 255, 0.5);
+}
+
+.add-component-btn {
+    background: linear-gradient(45deg, #00D4FF, #0099FF);
+    border: none;
+    border-radius: 6px;
+    padding: 8px 12px;
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 212, 255, 0.3);
+}
+
+.add-component-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 212, 255, 0.4);
+}
+
+.components-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.component-box {
+    background: linear-gradient(135deg, #2a3a4a, #3a4a5a);
+    border: 2px solid #4a5a6a;
+    border-radius: 8px;
+    padding: 12px;
+    text-align: center;
+    position: relative;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.component-box.connected {
+    border-color: #00D4FF;
+    box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
+}
+
+.component-box:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 212, 255, 0.2);
+}
+
+.component-icon {
+    width: 24px;
+    height: 24px;
+    margin: 0 auto 8px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+}
+
+.led-icon {
+    background: linear-gradient(45deg, #FF6B35, #FFD700);
+    box-shadow: 0 0 10px rgba(255, 107, 53, 0.5);
+    transition: all 0.3s ease;
+}
+
+.led-icon.on {
+    background: linear-gradient(45deg, #FFD700, #FF6B35);
+    box-shadow: 0 0 25px rgba(255, 215, 0, 1), 0 0 50px rgba(255, 107, 53, 0.6);
+    animation: ledBlink 0.8s infinite, ledPulse 2s infinite;
+    transform: scale(1.2);
+    filter: brightness(1.5);
+}
+
+.led-icon.pwm-brightness {
+    background: linear-gradient(45deg, #FFD700, #FF6B35);
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
+    transition: all 0.3s ease;
+    animation: ledBlink 0.8s infinite, ledPulse 2s infinite;
+    /* Brightness and opacity will be set dynamically via JavaScript */
+}
+
+@keyframes ledBlink {
+    0%, 100% { 
+        opacity: 1; 
+        box-shadow: 0 0 25px rgba(255, 215, 0, 1), 0 0 50px rgba(255, 107, 53, 0.6);
+    }
+    50% { 
+        opacity: 0.7; 
+        box-shadow: 0 0 15px rgba(255, 215, 0, 0.8), 0 0 30px rgba(255, 107, 53, 0.4);
+    }
+}
+
+@keyframes ledPulse {
+    0%, 100% { 
+        transform: scale(1.2);
+    }
+    50% { 
+        transform: scale(1.3);
+    }
+}
+
+/* Motor Icon Styles */
+.motor-icon {
+    background: linear-gradient(45deg, #8B5CF6, #A855F7);
+    box-shadow: 0 0 10px rgba(139, 92, 246, 0.5);
+    transition: all 0.3s ease;
+    border-radius: 50%;
+}
+
+.motor-icon.slow {
+    animation: motorRotate 0.8s linear infinite;
+    box-shadow: 0 0 15px rgba(139, 92, 246, 0.7);
+}
+
+.motor-icon.medium {
+    animation: motorRotate 0.4s linear infinite;
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.8);
+}
+
+.motor-icon.fast {
+    animation: motorRotate 0.2s linear infinite;
+    box-shadow: 0 0 25px rgba(139, 92, 246, 1);
+}
+
+@keyframes motorRotate {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.pwm-value {
+    color: #8B5CF6;
+    font-size: 9px;
+    font-weight: bold;
+    margin-top: 2px;
+    text-shadow: 0 0 5px rgba(139, 92, 246, 0.5);
+}
+
+.component-name {
+    color: #e0e0e0;
+    font-size: 11px;
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+
+.component-pin {
+    color: #00D4FF;
+    font-size: 10px;
+    font-weight: bold;
+}
+
+.component-pin.connected {
+    color: #FFD700;
+    text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+}
+
+/* Connection Lines */
+.connection-lines {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.connection-line {
+    position: absolute;
+    background: linear-gradient(90deg, #00D4FF, #0099FF);
+    height: 2px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    box-shadow: 0 0 8px rgba(0, 212, 255, 0.5);
+}
+
+.connection-line.active {
+    opacity: 1;
+}

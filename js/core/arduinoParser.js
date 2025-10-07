@@ -1,0 +1,290 @@
+/**
+ * Arduino Code Parser and Executor
+ * Handles parsing and execution of Arduino-style code
+ */
+
+class ArduinoParser {
+    constructor() {
+        this.pinModes = {};
+        this.pinStates = {};
+        this.pwmValues = {};
+        this.variables = {};
+        this.functions = {
+            pinMode: this.pinMode.bind(this),
+            digitalWrite: this.digitalWrite.bind(this),
+            digitalRead: this.digitalRead.bind(this),
+            analogWrite: this.analogWrite.bind(this),
+            analogRead: this.analogRead.bind(this),
+            delay: this.delay.bind(this)
+        };
+    }
+
+    /**
+     * Set pin mode (INPUT or OUTPUT)
+     */
+    pinMode(pin, mode) {
+        const pinNum = parseInt(pin);
+        if (pinNum >= 8 && pinNum <= 13) {
+            this.pinModes[pinNum] = mode.toUpperCase();
+            console.log(`✅ Pin ${pinNum} set to ${mode} mode`);
+            return true;
+        }
+        console.error(`❌ Pin ${pinNum} is not available (use pins 8-13)`);
+        return false;
+    }
+
+    /**
+     * Write digital value to pin
+     */
+    digitalWrite(pin, value) {
+        const pinNum = parseInt(pin);
+        if (pinNum >= 8 && pinNum <= 13) {
+            this.pinStates[pinNum] = value === 'HIGH' || value === 1 || value === true;
+            console.log(`✅ Pin ${pinNum} set to ${this.pinStates[pinNum] ? 'HIGH' : 'LOW'}`);
+            return true;
+        }
+        console.error(`❌ Pin ${pinNum} is not available (use pins 8-13)`);
+        return false;
+    }
+
+    /**
+     * Read digital value from pin
+     */
+    digitalRead(pin) {
+        const pinNum = parseInt(pin);
+        if (pinNum >= 8 && pinNum <= 13) {
+            return this.pinStates[pinNum] ? 'HIGH' : 'LOW';
+        }
+        return 'LOW';
+    }
+
+    /**
+     * Write PWM value to pin
+     */
+    analogWrite(pin, value) {
+        const pinNum = parseInt(pin);
+        if (pinNum >= 8 && pinNum <= 13) {
+            this.pwmValues[pinNum] = Math.max(0, Math.min(255, parseInt(value)));
+            this.pinStates[pinNum] = this.pwmValues[pinNum] > 0;
+            console.log(`Pin ${pinNum} PWM set to ${this.pwmValues[pinNum]}`);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Read analog value from pin
+     */
+    analogRead(pin) {
+        const pinNum = parseInt(pin);
+        if (pinNum >= 8 && pinNum <= 13) {
+            return this.pwmValues[pinNum] || 0;
+        }
+        return 0;
+    }
+
+    /**
+     * Delay execution
+     */
+    delay(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    /**
+     * Parse Arduino code into setup and loop functions
+     */
+    parseCode(code) {
+        try {
+            // Validate basic syntax
+            if (!code || code.trim().length === 0) {
+                throw new Error('Code is empty');
+            }
+            
+            // Clean up the code
+            let cleanCode = code.replace(/\/\*[\s\S]*?\*\//g, ''); // Remove block comments
+            cleanCode = cleanCode.replace(/\/\/.*$/gm, ''); // Remove line comments
+            
+            // Extract setup and loop functions
+            const setupMatch = cleanCode.match(/void\s+setup\s*\(\s*\)\s*\{([\s\S]*?)\}/);
+            const loopMatch = cleanCode.match(/void\s+loop\s*\(\s*\)\s*\{([\s\S]*?)\}/);
+            
+            if (!setupMatch && !loopMatch) {
+                throw new Error('Missing both setup() and loop() functions. At least one is required.');
+            }
+            
+            if (!setupMatch) {
+                console.warn('No setup() function found, using empty setup');
+            }
+            
+            if (!loopMatch) {
+                console.warn('No loop() function found, using empty loop');
+            }
+
+            return {
+                setup: setupMatch ? setupMatch[1].trim() : '',
+                loop: loopMatch ? loopMatch[1].trim() : ''
+            };
+        } catch (error) {
+            console.error('Code parsing error:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Execute setup code
+     */
+    async executeSetup(setupCode) {
+        console.log('Executing setup...');
+        await this.executeCodeBlock(setupCode);
+    }
+
+    /**
+     * Execute loop code
+     */
+    async executeLoop(loopCode) {
+        console.log('Executing loop...');
+        await this.executeCodeBlock(loopCode);
+    }
+
+    /**
+     * Execute a block of code
+     */
+    async executeCodeBlock(code) {
+        const lines = code.split('\n').filter(line => line.trim());
+        
+        for (const line of lines) {
+            await this.executeLine(line.trim());
+        }
+    }
+
+    /**
+     * Execute a single line of code
+     */
+    async executeLine(line) {
+        if (!line) return;
+
+        console.log(`Executing line: "${line}"`);
+
+        try {
+            // Handle pinMode calls
+            const pinModeMatch = line.match(/pinMode\s*\(\s*(\d+)\s*,\s*(INPUT|OUTPUT)\s*\)/i);
+            if (pinModeMatch) {
+                const pin = parseInt(pinModeMatch[1]);
+                const mode = pinModeMatch[2].toUpperCase();
+                
+                console.log(`Found pinMode: pin=${pin}, mode=${mode}`);
+                
+                if (pin < 8 || pin > 13) {
+                    throw new Error(`Pin ${pin} is not available. Use pins 8-13.`);
+                }
+                
+                this.pinMode(pin, mode);
+                return;
+            }
+
+            // Handle digitalWrite calls
+            const digitalWriteMatch = line.match(/digitalWrite\s*\(\s*(\d+)\s*,\s*(HIGH|LOW)\s*\)/i);
+            if (digitalWriteMatch) {
+                const pin = parseInt(digitalWriteMatch[1]);
+                const value = digitalWriteMatch[2].toUpperCase();
+                
+                console.log(`Found digitalWrite: pin=${pin}, value=${value}`);
+                
+                if (pin < 8 || pin > 13) {
+                    throw new Error(`Pin ${pin} is not available. Use pins 8-13.`);
+                }
+                
+                this.digitalWrite(pin, value);
+                return;
+            }
+
+            // Handle analogWrite calls
+            const analogWriteMatch = line.match(/analogWrite\s*\(\s*(\d+)\s*,\s*(\d+)\s*\)/i);
+            if (analogWriteMatch) {
+                const pin = parseInt(analogWriteMatch[1]);
+                const value = parseInt(analogWriteMatch[2]);
+                
+                console.log(`Found analogWrite: pin=${pin}, value=${value}`);
+                
+                if (pin < 8 || pin > 13) {
+                    throw new Error(`Pin ${pin} is not available. Use pins 8-13.`);
+                }
+                
+                if (value < 0 || value > 255) {
+                    throw new Error(`PWM value ${value} is invalid. Use values 0-255.`);
+                }
+                
+                this.analogWrite(pin, value);
+                return;
+            }
+
+            // Handle delay calls
+            const delayMatch = line.match(/delay\s*\(\s*(\d+)\s*\)/i);
+            if (delayMatch) {
+                const ms = parseInt(delayMatch[1]);
+                
+                console.log(`Found delay: ${ms}ms`);
+                
+                if (ms < 0 || ms > 10000) {
+                    throw new Error(`Delay value ${ms} is invalid. Use values 0-10000ms.`);
+                }
+                
+                await this.delay(ms);
+                return;
+            }
+
+            // Handle empty lines or comments (already filtered out)
+            if (line.trim() === '' || line.trim().startsWith('//')) {
+                console.log(`Skipping empty/comment line: "${line}"`);
+                return;
+            }
+
+            // If we get here, it's an unrecognized command
+            console.warn('Unrecognized line:', line);
+            
+        } catch (error) {
+            console.error(`Error executing line "${line}":`, error.message);
+            throw error;
+        }
+    }
+
+    /**
+     * Get current pin state
+     */
+    getPinState(pin) {
+        return {
+            mode: this.pinModes[pin] || 'INPUT',
+            state: this.pinStates[pin] || false,
+            pwm: this.pwmValues[pin] || 0
+        };
+    }
+
+    /**
+     * Reset parser state
+     */
+    reset() {
+        this.pinModes = {};
+        this.pinStates = {};
+        this.pwmValues = {};
+        this.variables = {};
+    }
+
+    /**
+     * Sync parser state with game state
+     */
+    syncWithGameState(gameState) {
+        // Update game state with parser results
+        Object.keys(this.pinStates).forEach(pin => {
+            const pinNum = parseInt(pin);
+            if (gameState.pins.hasOwnProperty(pinNum)) {
+                gameState.pins[pinNum] = this.pinStates[pin];
+                gameState.pinModes[pinNum] = this.pinModes[pin] || 'DIGITAL';
+                gameState.pwmValues[pinNum] = this.pwmValues[pin] || 0;
+                gameState.dutyCycles[pinNum] = Math.round((this.pwmValues[pin] / 255) * 100);
+            }
+        });
+    }
+}
+
+// Create global Arduino parser instance
+window.arduinoParser = new ArduinoParser();

@@ -1,0 +1,134 @@
+/* Microcontroller and Pin Styles */
+
+/* Microcontroller Box */
+.microcontroller-container {
+    background: linear-gradient(135deg, #1a2a3a, #2a3a4a);
+    border-radius: 12px;
+    padding: 40px;
+    width: 100%;
+    max-width: 500px;
+    border: 2px solid #00D4FF;
+    box-shadow: 0 0 25px rgba(0, 212, 255, 0.4);
+    position: relative;
+}
+
+.microcontroller {
+    background: linear-gradient(135deg, #2a3a4a, #3a4a5a);
+    border: 2px solid #00D4FF;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    position: relative;
+    box-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+    width: 200px;
+    height: 320px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.microcontroller-text {
+    font-size: 24px;
+    font-weight: bold;
+    color: #00D4FF;
+    margin: 20px 0;
+    text-shadow: 0 0 15px rgba(0, 212, 255, 0.8);
+}
+
+/* Top and Bottom Pins */
+.pins-top, .pins-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    gap: 10px;
+}
+
+.pin {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+
+.pin-label {
+    font-size: 11px;
+    color: #b0b0b0;
+    font-weight: bold;
+}
+
+.pin-circle {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: #666;
+    border: 2px solid #888;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.pin-circle.active {
+    background-color: #00D4FF;
+    box-shadow: 0 0 25px rgba(0, 212, 255, 0.9);
+    border-color: #0099FF;
+}
+
+.pin-circle.code-controlled {
+    animation: codePulse 1s infinite;
+}
+
+@keyframes codePulse {
+    0%, 100% { 
+        box-shadow: 0 0 25px rgba(0, 212, 255, 0.9);
+    }
+    50% { 
+        box-shadow: 0 0 35px rgba(0, 212, 255, 1), 0 0 50px rgba(0, 212, 255, 0.6);
+    }
+}
+
+.pin-circle:hover {
+    transform: scale(1.1);
+}
+
+/* PWM Mode Pin Styles */
+.pin-circle.pwm-mode {
+    border: 2px solid #8B5CF6 !important;
+    box-shadow: 0 0 15px rgba(139, 92, 246, 0.6) !important;
+    background: linear-gradient(45deg, #1a1a2e, #8B5CF6) !important;
+}
+
+.pin-circle.pwm-selected {
+    border: 3px solid #F59E0B !important;
+    box-shadow: 0 0 20px rgba(245, 158, 11, 0.8) !important;
+    animation: pwmPulse 1.5s infinite;
+}
+
+@keyframes pwmPulse {
+    0%, 100% { 
+        transform: scale(1);
+        box-shadow: 0 0 20px rgba(245, 158, 11, 0.8);
+    }
+    50% { 
+        transform: scale(1.1);
+        box-shadow: 0 0 25px rgba(245, 158, 11, 1);
+    }
+}
+
+/* PWM Info Display */
+.pwm-info {
+    position: absolute;
+    top: -25px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(139, 92, 246, 0.9);
+    color: white;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 8px;
+    font-weight: bold;
+    white-space: nowrap;
+    z-index: 10;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}

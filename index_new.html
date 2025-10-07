@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arduino Learning Game</title>
+    
+    <!-- CSS Imports -->
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="bg-animation">
+        <!-- Floating Particles -->
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        
+        <!-- Moving Gradient Overlays -->
+        <div class="gradient-overlay"></div>
+        <div class="gradient-overlay"></div>
+        <div class="gradient-overlay"></div>
+        <div class="gradient-overlay"></div>
+        
+        <!-- Geometric Shapes -->
+        <div class="geometric-shape"></div>
+        <div class="geometric-shape"></div>
+        <div class="geometric-shape"></div>
+        <div class="geometric-shape"></div>
+    </div>
+
+    <!-- Header Bar -->
+    <div class="header">
+        <div class="mission-title">🎯 MISSION 1: First Light</div>
+    </div>
+
+    <!-- Dedicated Timer Panel -->
+    <div class="timer-panel">
+        <div class="timer-header">
+            <div class="clock-icon"></div>
+            <div class="timer-label">TIME</div>
+        </div>
+        <div class="timer">00:00</div>
+    </div>
+
+    <!-- Code Execution Status -->
+    <div class="code-status" id="codeStatus">
+        <div>⚡ Code Running...</div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Left Panel - Microcontroller -->
+        <div class="left-panel">
+            <!-- Connection Lines Container -->
+            <div class="connection-lines" id="connectionLines"></div>
+            
+            <!-- Microcontroller Visualization -->
+            <div class="microcontroller-container">
+                <!-- Microcontroller -->
+                <div class="microcontroller">
+                    <!-- Top Pins -->
+                    <div class="pins-top">
+                        <div class="pin">
+                            <div class="pin-circle" data-pin="13"></div>
+                            <div class="pin-label">D13</div>
+                        </div>
+                        <div class="pin">
+                            <div class="pin-circle" data-pin="12"></div>
+                            <div class="pin-label">D12</div>
+                        </div>
+                        <div class="pin">
+                            <div class="pin-circle" data-pin="11"></div>
+                            <div class="pin-label">D11</div>
+                        </div>
+                        <div class="pin">
+                            <div class="pin-circle" data-pin="10"></div>
+                            <div class="pin-label">D10</div>
+                        </div>
+                    </div>
+                    
+                    <div class="microcontroller-text">µC</div>
+                    
+                    <!-- Bottom Pins -->
+                    <div class="pins-bottom">
+                        <div class="pin">
+                            <div class="pin-circle" data-pin="9"></div>
+                            <div class="pin-label">D9</div>
+                        </div>
+                        <div class="pin">
+                            <div class="pin-circle" data-pin="8"></div>
+                            <div class="pin-label">D8</div>
+                        </div>
+                        <div class="pin">
+                            <div class="pin-circle"></div>
+                            <div class="pin-label">GND</div>
+                        </div>
+                        <div class="pin">
+                            <div class="pin-circle"></div>
+                            <div class="pin-label">5V</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Components Section -->
+            <div class="components-section">
+                <div class="components-header">
+                    <div class="components-title">🔌 Components</div>
+                    <div>
+                        <button class="add-component-btn" onclick="addLEDComponent()">+ Add LED</button>
+                        <button class="add-component-btn" onclick="addMotorComponent()">+ Add Motor</button>
+                    </div>
+                </div>
+                <div class="components-grid" id="componentsGrid">
+                    <!-- Components will be added here dynamically -->
+                </div>
+            </div>
+
+            <!-- Variables Section -->
+            <div class="variables-section">
+                <div class="variables-header">
+                    <div class="variables-icon"></div>
+                    <div class="variables-title">Variables</div>
+                </div>
+                <div class="variables-content">Aucune variable</div>
+            </div>
+
+            <!-- Left Panel Buttons -->
+            <div class="left-buttons">
+                <button class="btn btn-play">▶️ PLAY TARGET</button>
+                <button class="btn btn-replay">🔄 REPLAY</button>
+            </div>
+
+            <!-- Additional Content Section for Scrolling -->
+            <div class="additional-content">
+                <div class="components-section">
+                    <div class="components-header">
+                        <div class="components-title">📚 Learning Resources</div>
+                    </div>
+                    <div style="color: #b0b0b0; font-size: 14px; line-height: 1.6;">
+                        <p>Welcome to the Arduino Learning Game! This interactive platform helps you learn microcontroller programming through hands-on experience.</p>
+                        <br>
+                        <p><strong>Getting Started:</strong></p>
+                        <ul style="margin-left: 20px;">
+                            <li>Connect components to the microcontroller pins</li>
+                            <li>Write Arduino code in the editor</li>
+                            <li>Run your code to see the results</li>
+                            <li>Use hints when you need help</li>
+                        </ul>
+                        <br>
+                        <p><strong>Mission 1: First Light</strong></p>
+                        <p>Your goal is to make an LED blink on pin 13. Try connecting an LED component and writing code to control it!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel - Code Editor -->
+        <div class="right-panel">
+            <div class="code-editor-container">
+                <div class="editor-header">
+                    <h3>💻 Arduino Code Editor</h3>
+                    <div class="editor-info">Write your code and watch it execute on the microcontroller!</div>
+                </div>
+                <div class="code-editor-wrapper">
+                    <div class="line-numbers" id="lineNumbers"></div>
+                    <textarea class="code-editor code-editor-with-lines" id="codeEditor" placeholder="Write your Arduino code here...">void setup() {
+  pinMode(13, OUTPUT);
+}
+
+void loop() {
+  digitalWrite(13, HIGH);
+  delay(1000);
+  digitalWrite(13, LOW);
+  delay(1000);
+}</textarea>
+                </div>
+                <div class="code-completion" id="codeCompletion" style="display: none;"></div>
+                <div class="editor-status">
+                    <span>Arduino IDE</span>
+                    <span class="cursor-position" id="cursorPosition">Line 1, Column 1</span>
+                </div>
+            </div>
+
+            <!-- Right Panel Buttons -->
+            <div class="right-buttons">
+                <button class="btn btn-run">▶️ RUN CODE</button>
+                <button class="btn btn-reset">🔄 RESET</button>
+                <button class="btn btn-hint">💡 HINT</button>
+            </div>
+
+            <!-- Additional Code Examples Section -->
+            <div class="code-examples-section" style="margin-top: 20px;">
+                <div class="components-section">
+                    <div class="components-header">
+                        <div class="components-title">💡 Code Examples</div>
+                    </div>
+                    <div style="color: #b0b0b0; font-size: 12px; line-height: 1.5;">
+                        <p><strong>Basic LED Blink:</strong></p>
+                        <pre style="background: #1a2a3a; padding: 10px; border-radius: 5px; margin: 10px 0; overflow-x: auto;">
+void setup() {
+  pinMode(13, OUTPUT);
+}
+
+void loop() {
+  digitalWrite(13, HIGH);
+  delay(1000);
+  digitalWrite(13, LOW);
+  delay(1000);
+}</pre>
+                        <p><strong>Multiple LEDs:</strong></p>
+                        <pre style="background: #1a2a3a; padding: 10px; border-radius: 5px; margin: 10px 0; overflow-x: auto;">
+void setup() {
+  pinMode(13, OUTPUT);
+  pinMode(12, OUTPUT);
+}
+
+void loop() {
+  digitalWrite(13, HIGH);
+  digitalWrite(12, LOW);
+  delay(500);
+  digitalWrite(13, LOW);
+  digitalWrite(12, HIGH);
+  delay(500);
+}</pre>
+                        <p><strong>Motor Control with PWM:</strong></p>
+                        <pre style="background: #1a2a3a; padding: 10px; border-radius: 5px; margin: 10px 0; overflow-x: auto;">
+void setup() {
+  pinMode(9, OUTPUT);
+}
+
+void loop() {
+  // Slow speed
+  analogWrite(9, 85);
+  delay(2000);
+  
+  // Medium speed
+  analogWrite(9, 170);
+  delay(2000);
+  
+  // Fast speed
+  analogWrite(9, 255);
+  delay(2000);
+  
+  // Stop
+  analogWrite(9, 0);
+  delay(2000);
+}</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Imports -->
+    <!-- Core Systems -->
+    <script src="js/core/gameState.js"></script>
+    <script src="js/core/pinManager.js"></script>
+    <script src="js/core/arduinoParser.js"></script>
+    
+    <!-- Component Management -->
+    <script src="js/components/componentManager.js"></script>
+    
+    <!-- UI Management -->
+    <script src="js/ui/codeEditor.js"></script>
+    <script src="js/ui/uiManager.js"></script>
+    
+    <!-- Background Effects -->
+    <script src="fx.js"></script>
+    
+    <!-- Main Application -->
+    <script src="js/app.js"></script>
+</body>
+</html>
