@@ -486,6 +486,147 @@
             font-size: 12px;
         }
 
+        /* Components Section */
+        .components-section {
+            background: linear-gradient(135deg, #1a2a3a, #2a3a4a);
+            border-radius: 12px;
+            padding: 15px;
+            width: 100%;
+            max-width: 500px;
+            border: 1px solid #00D4FF;
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.2);
+            margin-bottom: 20px;
+        }
+
+        .components-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+
+        .components-title {
+            color: #00D4FF;
+            font-size: 16px;
+            font-weight: bold;
+            text-shadow: 0 0 8px rgba(0, 212, 255, 0.5);
+        }
+
+        .add-component-btn {
+            background: linear-gradient(45deg, #00D4FF, #0099FF);
+            border: none;
+            border-radius: 6px;
+            padding: 8px 12px;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 212, 255, 0.3);
+        }
+
+        .add-component-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 212, 255, 0.4);
+        }
+
+        .components-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .component-box {
+            background: linear-gradient(135deg, #2a3a4a, #3a4a5a);
+            border: 2px solid #4a5a6a;
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+            position: relative;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .component-box.connected {
+            border-color: #00D4FF;
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
+        }
+
+        .component-box:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 212, 255, 0.2);
+        }
+
+        .component-icon {
+            width: 24px;
+            height: 24px;
+            margin: 0 auto 8px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        .led-icon {
+            background: linear-gradient(45deg, #FF6B35, #FFD700);
+            box-shadow: 0 0 10px rgba(255, 107, 53, 0.5);
+        }
+
+        .led-icon.on {
+            background: linear-gradient(45deg, #FFD700, #FF6B35);
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
+            animation: ledBlink 1s infinite;
+        }
+
+        @keyframes ledBlink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        .component-name {
+            color: #e0e0e0;
+            font-size: 11px;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .component-pin {
+            color: #00D4FF;
+            font-size: 10px;
+            font-weight: bold;
+        }
+
+        .component-pin.connected {
+            color: #FFD700;
+            text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+        }
+
+        /* Connection Lines */
+        .connection-lines {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .connection-line {
+            position: absolute;
+            background: linear-gradient(90deg, #00D4FF, #0099FF);
+            height: 2px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            box-shadow: 0 0 8px rgba(0, 212, 255, 0.5);
+        }
+
+        .connection-line.active {
+            opacity: 1;
+        }
+
         /* Left Panel Buttons */
         .left-buttons {
             display: flex;
@@ -677,6 +818,9 @@
     <div class="main-container">
         <!-- Left Panel - Microcontroller -->
         <div class="left-panel">
+            <!-- Connection Lines Container -->
+            <div class="connection-lines" id="connectionLines"></div>
+            
             <!-- Microcontroller Visualization -->
             <div class="microcontroller-container">
                 <!-- Microcontroller -->
@@ -722,6 +866,17 @@
                             <div class="pin-label">5V</div>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <!-- Components Section -->
+            <div class="components-section">
+                <div class="components-header">
+                    <div class="components-title">🔌 Components</div>
+                    <button class="add-component-btn" onclick="addLEDComponent()">+ Add LED</button>
+                </div>
+                <div class="components-grid" id="componentsGrid">
+                    <!-- Components will be added here dynamically -->
                 </div>
             </div>
 
@@ -773,7 +928,9 @@ void loop() {
                 9: false,
                 8: false
             },
-            variables: []
+            variables: [],
+            components: [],
+            connections: {}
         };
 
         // Pin Toggle Function
@@ -781,6 +938,7 @@ void loop() {
             if (gameState.pins.hasOwnProperty(pin)) {
                 gameState.pins[pin] = !gameState.pins[pin];
                 updatePinVisual(pin);
+                updateComponentStates();
                 console.log(`Pin D${pin}: ${gameState.pins[pin] ? 'ON' : 'OFF'}`);
             }
         }
@@ -801,6 +959,133 @@ void loop() {
         function initializePins() {
             Object.keys(gameState.pins).forEach(pin => {
                 updatePinVisual(pin);
+            });
+        }
+
+        // Component Management
+        function addLEDComponent() {
+            const componentId = 'led_' + Date.now();
+            const availablePins = Object.keys(gameState.pins).filter(pin => !gameState.connections[pin]);
+            
+            if (availablePins.length === 0) {
+                alert('No available pins! Disconnect a component first.');
+                return;
+            }
+
+            const component = {
+                id: componentId,
+                type: 'LED',
+                pin: null,
+                connected: false
+            };
+
+            gameState.components.push(component);
+            renderComponents();
+        }
+
+        function renderComponents() {
+            const grid = document.getElementById('componentsGrid');
+            grid.innerHTML = '';
+
+            gameState.components.forEach(component => {
+                const componentBox = document.createElement('div');
+                componentBox.className = `component-box ${component.connected ? 'connected' : ''}`;
+                componentBox.onclick = () => toggleComponentConnection(component.id);
+
+                componentBox.innerHTML = `
+                    <div class="component-icon led-icon ${component.connected && gameState.pins[component.pin] ? 'on' : ''}">
+                        💡
+                    </div>
+                    <div class="component-name">LED</div>
+                    <div class="component-pin ${component.connected ? 'connected' : ''}">
+                        ${component.connected ? `D${component.pin}` : 'Click to connect'}
+                    </div>
+                `;
+
+                grid.appendChild(componentBox);
+            });
+
+            updateConnectionLines();
+        }
+
+        function toggleComponentConnection(componentId) {
+            const component = gameState.components.find(c => c.id === componentId);
+            if (!component) return;
+
+            if (component.connected) {
+                // Disconnect
+                delete gameState.connections[component.pin];
+                component.connected = false;
+                component.pin = null;
+            } else {
+                // Connect to first available pin
+                const availablePins = Object.keys(gameState.pins).filter(pin => !gameState.connections[pin]);
+                if (availablePins.length > 0) {
+                    const pin = availablePins[0];
+                    component.pin = pin;
+                    component.connected = true;
+                    gameState.connections[pin] = componentId;
+                } else {
+                    alert('No available pins!');
+                    return;
+                }
+            }
+
+            renderComponents();
+        }
+
+        function updateConnectionLines() {
+            const connectionLines = document.getElementById('connectionLines');
+            connectionLines.innerHTML = '';
+
+            gameState.components.forEach(component => {
+                if (component.connected) {
+                    const line = document.createElement('div');
+                    line.className = 'connection-line active';
+                    line.id = `line_${component.id}`;
+                    
+                    // Calculate line position
+                    const componentBox = document.querySelector(`[onclick*="${component.id}"]`);
+                    const pinElement = document.querySelector(`.pin-circle[data-pin="${component.pin}"]`);
+                    
+                    if (componentBox && pinElement) {
+                        const componentRect = componentBox.getBoundingClientRect();
+                        const pinRect = pinElement.getBoundingClientRect();
+                        const containerRect = document.querySelector('.left-panel').getBoundingClientRect();
+                        
+                        const startX = componentRect.left + componentRect.width / 2 - containerRect.left;
+                        const startY = componentRect.top - containerRect.top;
+                        const endX = pinRect.left + pinRect.width / 2 - containerRect.left;
+                        const endY = pinRect.top + pinRect.height / 2 - containerRect.top;
+                        
+                        const length = Math.sqrt(Math.pow(endX - startX, 2) + Math.pow(endY - startY, 2));
+                        const angle = Math.atan2(endY - startY, endX - startX) * 180 / Math.PI;
+                        
+                        line.style.left = startX + 'px';
+                        line.style.top = startY + 'px';
+                        line.style.width = length + 'px';
+                        line.style.transform = `rotate(${angle}deg)`;
+                        line.style.transformOrigin = '0 0';
+                    }
+                    
+                    connectionLines.appendChild(line);
+                }
+            });
+        }
+
+        function updateComponentStates() {
+            gameState.components.forEach(component => {
+                if (component.connected) {
+                    const componentBox = document.querySelector(`[onclick*="${component.id}"]`);
+                    if (componentBox) {
+                        const ledIcon = componentBox.querySelector('.led-icon');
+                        if (gameState.pins[component.pin]) {
+                            ledIcon.classList.add('on');
+                        } else {
+                            ledIcon.classList.remove('on');
+                        }
+                    }
+                }
             });
         }
 
@@ -923,6 +1208,10 @@ void loop() {
                     gameState.pins[pin] = false;
                     updatePinVisual(pin);
                 });
+                // Reset components
+                gameState.components = [];
+                gameState.connections = {};
+                renderComponents();
             });
             
             // Hint button
