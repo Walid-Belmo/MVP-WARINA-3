@@ -13,7 +13,7 @@
 
         body {
             font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
-            background-color: #1a1625;
+            background: linear-gradient(135deg, #0a0f1a, #1a2a3a, #0f1a2a);
             color: #e0e0e0;
             height: 100vh;
             overflow: hidden;
@@ -21,18 +21,20 @@
 
         /* Header Bar */
         .header {
-            background-color: #2a1f3d;
+            background: linear-gradient(90deg, #1a2a3a, #2a3a4a);
             padding: 15px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 2px solid #3a2f4d;
+            border-bottom: 2px solid #00D4FF;
+            box-shadow: 0 2px 10px rgba(0, 212, 255, 0.3);
         }
 
         .mission-title {
             font-size: 18px;
             font-weight: bold;
-            color: #ffffff;
+            color: #00D4FF;
+            text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
         }
 
         /* Dedicated Timer Panel */
@@ -131,24 +133,24 @@
 
         /* Microcontroller Box */
         .microcontroller-container {
-            background-color: #2a1f3d;
+            background: linear-gradient(135deg, #1a2a3a, #2a3a4a);
             border-radius: 12px;
             padding: 40px;
             width: 100%;
             max-width: 500px;
-            border: 2px solid #00d4ff;
-            box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+            border: 2px solid #00D4FF;
+            box-shadow: 0 0 25px rgba(0, 212, 255, 0.4);
             position: relative;
         }
 
         .microcontroller {
-            background-color: #3a2f4d;
-            border: 2px solid #00d4ff;
+            background: linear-gradient(135deg, #2a3a4a, #3a4a5a);
+            border: 2px solid #00D4FF;
             border-radius: 8px;
             padding: 20px;
             text-align: center;
             position: relative;
-            box-shadow: 0 0 15px rgba(0, 212, 255, 0.4);
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
             width: 200px;
             height: 320px;
             margin: 0 auto;
@@ -161,8 +163,9 @@
         .microcontroller-text {
             font-size: 24px;
             font-weight: bold;
-            color: #00d4ff;
+            color: #00D4FF;
             margin: 20px 0;
+            text-shadow: 0 0 15px rgba(0, 212, 255, 0.8);
         }
 
         /* Top and Bottom Pins */
@@ -198,8 +201,9 @@
         }
 
         .pin-circle.active {
-            background-color: #00d4ff;
-            box-shadow: 0 0 20px rgba(0, 212, 255, 0.8);
+            background-color: #00D4FF;
+            box-shadow: 0 0 25px rgba(0, 212, 255, 0.9);
+            border-color: #0099FF;
         }
 
         .pin-circle:hover {
@@ -210,12 +214,13 @@
 
         /* Variables Section */
         .variables-section {
-            background-color: #2a1f3d;
+            background: linear-gradient(135deg, #1a2a3a, #2a3a4a);
             border-radius: 12px;
             padding: 15px;
             width: 100%;
             max-width: 300px;
-            border: 1px solid #4a3f5d;
+            border: 1px solid #00D4FF;
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.2);
         }
 
         .variables-header {
@@ -228,14 +233,16 @@
         .variables-icon {
             width: 16px;
             height: 16px;
-            background-color: #ff6b35;
+            background: linear-gradient(45deg, #FF6B35, #FFD700);
             border-radius: 3px;
+            box-shadow: 0 0 8px rgba(255, 107, 53, 0.5);
         }
 
         .variables-title {
-            color: #b0a0ff;
+            color: #00D4FF;
             font-size: 14px;
             font-weight: bold;
+            text-shadow: 0 0 8px rgba(0, 212, 255, 0.5);
         }
 
         .variables-content {
@@ -264,23 +271,23 @@
         }
 
         .btn-play {
-            background: linear-gradient(90deg, #00d4ff, #8b5cf6);
-            box-shadow: 0 4px 15px rgba(0, 212, 255, 0.3);
+            background: linear-gradient(90deg, #00D4FF, #0099FF, #8B5CF6);
+            box-shadow: 0 4px 15px rgba(0, 212, 255, 0.4);
         }
 
         .btn-play:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0, 212, 255, 0.4);
+            box-shadow: 0 6px 25px rgba(0, 212, 255, 0.6);
         }
 
         .btn-replay {
-            background: linear-gradient(90deg, #666, #999);
-            box-shadow: 0 4px 15px rgba(102, 102, 102, 0.3);
+            background: linear-gradient(90deg, #4a5a6a, #6a7a8a);
+            box-shadow: 0 4px 15px rgba(74, 90, 106, 0.3);
         }
 
         .btn-replay:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 102, 102, 0.4);
+            box-shadow: 0 6px 20px rgba(74, 90, 106, 0.5);
         }
 
         /* Right Panel - Code Editor */
@@ -293,17 +300,19 @@
         }
 
         .code-editor-container {
-            background-color: #2a1f3d;
+            background: linear-gradient(135deg, #1a2a3a, #2a3a4a);
             border-radius: 12px;
             padding: 20px;
             flex: 1;
             display: flex;
             flex-direction: column;
+            border: 1px solid #00D4FF;
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.2);
         }
 
         .code-editor {
-            background-color: #1a0f2e;
-            border: 1px solid #4a3f5d;
+            background: linear-gradient(135deg, #0a1a2a, #1a2a3a);
+            border: 1px solid #00D4FF;
             border-radius: 8px;
             padding: 15px;
             font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
@@ -317,8 +326,8 @@
         }
 
         .code-editor:focus {
-            border-color: #00d4ff;
-            box-shadow: 0 0 10px rgba(0, 212, 255, 0.2);
+            border-color: #00D4FF;
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.4);
         }
 
         /* Right Panel Buttons */
@@ -330,33 +339,33 @@
         }
 
         .btn-run {
-            background: linear-gradient(90deg, #00d4ff, #8b5cf6);
-            box-shadow: 0 4px 15px rgba(0, 212, 255, 0.3);
+            background: linear-gradient(90deg, #00D4FF, #0099FF, #8B5CF6);
+            box-shadow: 0 4px 15px rgba(0, 212, 255, 0.4);
         }
 
         .btn-run:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0, 212, 255, 0.4);
+            box-shadow: 0 6px 25px rgba(0, 212, 255, 0.6);
         }
 
         .btn-reset {
-            background: linear-gradient(90deg, #666, #999);
-            box-shadow: 0 4px 15px rgba(102, 102, 102, 0.3);
+            background: linear-gradient(90deg, #4a5a6a, #6a7a8a);
+            box-shadow: 0 4px 15px rgba(74, 90, 106, 0.3);
         }
 
         .btn-reset:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 102, 102, 0.4);
+            box-shadow: 0 6px 20px rgba(74, 90, 106, 0.5);
         }
 
         .btn-hint {
-            background: linear-gradient(90deg, #ff6b35, #ffd700);
-            box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
+            background: linear-gradient(90deg, #FF6B35, #FFD700);
+            box-shadow: 0 4px 15px rgba(255, 107, 53, 0.4);
         }
 
         .btn-hint:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(255, 107, 53, 0.4);
+            box-shadow: 0 6px 25px rgba(255, 107, 53, 0.6);
         }
 
         /* Responsive Design */

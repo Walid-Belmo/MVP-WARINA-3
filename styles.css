@@ -1,0 +1,64 @@
+:root {
+  --bg: #0b0f1a;
+  --surface: #121826;
+  --text: #e6f0ff;
+  --muted: #6b7280;
+  --accent: #66ccff;
+  --accent-2: #ff3d81;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 16px/1.4 system-ui, Segoe UI, Roboto, Arial;
+}
+
+.panel {
+  background: var(--surface);
+  border-radius: 16px;
+}
+
+.btn {
+  background: var(--accent);
+  color: #000;
+  border: 0;
+  border-radius: 10px;
+  padding: .6rem 1rem;
+}
+
+.btn.warn {
+  background: var(--accent-2);
+  color: #000;
+}
+
+/* accessibility */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+#fx-gradient{position:fixed;inset:0;z-index:-3;
+  background:linear-gradient(120deg,#0b0f1a,#121826,#1f2233);
+  background-size:200% 200%; animation:grad 30s ease infinite}
+@keyframes grad{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+
+#fx-particles{position:fixed;inset:0;z-index:-3;display:none}
+
+#fx-parallax{position:fixed;inset:0;z-index:-3;perspective:800px;overflow:hidden;display:none}
+#fx-parallax .layer{position:absolute;inset:-10%;background-size:cover;background-position:center;will-change:transform;opacity:.6}
+#fx-parallax .l1{background-image:radial-gradient(circle at 20% 30%, #66ccff22 0 40%, transparent 60%);}
+#fx-parallax .l2{background-image:radial-gradient(circle at 70% 60%, #ff3d8130 0 35%, transparent 60%);}
+#fx-parallax .l3{background-image:radial-gradient(circle at 10% 80%, #66ffd130 0 30%, transparent 60%);}
+@keyframes mv1{to{transform:translateX(-10%) translateY(-2%) scale(1.02)}}
+@keyframes mv2{to{transform:translateX(-20%) translateY(-4%) scale(1.04)}}
+@keyframes mv3{to{transform:translateX(-5%) translateY(-1%) scale(1.01)}}
+#fx-parallax .l1{animation:mv1 60s linear infinite}
+#fx-parallax .l2{animation:mv2 40s linear infinite}
+#fx-parallax .l3{animation:mv3 80s linear infinite}
