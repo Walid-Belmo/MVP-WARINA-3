@@ -135,37 +135,47 @@ class ArduinoParser {
     /**
      * Execute setup code
      */
-    executeSetup(setupCode) {
+    executeSetup(setupCode, setupStartLine = 1) {
         console.log('Executing setup...');
-        this.executeCodeBlock(setupCode);
+        this.executeCodeBlock(setupCode, setupStartLine);
     }
 
     /**
      * Execute loop code
      */
-    executeLoop(loopCode) {
+    executeLoop(loopCode, loopStartLine = 1) {
         console.log('Executing loop...');
-        this.executeCodeBlock(loopCode);
+        this.executeCodeBlock(loopCode, loopStartLine);
     }
 
     /**
      * Execute a block of code
      */
-    executeCodeBlock(code) {
-        const lines = code.split('\n').filter(line => line.trim());
+    executeCodeBlock(code, startLineNumber = 1) {
+        const allLines = code.split('\n');
+        const nonEmptyLines = [];
+        const lineNumberMap = [];
         
-        for (const line of lines) {
-            this.executeLine(line.trim());
+        // Find non-empty lines and map them to their original line numbers
+        for (let i = 0; i < allLines.length; i++) {
+            if (allLines[i].trim()) {
+                nonEmptyLines.push(allLines[i].trim());
+                lineNumberMap.push(startLineNumber + i);
+            }
+        }
+        
+        for (let i = 0; i < nonEmptyLines.length; i++) {
+            this.executeLine(nonEmptyLines[i], lineNumberMap[i]);
         }
     }
 
     /**
      * Execute a single line of code
      */
-    executeLine(line) {
+    executeLine(line, lineNumber = 0) {
         if (!line) return;
 
-        console.log(`Executing line: "${line}"`);
+        console.log(`Executing line ${lineNumber}: "${line}"`);
 
         try {
             // Handle pinMode calls

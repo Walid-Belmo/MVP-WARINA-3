@@ -275,6 +275,81 @@ class ArduinoCodeEditor {
         this.updateCursorPosition();
         this.applySyntaxHighlighting();
     }
+    
+    /**
+     * Highlight a specific line number
+     */
+    highlightLine(lineNumber) {
+        // Remove any existing highlights
+        this.clearLineHighlight();
+        
+        if (!this.editor || lineNumber < 1) return;
+        
+        const lines = this.editor.value.split('\n');
+        if (lineNumber > lines.length) return;
+        
+        // Calculate the start and end positions for the line
+        let startPos = 0;
+        for (let i = 0; i < lineNumber - 1; i++) {
+            startPos += lines[i].length + 1; // +1 for newline
+        }
+        
+        const endPos = startPos + lines[lineNumber - 1].length;
+        
+        // Set selection to highlight the line
+        this.editor.focus();
+        this.editor.setSelectionRange(startPos, endPos);
+        
+        // Add highlight class to the editor
+        this.editor.classList.add('code-editor-line-highlight');
+        
+        // Scroll to the highlighted line
+        this.scrollToLine(lineNumber);
+        
+        console.log(`🎯 Highlighting line ${lineNumber}: "${lines[lineNumber - 1]}"`);
+    }
+    
+    /**
+     * Clear line highlighting
+     */
+    clearLineHighlight() {
+        if (this.editor) {
+            this.editor.classList.remove('code-editor-line-highlight');
+            this.editor.blur(); // Remove focus to clear selection
+        }
+    }
+    
+    /**
+     * Scroll to a specific line number
+     */
+    scrollToLine(lineNumber) {
+        if (!this.editor || lineNumber < 1) return;
+        
+        const lines = this.editor.value.split('\n');
+        if (lineNumber > lines.length) return;
+        
+        // Calculate approximate line height (this is a rough estimate)
+        const lineHeight = 20; // Approximate line height in pixels
+        const scrollTop = (lineNumber - 1) * lineHeight;
+        
+        // Scroll to the line
+        this.editor.scrollTop = Math.max(0, scrollTop - 100); // Offset to show some context
+    }
+    
+    /**
+     * Get the line number from a line of code
+     */
+    getLineNumberFromCode(code, targetLine) {
+        if (!code || !targetLine) return 0;
+        
+        const lines = code.split('\n');
+        for (let i = 0; i < lines.length; i++) {
+            if (lines[i].trim() === targetLine.trim()) {
+                return i + 1; // Line numbers start from 1
+            }
+        }
+        return 0;
+    }
 }
 
 // Create global code editor instance

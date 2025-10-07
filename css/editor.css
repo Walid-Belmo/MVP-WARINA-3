@@ -1,5 +1,24 @@
 /* Code Editor Styles */
 
+/* Current Line Highlighting */
+.code-editor-line-highlight {
+    background: linear-gradient(90deg, rgba(0, 212, 255, 0.3), rgba(0, 153, 255, 0.2)) !important;
+    border-left: 3px solid #00D4FF !important;
+    box-shadow: 0 0 10px rgba(0, 212, 255, 0.5) !important;
+    animation: pulse-highlight 1s ease-in-out infinite alternate !important;
+}
+
+@keyframes pulse-highlight {
+    0% {
+        background: linear-gradient(90deg, rgba(0, 212, 255, 0.3), rgba(0, 153, 255, 0.2));
+        box-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+    }
+    100% {
+        background: linear-gradient(90deg, rgba(0, 212, 255, 0.5), rgba(0, 153, 255, 0.3));
+        box-shadow: 0 0 15px rgba(0, 212, 255, 0.7);
+    }
+}
+
 .code-editor-container {
     background: linear-gradient(135deg, #1a2a3a, #2a3a4a);
     border-radius: 16px;

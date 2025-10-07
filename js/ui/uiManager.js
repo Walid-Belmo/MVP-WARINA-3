@@ -213,12 +213,27 @@ class UIManager {
             const parsedCode = this.arduinoParser.parseCode(code);
             console.log('✅ Code parsed:', parsedCode);
             
+            // Calculate line numbers for setup and loop
+            const codeLines = code.split('\n');
+            let setupStartLine = 1;
+            let loopStartLine = 1;
+            
+            // Find the actual line numbers of setup and loop functions
+            for (let i = 0; i < codeLines.length; i++) {
+                if (codeLines[i].includes('void setup()')) {
+                    setupStartLine = i + 2; // Skip the function declaration line
+                }
+                if (codeLines[i].includes('void loop()')) {
+                    loopStartLine = i + 2; // Skip the function declaration line
+                }
+            }
+            
             // Show setup execution status
             this.showCodeStatus('⚡ Executing Setup...');
             console.log('✅ Status shown: Executing Setup');
             
             // Execute setup once
-            this.arduinoParser.executeSetup(parsedCode.setup);
+            this.arduinoParser.executeSetup(parsedCode.setup, setupStartLine);
             console.log('✅ Setup executed');
             
             // Update visual pins based on setup
@@ -234,7 +249,7 @@ class UIManager {
             console.log('✅ Execution marked as active');
             
             // Execute loop continuously with proper timing
-            this.executeLoopWithTiming(parsedCode.loop);
+            this.executeLoopWithTiming(parsedCode.loop, loopStartLine);
             console.log('✅ Loop execution started');
             
         } catch (error) {
@@ -261,6 +276,11 @@ class UIManager {
             this.currentLoopInterval = null;
         }
         
+        // Clear line highlighting
+        if (window.codeEditor) {
+            window.codeEditor.clearLineHighlight();
+        }
+        
         this.hideCodeStatus();
         console.log('Code execution stopped');
     }
@@ -268,7 +288,7 @@ class UIManager {
     /**
      * Execute loop with proper Arduino-style timing
      */
-    executeLoopWithTiming(loopCode) {
+    executeLoopWithTiming(loopCode, loopStartLine = 1) {
         let loopCount = 0;
         const maxLoops = 1000; // Increased limit for longer execution
         
@@ -276,13 +296,17 @@ class UIManager {
             if (!this.isExecuting || loopCount >= maxLoops) {
                 this.hideCodeStatus();
                 this.isExecuting = false;
+                // Clear highlighting when execution stops
+                if (window.codeEditor) {
+                    window.codeEditor.clearLineHighlight();
+                }
                 console.log('Loop execution stopped (max iterations reached or stopped)');
                 return;
             }
             
             try {
                 // Execute the loop code with proper timing
-                this.executeLoopWithDelays(loopCode, () => {
+                this.executeLoopWithDelays(loopCode, loopStartLine, () => {
                     // This callback is called when the loop iteration is complete
                     if (!this.isExecuting) return; // Check if execution was stopped
                     
@@ -303,6 +327,10 @@ class UIManager {
                 console.error('Loop execution error:', error);
                 this.hideCodeStatus();
                 this.isExecuting = false;
+                // Clear highlighting on error
+                if (window.codeEditor) {
+                    window.codeEditor.clearLineHighlight();
+                }
             }
         };
         
@@ -313,7 +341,7 @@ class UIManager {
     /**
      * Execute loop code with proper delay handling
      */
-    executeLoopWithDelays(loopCode, onComplete) {
+    executeLoopWithDelays(loopCode, loopStartLine, onComplete) {
         const lines = loopCode.split('\n').filter(line => line.trim());
         let currentLineIndex = 0;
         
@@ -330,6 +358,7 @@ class UIManager {
             }
             
             const line = lines[currentLineIndex].trim();
+            const actualLineNumber = loopStartLine + currentLineIndex;
             currentLineIndex++;
             
             if (!line) {
@@ -348,7 +377,13 @@ class UIManager {
                     throw new Error(`Delay value ${ms} is invalid. Use values 0-10000ms.`);
                 }
                 
+                // Highlight the delay line
+                if (window.codeEditor) {
+                    window.codeEditor.highlightLine(actualLineNumber);
+                }
+                
                 // Use setTimeout for delays to keep UI responsive
+                // Add a small delay to show the highlighting before starting the actual delay
                 const timeout = setTimeout(() => {
                     if (this.isExecuting) {
                         executeNextLine();
@@ -358,15 +393,26 @@ class UIManager {
                 return;
             }
             
-            // Execute non-delay commands immediately
+            // Execute non-delay commands with a small delay to show highlighting
             try {
-                this.arduinoParser.executeLine(line);
+                // Highlight the line first
+                if (window.codeEditor) {
+                    window.codeEditor.highlightLine(actualLineNumber);
+                }
+                
+                // Then execute the line
+                this.arduinoParser.executeLine(line, actualLineNumber);
                 
                 // Update visual pins immediately after each command
                 this.updateVisualPinsFromParser();
                 
-                // Continue to next line immediately
-                executeNextLine();
+                // Add a small delay to make the highlighting visible
+                const timeout = setTimeout(() => {
+                    if (this.isExecuting) {
+                        executeNextLine();
+                    }
+                }, 200); // 200ms delay to see the highlighting
+                this.executionTimeouts.push(timeout);
             } catch (error) {
                 console.error(`Error executing line: ${line}`, error);
                 onComplete(); // Stop execution on error
