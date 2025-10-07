@@ -178,39 +178,51 @@ class ArduinoParser {
         console.log(`Executing line ${lineNumber}: "${line}"`);
 
         try {
-            // Handle pinMode calls
-            const pinModeMatch = line.match(/pinMode\s*\(\s*(\d+)\s*,\s*(INPUT|OUTPUT)\s*\)/i);
+            // Handle pinMode calls with better validation
+            const pinModeMatch = line.match(/pinMode\s*\(\s*(\d+)\s*,\s*(\w+)\s*\)/i);
             if (pinModeMatch) {
                 const pin = parseInt(pinModeMatch[1]);
                 const mode = pinModeMatch[2].toUpperCase();
                 
                 console.log(`Found pinMode: pin=${pin}, mode=${mode}`);
                 
+                // Validate pin number
                 if (pin < 8 || pin > 13) {
-                    throw new Error(`Pin ${pin} is not available. Use pins 8-13.`);
+                    throw new Error(`Line ${lineNumber}: Pin ${pin} is not available. Use pins 8-13.`);
+                }
+                
+                // Validate mode
+                if (mode !== 'INPUT' && mode !== 'OUTPUT') {
+                    throw new Error(`Line ${lineNumber}: Invalid mode "${pinModeMatch[2]}". Use INPUT or OUTPUT.`);
                 }
                 
                 this.pinMode(pin, mode);
                 return;
             }
 
-            // Handle digitalWrite calls
-            const digitalWriteMatch = line.match(/digitalWrite\s*\(\s*(\d+)\s*,\s*(HIGH|LOW)\s*\)/i);
+            // Handle digitalWrite calls with better validation
+            const digitalWriteMatch = line.match(/digitalWrite\s*\(\s*(\d+)\s*,\s*(\w+)\s*\)/i);
             if (digitalWriteMatch) {
                 const pin = parseInt(digitalWriteMatch[1]);
                 const value = digitalWriteMatch[2].toUpperCase();
                 
                 console.log(`Found digitalWrite: pin=${pin}, value=${value}`);
                 
+                // Validate pin number
                 if (pin < 8 || pin > 13) {
-                    throw new Error(`Pin ${pin} is not available. Use pins 8-13.`);
+                    throw new Error(`Line ${lineNumber}: Pin ${pin} is not available. Use pins 8-13.`);
+                }
+                
+                // Validate value
+                if (value !== 'HIGH' && value !== 'LOW') {
+                    throw new Error(`Line ${lineNumber}: Invalid value "${digitalWriteMatch[2]}". Use HIGH or LOW.`);
                 }
                 
                 this.digitalWrite(pin, value);
                 return;
             }
 
-            // Handle analogWrite calls
+            // Handle analogWrite calls with better validation
             const analogWriteMatch = line.match(/analogWrite\s*\(\s*(\d+)\s*,\s*(\d+)\s*\)/i);
             if (analogWriteMatch) {
                 const pin = parseInt(analogWriteMatch[1]);
@@ -218,27 +230,30 @@ class ArduinoParser {
                 
                 console.log(`Found analogWrite: pin=${pin}, value=${value}`);
                 
+                // Validate pin number
                 if (pin < 8 || pin > 13) {
-                    throw new Error(`Pin ${pin} is not available. Use pins 8-13.`);
+                    throw new Error(`Line ${lineNumber}: Pin ${pin} is not available. Use pins 8-13.`);
                 }
                 
-                if (value < 0 || value > 255) {
-                    throw new Error(`PWM value ${value} is invalid. Use values 0-255.`);
+                // Validate PWM value
+                if (isNaN(value) || value < 0 || value > 255) {
+                    throw new Error(`Line ${lineNumber}: Invalid PWM value "${analogWriteMatch[2]}". Use values 0-255.`);
                 }
                 
                 this.analogWrite(pin, value);
                 return;
             }
 
-            // Handle delay calls
+            // Handle delay calls with better validation
             const delayMatch = line.match(/delay\s*\(\s*(\d+)\s*\)/i);
             if (delayMatch) {
                 const ms = parseInt(delayMatch[1]);
                 
                 console.log(`Found delay: ${ms}ms`);
                 
-                if (ms < 0 || ms > 10000) {
-                    throw new Error(`Delay value ${ms} is invalid. Use values 0-10000ms.`);
+                // Validate delay value
+                if (isNaN(ms) || ms < 0 || ms > 10000) {
+                    throw new Error(`Line ${lineNumber}: Invalid delay value "${delayMatch[1]}". Use values 0-10000ms.`);
                 }
                 
                 this.delay(ms);
@@ -252,7 +267,7 @@ class ArduinoParser {
             }
 
             // If we get here, it's an unrecognized command
-            console.warn('Unrecognized line:', line);
+            throw new Error(`Line ${lineNumber}: Unrecognized command "${line}". Supported commands: pinMode, digitalWrite, analogWrite, delay`);
             
         } catch (error) {
             console.error(`Error executing line "${line}":`, error.message);

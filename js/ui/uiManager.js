@@ -256,7 +256,7 @@ class UIManager {
             console.error('❌ Code execution error:', error);
             this.hideCodeStatus();
             this.isExecuting = false;
-            alert('Code execution error: ' + error.message);
+            this.showError(error.message);
         }
     }
 
@@ -327,6 +327,7 @@ class UIManager {
                 console.error('Loop execution error:', error);
                 this.hideCodeStatus();
                 this.isExecuting = false;
+                this.showError(error.message);
                 // Clear highlighting on error
                 if (window.codeEditor) {
                     window.codeEditor.clearLineHighlight();
@@ -415,6 +416,7 @@ class UIManager {
                 this.executionTimeouts.push(timeout);
             } catch (error) {
                 console.error(`Error executing line: ${line}`, error);
+                this.showError(error.message);
                 onComplete(); // Stop execution on error
             }
         };
@@ -470,6 +472,34 @@ void loop() {
         const status = document.getElementById('codeStatus');
         if (status) {
             status.classList.remove('show', 'running');
+        }
+    }
+
+    /**
+     * Show error message
+     */
+    showError(message) {
+        const errorDisplay = document.getElementById('errorDisplay');
+        const errorMessage = document.querySelector('.error-message');
+        
+        if (errorDisplay && errorMessage) {
+            errorMessage.textContent = message;
+            errorDisplay.classList.add('show');
+            
+            // Auto-hide after 10 seconds
+            setTimeout(() => {
+                this.hideError();
+            }, 10000);
+        }
+    }
+
+    /**
+     * Hide error message
+     */
+    hideError() {
+        const errorDisplay = document.getElementById('errorDisplay');
+        if (errorDisplay) {
+            errorDisplay.classList.remove('show');
         }
     }
 
