@@ -603,6 +603,83 @@
             }
         }
 
+        /* Motor Icon Styles */
+        .motor-icon {
+            background: linear-gradient(45deg, #8B5CF6, #A855F7);
+            box-shadow: 0 0 10px rgba(139, 92, 246, 0.5);
+            transition: all 0.3s ease;
+            border-radius: 50%;
+        }
+
+        .motor-icon.slow {
+            animation: motorRotate 2s linear infinite;
+            box-shadow: 0 0 15px rgba(139, 92, 246, 0.7);
+        }
+
+        .motor-icon.medium {
+            animation: motorRotate 1s linear infinite;
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.8);
+        }
+
+        .motor-icon.fast {
+            animation: motorRotate 0.5s linear infinite;
+            box-shadow: 0 0 25px rgba(139, 92, 246, 1);
+        }
+
+        @keyframes motorRotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .pwm-value {
+            color: #8B5CF6;
+            font-size: 9px;
+            font-weight: bold;
+            margin-top: 2px;
+            text-shadow: 0 0 5px rgba(139, 92, 246, 0.5);
+        }
+
+        /* PWM Mode Pin Styles */
+        .pin-circle.pwm-mode {
+            border: 2px solid #8B5CF6 !important;
+            box-shadow: 0 0 15px rgba(139, 92, 246, 0.6) !important;
+            background: linear-gradient(45deg, #1a1a2e, #8B5CF6) !important;
+        }
+
+        .pin-circle.pwm-selected {
+            border: 3px solid #F59E0B !important;
+            box-shadow: 0 0 20px rgba(245, 158, 11, 0.8) !important;
+            animation: pwmPulse 1.5s infinite;
+        }
+
+        @keyframes pwmPulse {
+            0%, 100% { 
+                transform: scale(1);
+                box-shadow: 0 0 20px rgba(245, 158, 11, 0.8);
+            }
+            50% { 
+                transform: scale(1.1);
+                box-shadow: 0 0 25px rgba(245, 158, 11, 1);
+            }
+        }
+
+        /* PWM Info Display */
+        .pwm-info {
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(139, 92, 246, 0.9);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 8px;
+            font-weight: bold;
+            white-space: nowrap;
+            z-index: 10;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+
         .component-name {
             color: #e0e0e0;
             font-size: 11px;
@@ -892,7 +969,10 @@
             <div class="components-section">
                 <div class="components-header">
                     <div class="components-title">🔌 Components</div>
-                    <button class="add-component-btn" onclick="addLEDComponent()">+ Add LED</button>
+                    <div>
+                        <button class="add-component-btn" onclick="addLEDComponent()">+ Add LED</button>
+                        <button class="add-component-btn" onclick="addMotorComponent()">+ Add Motor</button>
+                    </div>
                 </div>
                 <div class="components-grid" id="componentsGrid">
                     <!-- Components will be added here dynamically -->
@@ -991,6 +1071,29 @@ void loop() {
   digitalWrite(12, HIGH);
   delay(500);
 }</pre>
+                        <p><strong>Motor Control with PWM:</strong></p>
+                        <pre style="background: #1a2a3a; padding: 10px; border-radius: 5px; margin: 10px 0; overflow-x: auto;">
+void setup() {
+  pinMode(9, OUTPUT);
+}
+
+void loop() {
+  // Slow speed
+  analogWrite(9, 85);
+  delay(2000);
+  
+  // Medium speed
+  analogWrite(9, 170);
+  delay(2000);
+  
+  // Fast speed
+  analogWrite(9, 255);
+  delay(2000);
+  
+  // Stop
+  analogWrite(9, 0);
+  delay(2000);
+}</pre>
                     </div>
                 </div>
             </div>
@@ -1008,21 +1111,114 @@ void loop() {
                 9: false,
                 8: false
             },
+            pinModes: {
+                13: 'DIGITAL',  // 'DIGITAL' or 'PWM'
+                12: 'DIGITAL',
+                11: 'DIGITAL',
+                10: 'DIGITAL',
+                9: 'DIGITAL',
+                8: 'DIGITAL'
+            },
+            pwmValues: {
+                13: 0,  // PWM values (0-255)
+                12: 0,
+                11: 0,
+                10: 0,
+                9: 0,
+                8: 0
+            },
+            dutyCycles: {
+                13: 0,  // Duty cycle (0-100%)
+                12: 0,
+                11: 0,
+                10: 0,
+                9: 0,
+                8: 0
+            },
+            selectedPwmPin: null,  // Currently selected pin for PWM control
             variables: [],
             components: [],
             connections: {}
         };
 
+        // P Key Detection for PWM Mode
+        let pKeyPressed = false;
+
         // Pin Toggle Function
         function togglePin(pin) {
             console.log(`Toggling pin ${pin}...`);
-            if (gameState.pins.hasOwnProperty(pin)) {
-                gameState.pins[pin] = !gameState.pins[pin];
-                console.log(`Pin D${pin} is now: ${gameState.pins[pin] ? 'ON' : 'OFF'}`);
+            
+            if (pKeyPressed) {
+                // Enter PWM mode
+                setPinMode(pin, 'PWM');
+                gameState.selectedPwmPin = pin;
+                console.log(`Pin D${pin} entered PWM mode`);
+                updatePinSelection();
+            } else {
+                // Normal pin toggle
+                if (gameState.pinModes[pin] === 'PWM') {
+                    // If in PWM mode, toggle between 0% and 50% duty cycle
+                    const currentDuty = gameState.dutyCycles[pin];
+                    setDutyCycle(pin, currentDuty > 0 ? 0 : 50);
+                } else {
+                    // Normal digital toggle
+                    if (gameState.pins.hasOwnProperty(pin)) {
+                        gameState.pins[pin] = !gameState.pins[pin];
+                        gameState.pwmValues[pin] = gameState.pins[pin] ? 255 : 0;
+                        console.log(`Pin D${pin} is now: ${gameState.pins[pin] ? 'ON' : 'OFF'}`);
+                        updatePinVisual(pin);
+                        updateComponentStates();
+                    }
+                }
+            }
+        }
+
+        // PWM Mode Functions
+        function setPinMode(pin, mode) {
+            if (gameState.pinModes.hasOwnProperty(pin)) {
+                gameState.pinModes[pin] = mode;
+                console.log(`Pin D${pin} mode set to: ${mode}`);
+                updatePinVisual(pin);
+            }
+        }
+
+        function setDutyCycle(pin, dutyCycle) {
+            if (gameState.dutyCycles.hasOwnProperty(pin)) {
+                gameState.dutyCycles[pin] = Math.max(0, Math.min(100, dutyCycle));
+                // Convert duty cycle to PWM value (0-255)
+                gameState.pwmValues[pin] = Math.round((dutyCycle / 100) * 255);
+                // Update pin state based on duty cycle
+                gameState.pins[pin] = dutyCycle > 0;
+                console.log(`Pin D${pin} duty cycle: ${dutyCycle}% (PWM: ${gameState.pwmValues[pin]})`);
                 updatePinVisual(pin);
                 updateComponentStates();
-            } else {
-                console.log(`Pin ${pin} not found in gameState.pins`);
+            }
+        }
+
+        // PWM Function for analog control (legacy)
+        function setPWMValue(pin, value) {
+            if (gameState.pwmValues.hasOwnProperty(pin)) {
+                gameState.pwmValues[pin] = Math.max(0, Math.min(255, value));
+                gameState.pins[pin] = value > 0;
+                updatePinVisual(pin);
+                updateComponentStates();
+                console.log(`Pin D${pin} PWM: ${gameState.pwmValues[pin]}`);
+            }
+        }
+
+        // Update Pin Selection Visual
+        function updatePinSelection() {
+            // Remove selection from all pins
+            document.querySelectorAll('.pin-circle').forEach(pin => {
+                pin.classList.remove('pwm-selected');
+            });
+            
+            // Add selection to current PWM pin
+            if (gameState.selectedPwmPin) {
+                const selectedPin = document.querySelector(`.pin-circle[data-pin="${gameState.selectedPwmPin}"]`);
+                if (selectedPin) {
+                    selectedPin.classList.add('pwm-selected');
+                }
             }
         }
 
@@ -1030,10 +1226,27 @@ void loop() {
         function updatePinVisual(pin) {
             const pinElement = document.querySelector(`.pin-circle[data-pin="${pin}"]`);
             if (pinElement) {
+                // Remove all state classes and info
+                pinElement.classList.remove('active', 'pwm-mode');
+                
+                // Remove existing PWM info
+                const existingInfo = pinElement.querySelector('.pwm-info');
+                if (existingInfo) {
+                    existingInfo.remove();
+                }
+                
                 if (gameState.pins[pin]) {
                     pinElement.classList.add('active');
-                } else {
-                    pinElement.classList.remove('active');
+                }
+                
+                if (gameState.pinModes[pin] === 'PWM') {
+                    pinElement.classList.add('pwm-mode');
+                    
+                    // Add PWM info display
+                    const pwmInfo = document.createElement('div');
+                    pwmInfo.className = 'pwm-info';
+                    pwmInfo.textContent = `${gameState.dutyCycles[pin]}%`;
+                    pinElement.appendChild(pwmInfo);
                 }
             }
         }
@@ -1066,6 +1279,26 @@ void loop() {
             renderComponents();
         }
 
+        function addMotorComponent() {
+            const componentId = 'motor_' + Date.now();
+            const availablePins = Object.keys(gameState.pins).filter(pin => !gameState.connections[pin]);
+            
+            if (availablePins.length === 0) {
+                alert('No available pins! Disconnect a component first.');
+                return;
+            }
+
+            const component = {
+                id: componentId,
+                type: 'MOTOR',
+                pin: null,
+                connected: false
+            };
+
+            gameState.components.push(component);
+            renderComponents();
+        }
+
         function renderComponents() {
             const grid = document.getElementById('componentsGrid');
             grid.innerHTML = '';
@@ -1076,17 +1309,35 @@ void loop() {
                 componentBox.setAttribute('data-component-id', component.id);
                 componentBox.onclick = () => toggleComponentConnection(component.id);
 
-                const isLedOn = component.connected && gameState.pins[component.pin];
-                componentBox.innerHTML = `
-                    <div class="component-icon led-icon ${isLedOn ? 'on' : ''}" style="${isLedOn ? 'transform: scale(1.2); filter: brightness(1.5);' : ''}">
-                        💡
-                    </div>
-                    <div class="component-name">LED</div>
-                    <div class="component-pin ${component.connected ? 'connected' : ''}">
-                        ${component.connected ? `D${component.pin}` : 'Click to connect'}
-                    </div>
-                `;
+                let componentHTML = '';
+                
+                if (component.type === 'LED') {
+                    const isLedOn = component.connected && gameState.pins[component.pin];
+                    componentHTML = `
+                        <div class="component-icon led-icon ${isLedOn ? 'on' : ''}" style="${isLedOn ? 'transform: scale(1.2); filter: brightness(1.5);' : ''}">
+                            💡
+                        </div>
+                        <div class="component-name">LED</div>
+                        <div class="component-pin ${component.connected ? 'connected' : ''}">
+                            ${component.connected ? `D${component.pin}` : 'Click to connect'}
+                        </div>
+                    `;
+                } else if (component.type === 'MOTOR') {
+                    const pwmValue = component.connected ? gameState.pwmValues[component.pin] : 0;
+                    const speedClass = pwmValue > 170 ? 'fast' : pwmValue > 85 ? 'medium' : pwmValue > 0 ? 'slow' : '';
+                    componentHTML = `
+                        <div class="component-icon motor-icon ${speedClass}">
+                            ⚙️
+                        </div>
+                        <div class="component-name">MOTOR</div>
+                        <div class="component-pin ${component.connected ? 'connected' : ''}">
+                            ${component.connected ? `D${component.pin}` : 'Click to connect'}
+                        </div>
+                        ${component.connected ? `<div class="pwm-value">PWM: ${pwmValue}</div>` : ''}
+                    `;
+                }
 
+                componentBox.innerHTML = componentHTML;
                 grid.appendChild(componentBox);
             });
 
@@ -1178,23 +1429,53 @@ void loop() {
                     }
                     
                     if (componentBox) {
-                        const ledIcon = componentBox.querySelector('.led-icon');
-                        if (ledIcon) {
-                            console.log(`Found LED icon for component ${component.id}`);
-                            if (gameState.pins[component.pin]) {
-                                ledIcon.classList.add('on');
-                                // Add a more dramatic visual effect
-                                ledIcon.style.transform = 'scale(1.2)';
-                                ledIcon.style.filter = 'brightness(1.5)';
-                                console.log(`LED ${component.id} turned ON`);
+                        if (component.type === 'LED') {
+                            const ledIcon = componentBox.querySelector('.led-icon');
+                            if (ledIcon) {
+                                console.log(`Found LED icon for component ${component.id}`);
+                                if (gameState.pins[component.pin]) {
+                                    ledIcon.classList.add('on');
+                                    // Add a more dramatic visual effect
+                                    ledIcon.style.transform = 'scale(1.2)';
+                                    ledIcon.style.filter = 'brightness(1.5)';
+                                    console.log(`LED ${component.id} turned ON`);
+                                } else {
+                                    ledIcon.classList.remove('on');
+                                    ledIcon.style.transform = 'scale(1)';
+                                    ledIcon.style.filter = 'brightness(1)';
+                                    console.log(`LED ${component.id} turned OFF`);
+                                }
                             } else {
-                                ledIcon.classList.remove('on');
-                                ledIcon.style.transform = 'scale(1)';
-                                ledIcon.style.filter = 'brightness(1)';
-                                console.log(`LED ${component.id} turned OFF`);
+                                console.log(`LED icon not found for component ${component.id}`);
                             }
-                        } else {
-                            console.log(`LED icon not found for component ${component.id}`);
+                        } else if (component.type === 'MOTOR') {
+                            const motorIcon = componentBox.querySelector('.motor-icon');
+                            const pwmDisplay = componentBox.querySelector('.pwm-value');
+                            if (motorIcon) {
+                                console.log(`Found Motor icon for component ${component.id}`);
+                                const pwmValue = gameState.pwmValues[component.pin];
+                                
+                                // Remove all speed classes
+                                motorIcon.classList.remove('slow', 'medium', 'fast');
+                                
+                                // Add appropriate speed class based on PWM value
+                                if (pwmValue > 170) {
+                                    motorIcon.classList.add('fast');
+                                } else if (pwmValue > 85) {
+                                    motorIcon.classList.add('medium');
+                                } else if (pwmValue > 0) {
+                                    motorIcon.classList.add('slow');
+                                }
+                                
+                                // Update PWM display
+                                if (pwmDisplay) {
+                                    pwmDisplay.textContent = `PWM: ${pwmValue}`;
+                                }
+                                
+                                console.log(`Motor ${component.id} PWM: ${pwmValue}`);
+                            } else {
+                                console.log(`Motor icon not found for component ${component.id}`);
+                            }
                         }
                     } else {
                         console.log(`Component box not found for ${component.id}`);
@@ -1278,6 +1559,93 @@ void loop() {
                     togglePin(pinNumber);
                 });
             });
+
+            // P Key Detection for PWM Mode
+            document.addEventListener('keydown', function(e) {
+                if (e.key.toLowerCase() === 'p') {
+                    pKeyPressed = true;
+                    console.log('P key pressed - ready for PWM mode');
+                }
+            });
+
+            document.addEventListener('keyup', function(e) {
+                if (e.key.toLowerCase() === 'p') {
+                    pKeyPressed = false;
+                }
+            });
+
+            // Keyboard PWM Controls
+            document.addEventListener('keydown', function(e) {
+                if (gameState.selectedPwmPin) {
+                    const pin = gameState.selectedPwmPin;
+                    
+                    switch(e.key) {
+                        case '0':
+                            setDutyCycle(pin, 0);
+                            console.log(`Pin D${pin} duty cycle set to 0% (OFF)`);
+                            break;
+                        case '1':
+                            setDutyCycle(pin, 10);
+                            console.log(`Pin D${pin} duty cycle set to 10%`);
+                            break;
+                        case '2':
+                            setDutyCycle(pin, 20);
+                            console.log(`Pin D${pin} duty cycle set to 20%`);
+                            break;
+                        case '3':
+                            setDutyCycle(pin, 30);
+                            console.log(`Pin D${pin} duty cycle set to 30%`);
+                            break;
+                        case '4':
+                            setDutyCycle(pin, 40);
+                            console.log(`Pin D${pin} duty cycle set to 40%`);
+                            break;
+                        case '5':
+                            setDutyCycle(pin, 50);
+                            console.log(`Pin D${pin} duty cycle set to 50%`);
+                            break;
+                        case '6':
+                            setDutyCycle(pin, 60);
+                            console.log(`Pin D${pin} duty cycle set to 60%`);
+                            break;
+                        case '7':
+                            setDutyCycle(pin, 70);
+                            console.log(`Pin D${pin} duty cycle set to 70%`);
+                            break;
+                        case '8':
+                            setDutyCycle(pin, 80);
+                            console.log(`Pin D${pin} duty cycle set to 80%`);
+                            break;
+                        case '9':
+                            setDutyCycle(pin, 90);
+                            console.log(`Pin D${pin} duty cycle set to 90%`);
+                            break;
+                        case '+':
+                        case '=':
+                            const currentDuty = gameState.dutyCycles[pin];
+                            setDutyCycle(pin, Math.min(100, currentDuty + 5));
+                            console.log(`Pin D${pin} duty cycle increased to ${gameState.dutyCycles[pin]}%`);
+                            break;
+                        case '-':
+                            const currentDuty2 = gameState.dutyCycles[pin];
+                            setDutyCycle(pin, Math.max(0, currentDuty2 - 5));
+                            console.log(`Pin D${pin} duty cycle decreased to ${gameState.dutyCycles[pin]}%`);
+                            break;
+                        case ' ':
+                            e.preventDefault(); // Prevent page scroll
+                            const currentDuty3 = gameState.dutyCycles[pin];
+                            setDutyCycle(pin, currentDuty3 > 0 ? 0 : 100);
+                            console.log(`Pin D${pin} duty cycle toggled to ${gameState.dutyCycles[pin]}%`);
+                            break;
+                        case 'Escape':
+                            setPinMode(pin, 'DIGITAL');
+                            gameState.selectedPwmPin = null;
+                            updatePinSelection();
+                            console.log(`Pin D${pin} exited PWM mode`);
+                            break;
+                    }
+                }
+            });
             
             // Button event listeners
             const playTargetBtn = document.querySelector('.btn-play');
@@ -1320,8 +1688,14 @@ void loop() {
                 // Reset all pins to OFF
                 Object.keys(gameState.pins).forEach(pin => {
                     gameState.pins[pin] = false;
+                    gameState.pwmValues[pin] = 0;
+                    gameState.pinModes[pin] = 'DIGITAL';
+                    gameState.dutyCycles[pin] = 0;
                     updatePinVisual(pin);
                 });
+                // Reset PWM selection
+                gameState.selectedPwmPin = null;
+                updatePinSelection();
                 // Reset components
                 gameState.components = [];
                 gameState.connections = {};
