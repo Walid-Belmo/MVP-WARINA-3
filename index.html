@@ -15,8 +15,7 @@
             font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
             background: linear-gradient(135deg, #0a0f1a, #1a2a3a, #0f1a2a);
             color: #e0e0e0;
-            height: 100vh;
-            overflow: hidden;
+            min-height: 100vh;
             position: relative;
         }
 
@@ -354,7 +353,7 @@
         /* Main Container */
         .main-container {
             display: flex;
-            height: calc(100vh - 70px);
+            min-height: calc(100vh - 70px);
         }
 
         /* Left Panel - Microcontroller */
@@ -365,6 +364,7 @@
             flex-direction: column;
             align-items: center;
             gap: 20px;
+            min-height: calc(100vh - 70px);
         }
 
         /* Microcontroller Box */
@@ -674,6 +674,7 @@
             padding-right: 240px; /* Add space for the fixed timer panel */
             display: flex;
             flex-direction: column;
+            min-height: calc(100vh - 70px);
         }
 
         .code-editor-container {
@@ -894,6 +895,29 @@
                 <button class="btn btn-play">▶️ PLAY TARGET</button>
                 <button class="btn btn-replay">🔄 REPLAY</button>
             </div>
+
+            <!-- Additional Content Section for Scrolling -->
+            <div class="additional-content">
+                <div class="components-section">
+                    <div class="components-header">
+                        <div class="components-title">📚 Learning Resources</div>
+                    </div>
+                    <div style="color: #b0b0b0; font-size: 14px; line-height: 1.6;">
+                        <p>Welcome to the Arduino Learning Game! This interactive platform helps you learn microcontroller programming through hands-on experience.</p>
+                        <br>
+                        <p><strong>Getting Started:</strong></p>
+                        <ul style="margin-left: 20px;">
+                            <li>Connect components to the microcontroller pins</li>
+                            <li>Write Arduino code in the editor</li>
+                            <li>Run your code to see the results</li>
+                            <li>Use hints when you need help</li>
+                        </ul>
+                        <br>
+                        <p><strong>Mission 1: First Light</strong></p>
+                        <p>Your goal is to make an LED blink on pin 13. Try connecting an LED component and writing code to control it!</p>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Right Panel - Code Editor -->
@@ -913,6 +937,44 @@ void loop() {
                 <button class="btn btn-run">▶️ RUN CODE</button>
                 <button class="btn btn-reset">🔄 RESET</button>
                 <button class="btn btn-hint">💡 HINT</button>
+            </div>
+
+            <!-- Additional Code Examples Section -->
+            <div class="code-examples-section" style="margin-top: 20px;">
+                <div class="components-section">
+                    <div class="components-header">
+                        <div class="components-title">💡 Code Examples</div>
+                    </div>
+                    <div style="color: #b0b0b0; font-size: 12px; line-height: 1.5;">
+                        <p><strong>Basic LED Blink:</strong></p>
+                        <pre style="background: #1a2a3a; padding: 10px; border-radius: 5px; margin: 10px 0; overflow-x: auto;">
+void setup() {
+  pinMode(13, OUTPUT);
+}
+
+void loop() {
+  digitalWrite(13, HIGH);
+  delay(1000);
+  digitalWrite(13, LOW);
+  delay(1000);
+}</pre>
+                        <p><strong>Multiple LEDs:</strong></p>
+                        <pre style="background: #1a2a3a; padding: 10px; border-radius: 5px; margin: 10px 0; overflow-x: auto;">
+void setup() {
+  pinMode(13, OUTPUT);
+  pinMode(12, OUTPUT);
+}
+
+void loop() {
+  digitalWrite(13, HIGH);
+  digitalWrite(12, LOW);
+  delay(500);
+  digitalWrite(13, LOW);
+  digitalWrite(12, HIGH);
+  delay(500);
+}</pre>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
