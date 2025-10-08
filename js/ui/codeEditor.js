@@ -11,6 +11,7 @@ class ArduinoCodeEditor {
         this.cursorPosition = document.getElementById('cursorPosition');
         this.completionItems = [];
         this.selectedCompletionIndex = -1;
+        this.currentHighlightedLine = null;
         
         console.log('📝 CodeEditor initialized:', {
             editor: !!this.editor,
@@ -57,6 +58,8 @@ class ArduinoCodeEditor {
         
         this.editor.addEventListener('scroll', () => {
             this.lineNumbers.scrollTop = this.editor.scrollTop;
+            // Update highlight position when scrolling
+            this.updateHighlightPosition();
         });
         
         this.editor.addEventListener('keydown', (e) => {
@@ -288,6 +291,9 @@ class ArduinoCodeEditor {
         const lines = this.editor.value.split('\n');
         if (lineNumber > lines.length) return;
         
+        // Store the current highlighted line
+        this.currentHighlightedLine = lineNumber;
+        
         // Create or get the highlight overlay
         let highlightOverlay = document.getElementById('line-highlight-overlay');
         if (!highlightOverlay) {
@@ -301,25 +307,34 @@ class ArduinoCodeEditor {
             editorWrapper.appendChild(highlightOverlay);
         }
         
-        // Calculate line position
+        // Update the highlight position
+        this.updateHighlightPosition();
+        
+        // Ensure the highlighted line is visible
+        this.scrollToLine(lineNumber);
+        
+        console.log(`🎯 Highlighting line ${lineNumber}: "${lines[lineNumber - 1]}"`);
+    }
+    
+    /**
+     * Update the highlight overlay position based on scroll
+     */
+    updateHighlightPosition() {
+        if (!this.currentHighlightedLine) return;
+        
+        const highlightOverlay = document.getElementById('line-highlight-overlay');
+        if (!highlightOverlay) return;
+        
+        // Calculate line position accounting for scroll
         const lineHeight = this.getLineHeight();
         const editorPadding = this.getEditorPadding();
-        const topOffset = (lineNumber - 1) * lineHeight + editorPadding.top;
+        const scrollTop = this.editor.scrollTop;
+        const topOffset = (this.currentHighlightedLine - 1) * lineHeight + editorPadding.top - scrollTop;
         
         // Position the overlay
         highlightOverlay.style.top = `${topOffset}px`;
         highlightOverlay.style.height = `${lineHeight}px`;
         highlightOverlay.style.display = 'block';
-        
-        // Ensure the highlighted line is visible
-        this.scrollToLine(lineNumber);
-        
-        console.log(`🎯 Highlighting line ${lineNumber}: "${lines[lineNumber - 1]}"`, {
-            lineHeight: lineHeight,
-            topOffset: topOffset,
-            editorPadding: editorPadding,
-            totalLines: lines.length
-        });
     }
     
     /**
@@ -330,6 +345,7 @@ class ArduinoCodeEditor {
         if (highlightOverlay) {
             highlightOverlay.style.display = 'none';
         }
+        this.currentHighlightedLine = null;
     }
     
     /**
@@ -432,6 +448,14 @@ class ArduinoCodeEditor {
             setTimeout(() => {
                 this.highlightLine(i);
                 console.log(`Testing line ${i}/${lines.length}`);
+                
+                // Test scrolling while highlighting
+                if (i === Math.floor(lines.length / 2)) {
+                    setTimeout(() => {
+                        console.log('Testing scroll behavior...');
+                        this.editor.scrollTop = this.editor.scrollHeight / 2;
+                    }, 500);
+                }
             }, i * 1000); // 1 second delay between each line
         }
         
