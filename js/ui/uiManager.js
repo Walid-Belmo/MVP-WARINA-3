@@ -13,6 +13,11 @@ class UIManager {
         this.currentLoopInterval = null;
         this.isExecuting = false;
         this.executionTimeouts = [];
+        
+        // Game flow state
+        this.isGameActive = false;
+        this.hasPlayedTarget = false;
+        this.currentLevel = null;
     }
 
     /**
@@ -23,6 +28,7 @@ class UIManager {
         this.setupKeyboardControls();
         this.setupButtonEventListeners();
         this.setupBackgroundEffects();
+        this.initializeGame();
     }
 
     /**
@@ -143,8 +149,8 @@ class UIManager {
         // Play Target button
         if (playTargetBtn) {
             playTargetBtn.addEventListener('click', () => {
-                console.log('Playing target animation');
-                // TODO: Implement target animation
+                console.log('🎬 Play Target button clicked');
+                this.playTargetAnimation();
             });
         }
         
@@ -774,6 +780,385 @@ void loop() {}`;
             this.executeLoopWithDelays = originalExecuteLoopWithDelays;
             console.log('🔄 Restored original executeLoopWithDelays method');
         }, 10000);
+    }
+
+    // ========================================
+    // GAME FLOW METHODS
+    // ========================================
+
+    /**
+     * Initialize the game
+     */
+    initializeGame() {
+        console.log('🎮 Initializing game...');
+        
+        // Load first level
+        this.loadLevel(1);
+        
+        // Update UI with level info
+        this.updateLevelDisplay();
+    }
+
+    /**
+     * Load a specific level
+     * @param {number} levelId - Level ID to load
+     */
+    loadLevel(levelId) {
+        console.log(`🎮 Loading level ${levelId}...`);
+        
+        if (window.levelManager.loadLevel(levelId)) {
+            this.currentLevel = window.levelManager.getCurrentLevel();
+            this.isGameActive = false;
+            this.hasPlayedTarget = false;
+            
+            // Reset game state
+            this.resetGame();
+            
+            // Update UI
+            this.updateLevelDisplay();
+            this.updateGameButtons();
+            
+            console.log(`✅ Level ${levelId} loaded: "${this.currentLevel.name}"`);
+        } else {
+            console.error(`❌ Failed to load level ${levelId}`);
+        }
+    }
+
+    /**
+     * Play target animation and start timer
+     */
+    playTargetAnimation() {
+        if (!this.currentLevel) {
+            console.error('❌ No level loaded');
+            return;
+        }
+
+        if (this.isGameActive) {
+            console.log('⚠️ Game already active');
+            return;
+        }
+
+        console.log('🎬 Playing target animation...');
+        
+        const targetSequence = window.levelManager.getTargetSequence();
+        if (!targetSequence) {
+            console.error('❌ No target sequence available');
+            return;
+        }
+
+        // Play the target animation
+        window.targetAnimationPlayer.playTargetAnimation(targetSequence, () => {
+            console.log('✅ Target animation completed');
+            this.startGameTimer();
+        });
+
+        this.hasPlayedTarget = true;
+        this.updateGameButtons();
+    }
+
+    /**
+     * Start the game timer
+     */
+    startGameTimer() {
+        if (!this.currentLevel) {
+            console.error('❌ No level loaded');
+            return;
+        }
+
+        console.log(`⏰ Starting timer: ${this.currentLevel.timeLimit}ms`);
+        
+        this.isGameActive = true;
+        this.updateGameButtons();
+
+        // Start countdown timer
+        window.timerManager.startTimer(
+            this.currentLevel.timeLimit,
+            () => this.handleTimeUp(), // onTimeUp callback
+            (timeRemaining, totalTime) => this.onTimerTick(timeRemaining, totalTime) // onTick callback
+        );
+    }
+
+    /**
+     * Handle timer tick
+     * @param {number} timeRemaining - Time remaining in ms
+     * @param {number} totalTime - Total time in ms
+     */
+    onTimerTick(timeRemaining, totalTime) {
+        // Update any timer-related UI elements
+        this.updateTimerDisplay();
+    }
+
+    /**
+     * Handle time up event
+     */
+    handleTimeUp() {
+        console.log('⏰ TIME UP!');
+        this.handleLose();
+    }
+
+    /**
+     * Modified runCode method with game flow integration
+     */
+    runCode() {
+        console.log('🎯 runCode() method called');
+        
+        // Check if game is active
+        if (!this.isGameActive) {
+            console.log('⚠️ Game not active - cannot run code yet');
+            this.showMessage('Play the target animation first!', 'warning');
+            return;
+        }
+
+        // Stop any existing execution
+        this.stopExecution();
+        
+        const code = this.codeEditor.getValue();
+        console.log('📝 Code to execute:', code);
+        
+        if (!code || code.trim().length === 0) {
+            console.error('❌ No code to execute!');
+            this.showMessage('Please write some code first!', 'error');
+            return;
+        }
+        
+        try {
+            // Show status
+            this.showCodeStatus('⚡ Analyzing Code...');
+            console.log('✅ Status shown: Analyzing Code');
+            
+            // Parse the player's code
+            const parsedCode = this.arduinoParser.parseCode(code);
+            console.log('✅ Code parsed:', parsedCode);
+            
+            // Extract sequence from player's code
+            const playerSequence = window.sequenceExtractor.extractSequence(parsedCode);
+            console.log('✅ Player sequence extracted:', playerSequence);
+            
+            // Get target sequence
+            const targetSequence = window.levelManager.getTargetSequence();
+            if (!targetSequence) {
+                console.error('❌ No target sequence available');
+                this.showMessage('Target sequence not available', 'error');
+                return;
+            }
+            
+            // Validate sequences
+            this.showCodeStatus('⚡ Validating Sequence...');
+            const validation = window.sequenceValidator.validateSequence(targetSequence, playerSequence);
+            console.log('✅ Validation result:', validation);
+            
+            if (validation.matches) {
+                console.log('🎉 SEQUENCE MATCH! Player wins!');
+                this.handleWin();
+            } else {
+                console.log('❌ Sequence does not match');
+                this.showMessage(`Sequence doesn't match. Score: ${validation.score}%`, 'warning');
+                
+                // Show detailed feedback
+                if (validation.differences.length > 0) {
+                    const firstDiff = validation.differences[0];
+                    this.showMessage(`Issue: ${firstDiff.message}`, 'info');
+                }
+            }
+            
+        } catch (error) {
+            console.error('❌ Code execution error:', error);
+            this.hideCodeStatus();
+            this.showMessage(error.message, 'error');
+        }
+    }
+
+    /**
+     * Handle win condition
+     */
+    handleWin() {
+        console.log('🎉 PLAYER WINS!');
+        
+        // Stop timer
+        window.timerManager.stopTimer();
+        
+        // Stop any running execution
+        this.stopExecution();
+        
+        // Show win message
+        this.showWinModal();
+        
+        // Update game state
+        this.isGameActive = false;
+        this.updateGameButtons();
+    }
+
+    /**
+     * Handle lose condition
+     */
+    handleLose() {
+        console.log('💀 PLAYER LOSES!');
+        
+        // Stop any running execution
+        this.stopExecution();
+        
+        // Show lose message
+        this.showLoseModal();
+        
+        // Update game state
+        this.isGameActive = false;
+        this.updateGameButtons();
+    }
+
+    /**
+     * Show win modal
+     */
+    showWinModal() {
+        const modal = document.getElementById('winModal');
+        if (modal) {
+            modal.style.display = 'flex';
+        }
+        
+        // Auto-hide after 3 seconds
+        setTimeout(() => {
+            this.hideWinModal();
+        }, 3000);
+    }
+
+    /**
+     * Hide win modal
+     */
+    hideWinModal() {
+        const modal = document.getElementById('winModal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    }
+
+    /**
+     * Show lose modal
+     */
+    showLoseModal() {
+        const modal = document.getElementById('loseModal');
+        if (modal) {
+            modal.style.display = 'flex';
+        }
+    }
+
+    /**
+     * Hide lose modal
+     */
+    hideLoseModal() {
+        const modal = document.getElementById('loseModal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    }
+
+    /**
+     * Update level display
+     */
+    updateLevelDisplay() {
+        if (!this.currentLevel) return;
+
+        const levelInfo = window.levelManager.getLevelInfo();
+        
+        // Update mission title
+        const missionTitle = document.querySelector('.mission-title');
+        if (missionTitle) {
+            missionTitle.textContent = `🎯 MISSION ${levelInfo.id}: ${levelInfo.name}`;
+        }
+        
+        // Update level description (if element exists)
+        const levelDesc = document.querySelector('.level-description');
+        if (levelDesc) {
+            levelDesc.textContent = levelInfo.description;
+        }
+        
+        // Update hint (if element exists)
+        const hintText = document.querySelector('.hint-text');
+        if (hintText) {
+            hintText.textContent = levelInfo.hint;
+        }
+    }
+
+    /**
+     * Update game buttons state
+     */
+    updateGameButtons() {
+        const playTargetBtn = document.querySelector('.btn-play');
+        const runCodeBtn = document.querySelector('.btn-run');
+        
+        if (playTargetBtn) {
+            if (this.hasPlayedTarget) {
+                playTargetBtn.textContent = '🔄 REPLAY TARGET';
+                playTargetBtn.disabled = false;
+            } else {
+                playTargetBtn.textContent = '▶️ PLAY TARGET';
+                playTargetBtn.disabled = false;
+            }
+        }
+        
+        if (runCodeBtn) {
+            if (this.isGameActive) {
+                runCodeBtn.disabled = false;
+                runCodeBtn.textContent = '▶️ RUN CODE';
+            } else {
+                runCodeBtn.disabled = true;
+                runCodeBtn.textContent = '⏸️ RUN CODE (Play target first)';
+            }
+        }
+    }
+
+    /**
+     * Update timer display
+     */
+    updateTimerDisplay() {
+        // Timer display is handled by TimerManager
+        // This method can be used for additional timer-related UI updates
+    }
+
+    /**
+     * Show message to user
+     * @param {string} message - Message to show
+     * @param {string} type - Message type (info, warning, error, success)
+     */
+    showMessage(message, type = 'info') {
+        console.log(`📢 ${type.toUpperCase()}: ${message}`);
+        
+        // Create or update message element
+        let messageEl = document.getElementById('gameMessage');
+        if (!messageEl) {
+            messageEl = document.createElement('div');
+            messageEl.id = 'gameMessage';
+            messageEl.className = 'game-message';
+            document.body.appendChild(messageEl);
+        }
+        
+        messageEl.textContent = message;
+        messageEl.className = `game-message game-message-${type}`;
+        messageEl.style.display = 'block';
+        
+        // Auto-hide after 3 seconds
+        setTimeout(() => {
+            messageEl.style.display = 'none';
+        }, 3000);
+    }
+
+    /**
+     * Go to next level
+     */
+    nextLevel() {
+        const nextLevelId = window.levelManager.getNextLevelId();
+        if (nextLevelId) {
+            this.loadLevel(nextLevelId);
+        } else {
+            this.showMessage('Congratulations! You completed all levels!', 'success');
+        }
+    }
+
+    /**
+     * Restart current level
+     */
+    restartLevel() {
+        if (this.currentLevel) {
+            this.loadLevel(this.currentLevel.id);
+        }
     }
 }
 

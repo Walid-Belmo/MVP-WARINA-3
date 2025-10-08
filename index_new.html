@@ -64,6 +64,32 @@
         </div>
     </div>
 
+    <!-- Win Modal -->
+    <div class="modal" id="winModal" style="display: none;">
+        <div class="modal-content win-modal">
+            <div class="modal-icon">🎉</div>
+            <h2>Level Complete!</h2>
+            <p>Great job! Your code matches the target sequence perfectly!</p>
+            <div class="modal-buttons">
+                <button class="btn btn-primary" onclick="window.uiManager.nextLevel()">Next Level</button>
+                <button class="btn btn-secondary" onclick="window.uiManager.restartLevel()">Restart Level</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lose Modal -->
+    <div class="modal" id="loseModal" style="display: none;">
+        <div class="modal-content lose-modal">
+            <div class="modal-icon">💀</div>
+            <h2>Time's Up!</h2>
+            <p>Don't give up! Try again and match the target sequence.</p>
+            <div class="modal-buttons">
+                <button class="btn btn-primary" onclick="window.uiManager.restartLevel()">Try Again</button>
+                <button class="btn btn-secondary" onclick="window.uiManager.hideLoseModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Main Container -->
     <div class="main-container">
         <!-- Left Panel - Microcontroller -->
@@ -73,6 +99,12 @@
             
             <!-- Microcontroller Visualization -->
             <div class="microcontroller-container">
+                <!-- Elapsed Timer Display (only visible during target animation) -->
+                <div class="elapsed-timer" id="elapsedTimer" style="display: none;">
+                    <div class="elapsed-timer-label">ELAPSED TIME</div>
+                    <div class="elapsed-timer-value">00:00.0</div>
+                </div>
+
                 <!-- Microcontroller -->
                 <div class="microcontroller">
                     <!-- Top Pins -->
@@ -262,12 +294,20 @@ void loop() {}</pre>
     <script src="js/core/gameState.js"></script>
     <script src="js/core/pinManager.js"></script>
     <script src="js/core/arduinoParser.js"></script>
+    <script src="js/core/sequenceExtractor.js"></script>
+    <script src="js/core/sequenceValidator.js"></script>
+    
+    <!-- Level System -->
+    <script src="js/levels/levelData.js"></script>
+    <script src="js/levels/levelManager.js"></script>
     
     <!-- Component Management -->
     <script src="js/components/componentManager.js"></script>
     
     <!-- UI Management -->
     <script src="js/ui/codeEditor.js"></script>
+    <script src="js/ui/timerManager.js"></script>
+    <script src="js/ui/targetAnimationPlayer.js"></script>
     <script src="js/ui/uiManager.js"></script>
     
     <!-- Background Effects -->

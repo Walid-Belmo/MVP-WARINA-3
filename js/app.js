@@ -53,6 +53,9 @@ class ArduinoLearningGame {
         // Initialize pins
         this.pinManager.initializePins();
         
+        // Initialize game systems
+        this.initializeGameSystems();
+        
         // Test pins after a short delay
         setTimeout(() => {
             this.uiManager.testPins();
@@ -62,6 +65,50 @@ class ArduinoLearningGame {
         this.setupGlobalFunctions();
         
         console.log('✅ Arduino Learning Game initialized successfully!');
+    }
+
+    /**
+     * Initialize game systems
+     */
+    initializeGameSystems() {
+        console.log('🎯 Initializing game systems...');
+        
+        // Initialize level manager
+        if (window.levelManager) {
+            console.log('✅ Level manager ready');
+        } else {
+            console.error('❌ Level manager not available');
+        }
+        
+        // Initialize sequence extractor
+        if (window.sequenceExtractor) {
+            console.log('✅ Sequence extractor ready');
+        } else {
+            console.error('❌ Sequence extractor not available');
+        }
+        
+        // Initialize sequence validator
+        if (window.sequenceValidator) {
+            console.log('✅ Sequence validator ready');
+        } else {
+            console.error('❌ Sequence validator not available');
+        }
+        
+        // Initialize timer manager
+        if (window.timerManager) {
+            console.log('✅ Timer manager ready');
+        } else {
+            console.error('❌ Timer manager not available');
+        }
+        
+        // Initialize target animation player
+        if (window.targetAnimationPlayer) {
+            console.log('✅ Target animation player ready');
+        } else {
+            console.error('❌ Target animation player not available');
+        }
+        
+        console.log('🎯 Game systems initialized');
     }
 
     /**

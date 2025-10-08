@@ -1,5 +1,43 @@
 /* Microcontroller and Pin Styles */
 
+/* Elapsed Timer Display */
+.elapsed-timer {
+    background: linear-gradient(135deg, #1a2a3a, #2a3a4a);
+    border: 2px solid #00D4FF;
+    border-radius: 12px;
+    padding: 15px 20px;
+    margin-bottom: 20px;
+    text-align: center;
+    box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+    animation: elapsedTimerGlow 2s ease-in-out infinite alternate;
+}
+
+@keyframes elapsedTimerGlow {
+    from {
+        box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+    }
+    to {
+        box-shadow: 0 0 30px rgba(0, 212, 255, 0.5);
+    }
+}
+
+.elapsed-timer-label {
+    color: #00D4FF;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 2px;
+    margin-bottom: 5px;
+    text-shadow: 0 0 5px rgba(0, 212, 255, 0.5);
+}
+
+.elapsed-timer-value {
+    color: #fff;
+    font-size: 28px;
+    font-weight: bold;
+    font-family: 'Courier New', monospace;
+    text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+}
+
 /* Microcontroller Box */
 .microcontroller-container {
     background: linear-gradient(135deg, #1a2a3a, #2a3a4a);
