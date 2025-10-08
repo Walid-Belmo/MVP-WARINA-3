@@ -523,8 +523,8 @@ void loop() {
             this.gameState.pins[pin] = pinState.state;
             
             // Determine pin mode based on parser state
-            if (pinState.pwm > 0 && pinState.pwm < 255) {
-                // PWM mode (analogWrite with value between 0-255)
+            if (pinState.pwm > 0) {
+                // PWM mode (analogWrite with any value > 0)
                 this.gameState.pinModes[pin] = 'PWM';
             } else {
                 // Digital mode (pinMode OUTPUT or digitalWrite HIGH/LOW)
