@@ -119,6 +119,11 @@ class ArduinoCodeEditor {
             this.updateLineNumbers();
             this.updateCursorPosition();
             this.applySyntaxHighlighting();
+            
+            // Recalculate placeholder positions after typing
+            if (this.currentPlaceholders && this.currentPlaceholderIndex >= 0) {
+                this.recalculatePlaceholderPositions();
+            }
         });
         
         this.editor.addEventListener('scroll', () => {
@@ -171,6 +176,46 @@ class ArduinoCodeEditor {
     }
     
     handleKeyDown(e) {
+        // Down arrow quick navigation: jump to next line when in middle of completed code
+        if (e.key === 'ArrowDown' && this.completion.style.display !== 'block') {
+            e.preventDefault();
+            
+            const cursorPos = this.editor.selectionStart;
+            const text = this.editor.value;
+            
+            // Find the current line
+            const beforeCursor = text.substring(0, cursorPos);
+            const afterCursor = text.substring(cursorPos);
+            const currentLineStart = beforeCursor.lastIndexOf('\n') + 1;
+            const currentLineEnd = afterCursor.indexOf('\n');
+            const nextLinePos = currentLineEnd === -1 ? text.length : cursorPos + currentLineEnd;
+            
+            // Check if there's a next line
+            if (nextLinePos < text.length) {
+                // Move to the beginning of the next line (skip the newline character)
+                const nextLineStart = nextLinePos + 1;
+                
+                // Find the first non-whitespace character on the next line
+                let targetPos = nextLineStart;
+                while (targetPos < text.length && (text[targetPos] === ' ' || text[targetPos] === '\t')) {
+                    targetPos++;
+                }
+                
+                this.editor.selectionStart = this.editor.selectionEnd = targetPos;
+            } else {
+                // No next line, create one with proper indentation
+                const currentLine = beforeCursor.substring(currentLineStart);
+                const indentMatch = currentLine.match(/^(\s*)/);
+                const indent = indentMatch ? indentMatch[1] : '';
+                
+                // Move to end of current line and add new line with indentation
+                this.editor.selectionStart = this.editor.selectionEnd = nextLinePos;
+                this.insertText('\n' + indent);
+            }
+            
+            return;
+        }
+        
         // Tab navigation for placeholders
         if (e.key === 'Tab' && this.currentPlaceholders && this.currentPlaceholders.length > 0) {
             e.preventDefault();
@@ -189,10 +234,9 @@ class ArduinoCodeEditor {
             return;
         }
         
-        // Clear placeholders when user types
-        if (e.key.length === 1 && this.currentPlaceholders) {
-            this.currentPlaceholders = null;
-        }
+        // REMOVED: Auto-clear logic that was preventing Tab navigation after typing
+        // Placeholders are now preserved when user types to replace current placeholder
+        // They will be cleared when user clicks elsewhere or presses Escape
         
         if (this.completion.style.display === 'block') {
             switch(e.key) {
@@ -218,6 +262,11 @@ class ArduinoCodeEditor {
                     return; // CRITICAL: Return to prevent Enter from triggering auto-indentation
                 case 'Escape':
                     this.hideCompletion();
+                    // Also clear placeholders on Escape
+                    if (this.currentPlaceholders) {
+                        this.currentPlaceholders = null;
+                        this.currentPlaceholderIndex = -1;
+                    }
                     break;
             }
         }
@@ -232,6 +281,12 @@ class ArduinoCodeEditor {
         if (e.key === 'Enter') {
             e.preventDefault();
             this.handleEnterKey();
+        }
+        
+        // Clear placeholders on Escape (outside completion menu)
+        if (e.key === 'Escape' && this.currentPlaceholders) {
+            this.currentPlaceholders = null;
+            this.currentPlaceholderIndex = -1;
         }
     }
     
@@ -417,6 +472,31 @@ class ArduinoCodeEditor {
         }
         
         return { text, placeholders };
+    }
+    
+    /**
+     * Recalculate placeholder positions after current placeholder is replaced
+     */
+    recalculatePlaceholderPositions() {
+        if (!this.currentPlaceholders || this.currentPlaceholderIndex < 0) return;
+        
+        const cursorPos = this.editor.selectionStart;
+        const text = this.editor.value;
+        
+        // Get the current placeholder (the one that was just replaced)
+        const currentPlaceholder = this.currentPlaceholders[this.currentPlaceholderIndex];
+        
+        // Calculate the offset: difference between cursor position and expected placeholder end
+        const offset = cursorPos - currentPlaceholder.end;
+        
+        // Update current placeholder's end position
+        currentPlaceholder.end = cursorPos;
+        
+        // Adjust all subsequent placeholder positions by the offset
+        for (let i = this.currentPlaceholderIndex + 1; i < this.currentPlaceholders.length; i++) {
+            this.currentPlaceholders[i].start += offset;
+            this.currentPlaceholders[i].end += offset;
+        }
     }
     
     getValue() {
