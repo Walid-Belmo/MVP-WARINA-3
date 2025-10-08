@@ -232,25 +232,33 @@ class UIManager {
             this.showCodeStatus('⚡ Executing Setup...');
             console.log('✅ Status shown: Executing Setup');
             
-            // Execute setup once
-            this.arduinoParser.executeSetup(parsedCode.setup, setupStartLine);
-            console.log('✅ Setup executed');
-            
-            // Update visual pins based on setup
-            this.updateVisualPinsFromParser();
-            console.log('✅ Visual pins updated from setup');
-            
-            // Show loop execution status
-            this.showCodeStatus('⚡ Running Loop...');
-            console.log('✅ Status shown: Running Loop');
-            
             // Mark as executing
             this.isExecuting = true;
             console.log('✅ Execution marked as active');
             
-            // Execute loop continuously with proper timing
-            this.executeLoopWithTiming(parsedCode.loop, loopStartLine);
-            console.log('✅ Loop execution started');
+            // Execute setup with delays and highlighting
+            this.executeLoopWithDelays(parsedCode.setup, setupStartLine, () => {
+                // Setup complete, now execute loop
+                console.log('✅ Setup execution completed');
+                
+                if (!this.isExecuting) return;
+                
+                // Only execute loop if there's code in it
+                if (parsedCode.loop && parsedCode.loop.trim().length > 0) {
+                    this.showCodeStatus('⚡ Running Loop...');
+                    console.log('✅ Status shown: Running Loop');
+                    this.executeLoopWithTiming(parsedCode.loop, loopStartLine);
+                    console.log('✅ Loop execution started');
+                } else {
+                    // No loop code, just finish
+                    console.log('✅ No loop code, finishing execution');
+                    this.hideCodeStatus();
+                    this.isExecuting = false;
+                    if (window.codeEditor) {
+                        window.codeEditor.clearLineHighlight();
+                    }
+                }
+            });
             
         } catch (error) {
             console.error('❌ Code execution error:', error);
