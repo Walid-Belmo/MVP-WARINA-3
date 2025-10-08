@@ -85,13 +85,13 @@ class ArduinoCodeEditor {
                 placeholders: ['pin', 'dutyCycle']
             },
             { 
-                name: 'setup', 
+                name: 'void setup', 
                 desc: '() - Initialize code (runs once)',
                 template: 'void setup() {\n  \n}',
                 placeholders: []
             },
             { 
-                name: 'loop', 
+                name: 'void loop', 
                 desc: '() - Main code (runs repeatedly)',
                 template: 'void loop() {\n  \n}',
                 placeholders: []
