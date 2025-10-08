@@ -141,6 +141,7 @@ class UIManager {
      */
     setupButtonEventListeners() {
         const playTargetBtn = document.querySelector('.btn-play');
+        const stopAnimationBtn = document.querySelector('.btn-stop-animation');
         const replayBtn = document.querySelector('.btn-replay');
         const runCodeBtn = document.querySelector('.btn-run');
         const resetBtn = document.querySelector('.btn-reset');
@@ -151,6 +152,14 @@ class UIManager {
             playTargetBtn.addEventListener('click', () => {
                 console.log('🎬 Play Target button clicked');
                 this.playTargetAnimation();
+            });
+        }
+        
+        // Stop Animation button
+        if (stopAnimationBtn) {
+            stopAnimationBtn.addEventListener('click', () => {
+                console.log('⏹️ Stop Animation button clicked');
+                this.stopTargetAnimation();
             });
         }
         
@@ -833,11 +842,6 @@ void loop() {}`;
             return;
         }
 
-        if (this.isGameActive) {
-            console.log('⚠️ Game already active');
-            return;
-        }
-
         console.log('🎬 Playing target animation...');
         
         const targetSequence = window.levelManager.getTargetSequence();
@@ -846,13 +850,34 @@ void loop() {}`;
             return;
         }
 
+        // Start timer and enable game immediately (first time only)
+        if (!this.isGameActive) {
+            console.log('🎮 Starting game and timer...');
+            this.isGameActive = true;
+            this.startGameTimer();
+        }
+
         // Play the target animation
         window.targetAnimationPlayer.playTargetAnimation(targetSequence, () => {
             console.log('✅ Target animation completed');
-            this.startGameTimer();
+            // Update button states when animation completes
+            this.updateGameButtons();
         });
 
         this.hasPlayedTarget = true;
+        this.updateGameButtons();
+    }
+
+    /**
+     * Stop target animation
+     */
+    stopTargetAnimation() {
+        console.log('⏹️ Stopping target animation...');
+        
+        // Stop the animation
+        window.targetAnimationPlayer.stopAnimation();
+        
+        // Update button states
         this.updateGameButtons();
     }
 
@@ -1082,6 +1107,7 @@ void loop() {}`;
      */
     updateGameButtons() {
         const playTargetBtn = document.querySelector('.btn-play');
+        const stopAnimationBtn = document.querySelector('.btn-stop-animation');
         const runCodeBtn = document.querySelector('.btn-run');
         
         if (playTargetBtn) {
@@ -1091,6 +1117,16 @@ void loop() {}`;
             } else {
                 playTargetBtn.textContent = '▶️ PLAY TARGET';
                 playTargetBtn.disabled = false;
+            }
+        }
+        
+        // Show/hide stop animation button based on animation state
+        if (stopAnimationBtn) {
+            const isAnimationPlaying = window.targetAnimationPlayer.isAnimationPlaying();
+            if (isAnimationPlaying) {
+                stopAnimationBtn.style.display = 'inline-block';
+            } else {
+                stopAnimationBtn.style.display = 'none';
             }
         }
         
