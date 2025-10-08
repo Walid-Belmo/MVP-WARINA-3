@@ -12,6 +12,8 @@ class ArduinoCodeEditor {
         this.completionItems = [];
         this.selectedCompletionIndex = -1;
         this.currentHighlightedLine = null;
+        this.currentPlaceholders = null;
+        this.currentPlaceholderIndex = -1;
         
         console.log('📝 CodeEditor initialized:', {
             editor: !!this.editor,
@@ -22,15 +24,66 @@ class ArduinoCodeEditor {
         
         // Arduino function completions - Focused on robotics learning
         this.arduinoFunctions = [
-            { name: 'pinMode', desc: '(pin, mode) - Set pin as OUTPUT' },
-            { name: 'digitalWrite', desc: '(pin, value) - Turn pin HIGH or LOW' },
-            { name: 'delay', desc: '(ms) - Wait for milliseconds' },
-            { name: 'Timer1.initialize', desc: '(20000) - Setup 50Hz PWM (for servos)' },
-            { name: 'Timer1.pwm', desc: '(pin, duty) - Set servo position (0-1023)' },
-            { name: 'Timer0.initialize', desc: '() - Setup PWM for motors' },
-            { name: 'Timer0.pwm', desc: '(pin, duty) - Set motor speed (0-255)' },
-            { name: 'setup', desc: '() - Initialize code (runs once)' },
-            { name: 'loop', desc: '() - Main code (runs repeatedly)' }
+            { 
+                name: 'pinMode', 
+                desc: '(pin, mode) - Set pin as OUTPUT',
+                template: 'pinMode(${pin}, ${OUTPUT});',
+                placeholders: ['pin', 'OUTPUT']
+            },
+            { 
+                name: 'digitalWrite', 
+                desc: '(pin, value) - Turn pin HIGH or LOW',
+                template: 'digitalWrite(${pin}, ${HIGH});',
+                placeholders: ['pin', 'HIGH']
+            },
+            { 
+                name: 'delay', 
+                desc: '(ms) - Wait for milliseconds',
+                template: 'delay(${1000});',
+                placeholders: ['1000']
+            },
+            { 
+                name: 'Timer1.initialize', 
+                desc: '(20000) - Setup 50Hz PWM (for servos)',
+                template: 'Timer1.initialize(${20000});',
+                placeholders: ['20000']
+            },
+            { 
+                name: 'Timer1.pwm', 
+                desc: '(pin, duty) - Set servo position (0-1023)',
+                template: 'Timer1.pwm(${pin}, ${duty});',
+                placeholders: ['pin', 'duty']
+            },
+            { 
+                name: 'Timer0.initialize', 
+                desc: '() - Setup PWM for motors',
+                template: 'Timer0.initialize();',
+                placeholders: []
+            },
+            { 
+                name: 'Timer0.pwm', 
+                desc: '(pin, duty) - Set motor speed (0-255)',
+                template: 'Timer0.pwm(${pin}, ${duty});',
+                placeholders: ['pin', 'duty']
+            },
+            { 
+                name: 'setDutyCycle', 
+                desc: '(pin, dutyCycle) - Set PWM duty cycle (0-100%)',
+                template: 'setDutyCycle(${pin}, ${dutyCycle});',
+                placeholders: ['pin', 'dutyCycle']
+            },
+            { 
+                name: 'setup', 
+                desc: '() - Initialize code (runs once)',
+                template: 'void setup() {\n  \n}',
+                placeholders: []
+            },
+            { 
+                name: 'loop', 
+                desc: '() - Main code (runs repeatedly)',
+                template: 'void loop() {\n  \n}',
+                placeholders: []
+            }
         ];
         
         this.arduinoKeywords = [
@@ -106,6 +159,29 @@ class ArduinoCodeEditor {
     }
     
     handleKeyDown(e) {
+        // Tab navigation for placeholders
+        if (e.key === 'Tab' && this.currentPlaceholders && this.currentPlaceholders.length > 0) {
+            e.preventDefault();
+            
+            this.currentPlaceholderIndex++;
+            if (this.currentPlaceholderIndex >= this.currentPlaceholders.length) {
+                // No more placeholders, move cursor to end
+                const lastPlaceholder = this.currentPlaceholders[this.currentPlaceholders.length - 1];
+                this.editor.selectionStart = this.editor.selectionEnd = lastPlaceholder.end;
+                this.currentPlaceholders = null;
+            } else {
+                const placeholder = this.currentPlaceholders[this.currentPlaceholderIndex];
+                this.editor.selectionStart = placeholder.start;
+                this.editor.selectionEnd = placeholder.end;
+            }
+            return;
+        }
+        
+        // Clear placeholders when user types
+        if (e.key.length === 1 && this.currentPlaceholders) {
+            this.currentPlaceholders = null;
+        }
+        
         if (this.completion.style.display === 'block') {
             switch(e.key) {
                 case 'ArrowDown':
@@ -127,15 +203,15 @@ class ArduinoCodeEditor {
                 case 'Enter':
                     e.preventDefault();
                     this.acceptCompletion();
-                    break;
+                    return; // CRITICAL: Return to prevent Enter from triggering auto-indentation
                 case 'Escape':
                     this.hideCompletion();
                     break;
             }
         }
         
-        // Handle Tab for indentation
-        if (e.key === 'Tab') {
+        // Handle Tab for indentation (only if no placeholders)
+        if (e.key === 'Tab' && (!this.currentPlaceholders || this.currentPlaceholders.length === 0)) {
             e.preventDefault();
             this.insertText('  '); // Insert 2 spaces for indentation
         }
@@ -148,8 +224,8 @@ class ArduinoCodeEditor {
     }
     
     handleKeyUp(e) {
-        // Show completion on certain triggers
-        if (e.key === '.' || e.key === '(' || e.key === ' ') {
+        // Show completion on first character typed
+        if (e.key.length === 1 && /[a-zA-Z]/.test(e.key)) {
             this.showCompletion();
         }
     }
@@ -253,8 +329,26 @@ class ArduinoCodeEditor {
                 const end = cursorPos;
                 const value = this.editor.value;
                 
-                this.editor.value = value.substring(0, start) + selectedItem.name + value.substring(end);
-                this.editor.selectionStart = this.editor.selectionEnd = start + selectedItem.name.length;
+                // Insert template instead of just name
+                const template = selectedItem.template || selectedItem.name;
+                const parsedTemplate = this.parseTemplate(template);
+                
+                this.editor.value = value.substring(0, start) + parsedTemplate.text + value.substring(end);
+                
+                // Position cursor at first placeholder
+                if (parsedTemplate.placeholders.length > 0) {
+                    const firstPlaceholder = parsedTemplate.placeholders[0];
+                    this.editor.selectionStart = start + firstPlaceholder.start;
+                    this.editor.selectionEnd = start + firstPlaceholder.end;
+                    
+                    // Store placeholders for Tab navigation
+                    this.currentPlaceholders = parsedTemplate.placeholders.map(p => ({
+                        start: start + p.start,
+                        end: start + p.end
+                    }));
+                    this.currentPlaceholderIndex = 0;
+                }
+                
                 this.updateLineNumbers();
             }
         }
@@ -264,6 +358,36 @@ class ArduinoCodeEditor {
     hideCompletion() {
         this.completion.style.display = 'none';
         this.selectedCompletionIndex = -1;
+    }
+    
+    /**
+     * Parse template and extract placeholder positions
+     */
+    parseTemplate(template) {
+        const placeholders = [];
+        let text = template;
+        let offset = 0;
+        
+        // Find all ${placeholder} patterns
+        const regex = /\$\{([^}]+)\}/g;
+        let match;
+        
+        while ((match = regex.exec(template)) !== null) {
+            const placeholderText = match[1];
+            const placeholderStart = match.index - offset;
+            
+            placeholders.push({
+                start: placeholderStart,
+                end: placeholderStart + placeholderText.length,
+                text: placeholderText
+            });
+            
+            // Replace ${placeholder} with just placeholder
+            text = text.replace(match[0], placeholderText);
+            offset += match[0].length - placeholderText.length;
+        }
+        
+        return { text, placeholders };
     }
     
     getValue() {
