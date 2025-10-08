@@ -125,6 +125,43 @@
     }
 }
 
+/* Dramatic LED transitions for target animation */
+.led-icon.on {
+    transform: scale(1.4) !important;
+    filter: brightness(2) !important;
+    animation: ledBurst 0.5s ease-out;
+}
+
+@keyframes ledBurst {
+    0% {
+        transform: scale(1);
+        filter: brightness(0.3);
+    }
+    50% {
+        transform: scale(1.6);
+        filter: brightness(2.5);
+    }
+    100% {
+        transform: scale(1.4);
+        filter: brightness(2);
+    }
+}
+
+.led-icon:not(.on) {
+    animation: ledFadeOut 0.3s ease-out;
+}
+
+@keyframes ledFadeOut {
+    from {
+        transform: scale(1.4);
+        filter: brightness(2);
+    }
+    to {
+        transform: scale(1);
+        filter: brightness(0.3);
+    }
+}
+
 /* Motor Icon Styles */
 .motor-icon {
     background: linear-gradient(45deg, #8B5CF6, #A855F7);

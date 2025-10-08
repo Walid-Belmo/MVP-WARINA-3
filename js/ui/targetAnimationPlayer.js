@@ -96,11 +96,20 @@ class TargetAnimationPlayer {
     playEvent(event) {
         console.log(`🎯 Playing event: Pin ${event.pin} → ${event.state} (${event.type}) at ${event.time}ms`);
 
+        // Create event flash
+        this.createEventFlash(event);
+        
+        // Create timing marker
+        this.createTimingMarker(event);
+        
         // Update pin visual without affecting game state
         this.updatePinVisual(event);
 
         // Update component states if they exist
         this.updateComponentVisuals(event);
+        
+        // Highlight elapsed timer
+        this.highlightElapsedTimer();
     }
 
     /**
@@ -120,9 +129,11 @@ class TargetAnimationPlayer {
         if (event.type === 'digital') {
             if (event.state) {
                 pinElement.classList.add('active');
+                pinElement.classList.add('target-animation', 'active');
                 pinElement.classList.remove('pwm-mode');
             } else {
                 pinElement.classList.remove('active');
+                pinElement.classList.remove('target-animation', 'active');
             }
         } else if (event.type === 'pwm') {
             pinElement.classList.add('pwm-mode');
@@ -417,6 +428,54 @@ class TargetAnimationPlayer {
             const seconds = Math.floor(this.animationElapsedTime / 1000);
             const deciseconds = Math.floor((this.animationElapsedTime % 1000) / 100);
             elapsedTimerValue.textContent = `${seconds.toString().padStart(2, '0')}:${deciseconds}s`;
+        }
+    }
+
+    /**
+     * Create event flash effect
+     * @param {Object} event - Event that triggered the flash
+     */
+    createEventFlash(event) {
+        const flash = document.createElement('div');
+        flash.className = 'event-flash';
+        document.body.appendChild(flash);
+        
+        setTimeout(() => {
+            flash.remove();
+        }, 600);
+    }
+
+    /**
+     * Create timing marker
+     * @param {Object} event - Event to mark
+     */
+    createTimingMarker(event) {
+        const marker = document.createElement('div');
+        marker.className = 'timing-marker';
+        marker.textContent = `Pin ${event.pin}: ${event.state ? 'ON' : 'OFF'}`;
+        document.body.appendChild(marker);
+        
+        setTimeout(() => {
+            marker.style.opacity = '0';
+            setTimeout(() => marker.remove(), 300);
+        }, 1500);
+    }
+
+    /**
+     * Highlight elapsed timer on event
+     */
+    highlightElapsedTimer() {
+        const timer = document.getElementById('elapsedTimer');
+        const timerValue = document.querySelector('.elapsed-timer-value');
+        
+        if (timer && timerValue) {
+            timer.classList.add('event-highlight');
+            timerValue.classList.add('event-highlight');
+            
+            setTimeout(() => {
+                timer.classList.remove('event-highlight');
+                timerValue.classList.remove('event-highlight');
+            }, 300);
         }
     }
 }

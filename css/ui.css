@@ -250,6 +250,63 @@
     box-shadow: none !important;
 }
 
+/* Event Flash Indicators */
+.event-flash {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle, rgba(0, 212, 255, 0.3) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 500;
+    animation: flashExpand 0.6s ease-out forwards;
+}
+
+@keyframes flashExpand {
+    0% {
+        transform: translate(-50%, -50%) scale(0);
+        opacity: 1;
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(3);
+        opacity: 0;
+    }
+}
+
+/* Timing marker */
+.timing-marker {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0, 212, 255, 0.2);
+    border: 2px solid #00D4FF;
+    border-radius: 10px;
+    padding: 10px 20px;
+    color: #00D4FF;
+    font-weight: bold;
+    font-size: 18px;
+    animation: markerPulse 0.5s ease-out;
+    z-index: 600;
+}
+
+@keyframes markerPulse {
+    0% {
+        transform: translateY(-50%) scale(0.5);
+        opacity: 0;
+    }
+    50% {
+        transform: translateY(-50%) scale(1.2);
+    }
+    100% {
+        transform: translateY(-50%) scale(1);
+        opacity: 1;
+    }
+}
+
 /* Variables Section */
 .variables-section {
     background: linear-gradient(135deg, #1a2a3a, #2a3a4a);
