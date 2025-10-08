@@ -288,35 +288,87 @@ class ArduinoCodeEditor {
         const lines = this.editor.value.split('\n');
         if (lineNumber > lines.length) return;
         
-        // Calculate the start and end positions for the line
-        let startPos = 0;
-        for (let i = 0; i < lineNumber - 1; i++) {
-            startPos += lines[i].length + 1; // +1 for newline
+        // Create or get the highlight overlay
+        let highlightOverlay = document.getElementById('line-highlight-overlay');
+        if (!highlightOverlay) {
+            highlightOverlay = document.createElement('div');
+            highlightOverlay.id = 'line-highlight-overlay';
+            highlightOverlay.className = 'line-highlight-overlay';
+            
+            // Position the overlay relative to the editor
+            const editorWrapper = this.editor.parentElement;
+            editorWrapper.style.position = 'relative';
+            editorWrapper.appendChild(highlightOverlay);
         }
         
-        const endPos = startPos + lines[lineNumber - 1].length;
+        // Calculate line position
+        const lineHeight = this.getLineHeight();
+        const editorPadding = this.getEditorPadding();
+        const topOffset = (lineNumber - 1) * lineHeight + editorPadding.top;
         
-        // Set selection to highlight the line
-        this.editor.focus();
-        this.editor.setSelectionRange(startPos, endPos);
+        // Position the overlay
+        highlightOverlay.style.top = `${topOffset}px`;
+        highlightOverlay.style.height = `${lineHeight}px`;
+        highlightOverlay.style.display = 'block';
         
-        // Add highlight class to the editor
-        this.editor.classList.add('code-editor-line-highlight');
-        
-        // Scroll to the highlighted line
+        // Ensure the highlighted line is visible
         this.scrollToLine(lineNumber);
         
-        console.log(`🎯 Highlighting line ${lineNumber}: "${lines[lineNumber - 1]}"`);
+        console.log(`🎯 Highlighting line ${lineNumber}: "${lines[lineNumber - 1]}"`, {
+            lineHeight: lineHeight,
+            topOffset: topOffset,
+            editorPadding: editorPadding,
+            totalLines: lines.length
+        });
     }
     
     /**
      * Clear line highlighting
      */
     clearLineHighlight() {
-        if (this.editor) {
-            this.editor.classList.remove('code-editor-line-highlight');
-            this.editor.blur(); // Remove focus to clear selection
+        const highlightOverlay = document.getElementById('line-highlight-overlay');
+        if (highlightOverlay) {
+            highlightOverlay.style.display = 'none';
         }
+    }
+    
+    /**
+     * Get the line height of the editor
+     */
+    getLineHeight() {
+        if (!this.editor) return 28.8; // fallback based on CSS (16px * 1.8)
+        
+        // Get computed style to determine line height
+        const computedStyle = window.getComputedStyle(this.editor);
+        const fontSize = parseFloat(computedStyle.fontSize);
+        const lineHeightValue = computedStyle.lineHeight;
+        
+        // Parse line height - it could be a number (multiplier) or pixels
+        let lineHeight;
+        if (lineHeightValue === 'normal') {
+            lineHeight = fontSize * 1.2; // browser default
+        } else if (lineHeightValue.includes('px')) {
+            lineHeight = parseFloat(lineHeightValue);
+        } else {
+            lineHeight = fontSize * parseFloat(lineHeightValue);
+        }
+        
+        return lineHeight;
+    }
+    
+    /**
+     * Get the editor's padding values
+     */
+    getEditorPadding() {
+        if (!this.editor) return { top: 25, left: 25, right: 25, bottom: 25 };
+        
+        const computedStyle = window.getComputedStyle(this.editor);
+        return {
+            top: parseFloat(computedStyle.paddingTop) || 25,
+            left: parseFloat(computedStyle.paddingLeft) || 25,
+            right: parseFloat(computedStyle.paddingRight) || 25,
+            bottom: parseFloat(computedStyle.paddingBottom) || 25
+        };
     }
     
     /**
@@ -328,12 +380,28 @@ class ArduinoCodeEditor {
         const lines = this.editor.value.split('\n');
         if (lineNumber > lines.length) return;
         
-        // Calculate approximate line height (this is a rough estimate)
-        const lineHeight = 20; // Approximate line height in pixels
+        // Get actual line height
+        const lineHeight = this.getLineHeight();
         const scrollTop = (lineNumber - 1) * lineHeight;
         
-        // Scroll to the line
-        this.editor.scrollTop = Math.max(0, scrollTop - 100); // Offset to show some context
+        // Calculate the editor's visible area
+        const editorHeight = this.editor.clientHeight;
+        const currentScrollTop = this.editor.scrollTop;
+        const visibleTop = currentScrollTop;
+        const visibleBottom = currentScrollTop + editorHeight;
+        
+        // Only scroll if the line is not already visible
+        const lineTop = scrollTop;
+        const lineBottom = scrollTop + lineHeight;
+        
+        if (lineTop < visibleTop) {
+            // Line is above visible area, scroll up
+            this.editor.scrollTop = Math.max(0, lineTop - 50);
+        } else if (lineBottom > visibleBottom) {
+            // Line is below visible area, scroll down
+            this.editor.scrollTop = lineBottom - editorHeight + 50;
+        }
+        // If line is already visible, don't scroll at all
     }
     
     /**
@@ -349,6 +417,29 @@ class ArduinoCodeEditor {
             }
         }
         return 0;
+    }
+    
+    /**
+     * Test method to verify highlighting works for all lines
+     * Call this from browser console: window.codeEditor.testHighlighting()
+     */
+    testHighlighting() {
+        const lines = this.editor.value.split('\n');
+        console.log(`Testing highlighting for ${lines.length} lines`);
+        
+        // Test each line
+        for (let i = 1; i <= lines.length; i++) {
+            setTimeout(() => {
+                this.highlightLine(i);
+                console.log(`Testing line ${i}/${lines.length}`);
+            }, i * 1000); // 1 second delay between each line
+        }
+        
+        // Clear after testing
+        setTimeout(() => {
+            this.clearLineHighlight();
+            console.log('Highlighting test completed');
+        }, (lines.length + 1) * 1000);
     }
 }
 

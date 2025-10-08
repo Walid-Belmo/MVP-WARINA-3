@@ -1,6 +1,22 @@
 /* Code Editor Styles */
 
-/* Current Line Highlighting */
+/* Current Line Highlighting - Overlay Approach */
+.line-highlight-overlay {
+    position: absolute;
+    left: 60px; /* Account for line numbers width */
+    right: 0;
+    background: linear-gradient(90deg, rgba(0, 212, 255, 0.3), rgba(0, 153, 255, 0.2));
+    border-left: 3px solid #00D4FF;
+    box-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+    animation: pulse-highlight 1s ease-in-out infinite alternate;
+    pointer-events: none;
+    z-index: 1;
+    display: none;
+    border-radius: 4px;
+    margin: 0 2px; /* Match editor padding */
+}
+
+/* Legacy highlighting class - kept for compatibility but not used */
 .code-editor-line-highlight {
     background: linear-gradient(90deg, rgba(0, 212, 255, 0.3), rgba(0, 153, 255, 0.2)) !important;
     border-left: 3px solid #00D4FF !important;
