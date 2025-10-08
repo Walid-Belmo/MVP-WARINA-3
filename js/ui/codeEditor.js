@@ -25,6 +25,18 @@ class ArduinoCodeEditor {
         // Arduino function completions - Focused on robotics learning
         this.arduinoFunctions = [
             { 
+                name: '#include <TimerOne.h>', 
+                desc: 'Include TimerOne library for servo control',
+                template: '#include <TimerOne.h>',
+                placeholders: []
+            },
+            { 
+                name: '#include <TimerZero.h>', 
+                desc: 'Include TimerZero library for motor control',
+                template: '#include <TimerZero.h>',
+                placeholders: []
+            },
+            { 
                 name: 'pinMode', 
                 desc: '(pin, mode) - Set pin as OUTPUT',
                 template: 'pinMode(${pin}, ${OUTPUT});',
@@ -224,8 +236,13 @@ class ArduinoCodeEditor {
     }
     
     handleKeyUp(e) {
-        // Show completion on first character typed
-        if (e.key.length === 1 && /[a-zA-Z]/.test(e.key)) {
+        // Get the current line
+        const cursorPos = this.editor.selectionStart;
+        const textBeforeCursor = this.editor.value.substring(0, cursorPos);
+        const currentLine = textBeforeCursor.split('\n').pop();
+        
+        // Show completion if typing a letter, or if line starts with #
+        if ((e.key.length === 1 && /[a-zA-Z]/.test(e.key)) || currentLine.trim().startsWith('#')) {
             this.showCompletion();
         }
     }
@@ -266,7 +283,9 @@ class ArduinoCodeEditor {
     showCompletion() {
         const cursorPos = this.editor.selectionStart;
         const textBeforeCursor = this.editor.value.substring(0, cursorPos);
-        const wordMatch = textBeforeCursor.match(/\w+$/);
+        
+        // Match words or #include patterns
+        const wordMatch = textBeforeCursor.match(/[#\w\.]+$/);
         
         if (!wordMatch) {
             this.hideCompletion();
@@ -274,9 +293,19 @@ class ArduinoCodeEditor {
         }
         
         const currentWord = wordMatch[0].toLowerCase();
-        this.completionItems = this.arduinoFunctions.filter(func => 
-            func.name.toLowerCase().startsWith(currentWord)
-        );
+
+        // Use smarter filtering based on what was typed
+        if (currentWord.startsWith('#')) {
+            // For includes, match if the function name includes the typed text
+            this.completionItems = this.arduinoFunctions.filter(func => 
+                func.name.toLowerCase().includes(currentWord)
+            );
+        } else {
+            // For regular functions, only match if they start with the typed text
+            this.completionItems = this.arduinoFunctions.filter(func => 
+                func.name.toLowerCase().startsWith(currentWord)
+            );
+        }
         
         if (this.completionItems.length > 0) {
             this.renderCompletion();
@@ -322,7 +351,7 @@ class ArduinoCodeEditor {
             const selectedItem = this.completionItems[this.selectedCompletionIndex];
             const cursorPos = this.editor.selectionStart;
             const textBeforeCursor = this.editor.value.substring(0, cursorPos);
-            const wordMatch = textBeforeCursor.match(/\w+$/);
+            const wordMatch = textBeforeCursor.match(/[#\w\.]+$/);
             
             if (wordMatch) {
                 const start = cursorPos - wordMatch[0].length;
