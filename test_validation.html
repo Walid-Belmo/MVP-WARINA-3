@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arduino Code Validation Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .code-block {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+        }
+        .error {
+            color: #dc3545;
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .success {
+            color: #155724;
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>Arduino Code Validation Test</h1>
+    <p>This page tests the new validation features for missing library includes and syntax errors.</p>
+
+    <div class="test-section">
+        <h2>Test 1: Missing TimerOne.h Include</h2>
+        <p>This code uses Timer1 methods but is missing the required include statement.</p>
+        <div class="code-block">#include
+
+void setup() {
+  Timer1.initialize(20000); // 20 ms = 50 Hz period
+  Timer1.pwm(9, 512); // 50% duty on pin 9
+  Timer1.pwm(10, 256); // 25% duty on pin 10
+}
+
+void loop() {}</div>
+        <button onclick="testMissingInclude()">Test Missing Include</button>
+        <div id="result1"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 2: Bracket Syntax Error</h2>
+        <p>This code has a bracket mismatch - extra closing brace.</p>
+        <div class="code-block">#include
+
+void setup() {
+  pinMode(13, OUTPUT);
+}
+
+void loop() {
+  digitalWrite(13, HIGH);
+  delay(1000);
+  digitalWrite(13, LOW);
+  delay(1000);
+} }</div>
+        <button onclick="testBracketError()">Test Bracket Error</button>
+        <div id="result2"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 3: Valid Code</h2>
+        <p>This code should pass all validations.</p>
+        <div class="code-block">#include <TimerOne.h>
+
+void setup() {
+  pinMode(13, OUTPUT);
+  Timer1.initialize(20000);
+  Timer1.pwm(9, 512);
+}
+
+void loop() {
+  digitalWrite(13, HIGH);
+  delay(1000);
+  digitalWrite(13, LOW);
+  delay(1000);
+}</div>
+        <button onclick="testValidCode()">Test Valid Code</button>
+        <div id="result3"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 4: Missing TimerZero.h Include</h2>
+        <p>This code uses Timer0 methods but is missing the required include statement.</p>
+        <div class="code-block">void setup() {
+  pinMode(13, OUTPUT);
+  Timer0.initialize();
+  Timer0.pwm(9, 128);
+}
+
+void loop() {
+  digitalWrite(13, HIGH);
+  delay(1000);
+}</div>
+        <button onclick="testMissingTimerZero()">Test Missing TimerZero</button>
+        <div id="result4"></div>
+    </div>
+
+    <script src="js/core/arduinoParser.js"></script>
+    <script>
+        function testMissingInclude() {
+            const code = `#include
+
+void setup() {
+  Timer1.initialize(20000); // 20 ms = 50 Hz period
+  Timer1.pwm(9, 512); // 50% duty on pin 9
+  Timer1.pwm(10, 256); // 25% duty on pin 10
+}
+
+void loop() {}`;
+            
+            try {
+                window.arduinoParser.parseCode(code);
+                document.getElementById('result1').innerHTML = '<div class="error">❌ Expected error but code parsed successfully</div>';
+            } catch (error) {
+                document.getElementById('result1').innerHTML = `<div class="success">✅ Validation working: ${error.message}</div>`;
+            }
+        }
+
+        function testBracketError() {
+            const code = `#include
+
+void setup() {
+  pinMode(13, OUTPUT);
+}
+
+void loop() {
+  digitalWrite(13, HIGH);
+  delay(1000);
+  digitalWrite(13, LOW);
+  delay(1000);
+} }`;
+            
+            try {
+                window.arduinoParser.parseCode(code);
+                document.getElementById('result2').innerHTML = '<div class="error">❌ Expected error but code parsed successfully</div>';
+            } catch (error) {
+                document.getElementById('result2').innerHTML = `<div class="success">✅ Validation working: ${error.message}</div>`;
+            }
+        }
+
+        function testValidCode() {
+            const code = `#include <TimerOne.h>
+
+void setup() {
+  pinMode(13, OUTPUT);
+  Timer1.initialize(20000);
+  Timer1.pwm(9, 512);
+}
+
+void loop() {
+  digitalWrite(13, HIGH);
+  delay(1000);
+  digitalWrite(13, LOW);
+  delay(1000);
+}`;
+            
+            try {
+                const result = window.arduinoParser.parseCode(code);
+                document.getElementById('result3').innerHTML = '<div class="success">✅ Valid code parsed successfully</div>';
+            } catch (error) {
+                document.getElementById('result3').innerHTML = `<div class="error">❌ Unexpected error: ${error.message}</div>`;
+            }
+        }
+
+        function testMissingTimerZero() {
+            const code = `void setup() {
+  pinMode(13, OUTPUT);
+  Timer0.initialize();
+  Timer0.pwm(9, 128);
+}
+
+void loop() {
+  digitalWrite(13, HIGH);
+  delay(1000);
+}`;
+            
+            try {
+                window.arduinoParser.parseCode(code);
+                document.getElementById('result4').innerHTML = '<div class="error">❌ Expected error but code parsed successfully</div>';
+            } catch (error) {
+                document.getElementById('result4').innerHTML = `<div class="success">✅ Validation working: ${error.message}</div>`;
+            }
+        }
+    </script>
+</body>
+</html>

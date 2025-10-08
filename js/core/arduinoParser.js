@@ -210,6 +210,131 @@ class ArduinoParser {
     }
 
     /**
+     * Validate that required libraries are included when using timer methods
+     */
+    validateLibraryIncludes(code) {
+        const lines = code.split('\n');
+        const includes = [];
+        const timer1Methods = [];
+        const timer0Methods = [];
+        
+        // Check for includes and timer method usage
+        lines.forEach((line, index) => {
+            const trimmedLine = line.trim();
+            
+            // Check for include statements
+            if (trimmedLine.includes('#include')) {
+                if (trimmedLine.includes('TimerOne.h')) {
+                    includes.push('TimerOne');
+                }
+                if (trimmedLine.includes('TimerZero.h')) {
+                    includes.push('TimerZero');
+                }
+            }
+            
+            // Check for Timer1 method usage
+            if (trimmedLine.includes('Timer1.')) {
+                timer1Methods.push({ line: index + 1, content: trimmedLine });
+            }
+            
+            // Check for Timer0 method usage
+            if (trimmedLine.includes('Timer0.')) {
+                timer0Methods.push({ line: index + 1, content: trimmedLine });
+            }
+        });
+        
+        // Validate Timer1 usage
+        if (timer1Methods.length > 0 && !includes.includes('TimerOne')) {
+            const firstUsage = timer1Methods[0];
+            throw new Error(`Line ${firstUsage.line}: Timer1 methods are used but #include <TimerOne.h> is missing. Add it at the top of your code.`);
+        }
+        
+        // Validate Timer0 usage
+        if (timer0Methods.length > 0 && !includes.includes('TimerZero')) {
+            const firstUsage = timer0Methods[0];
+            throw new Error(`Line ${firstUsage.line}: Timer0 methods are used but #include <TimerZero.h> is missing. Add it at the top of your code.`);
+        }
+    }
+
+    /**
+     * Validate bracket/brace syntax for proper matching
+     */
+    validateBracketSyntax(code) {
+        const lines = code.split('\n');
+        const stack = [];
+        const bracketPairs = { '{': '}', '(': ')', '[': ']' };
+        const closingBrackets = { '}': '{', ')': '(', ']': '[' };
+        
+        for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
+            const line = lines[lineIndex];
+            const lineNumber = lineIndex + 1;
+            
+            for (let charIndex = 0; charIndex < line.length; charIndex++) {
+                const char = line[charIndex];
+                
+                // Skip characters inside strings and comments
+                if (this.isInsideStringOrComment(line, charIndex)) {
+                    continue;
+                }
+                
+                // Check for opening brackets
+                if (bracketPairs[char]) {
+                    stack.push({ char, line: lineNumber, column: charIndex + 1 });
+                }
+                // Check for closing brackets
+                else if (closingBrackets[char]) {
+                    if (stack.length === 0) {
+                        throw new Error(`Syntax error: Unmatched closing bracket '${char}' at line ${lineNumber}, column ${charIndex + 1}`);
+                    }
+                    
+                    const lastOpen = stack.pop();
+                    if (lastOpen.char !== closingBrackets[char]) {
+                        throw new Error(`Syntax error: Mismatched brackets. Expected '${bracketPairs[lastOpen.char]}' but found '${char}' at line ${lineNumber}, column ${charIndex + 1}`);
+                    }
+                }
+            }
+        }
+        
+        // Check for unmatched opening brackets
+        if (stack.length > 0) {
+            const unmatched = stack[stack.length - 1];
+            throw new Error(`Syntax error: Unmatched opening bracket '${unmatched.char}' at line ${unmatched.line}, column ${unmatched.column}`);
+        }
+    }
+
+    /**
+     * Check if a character position is inside a string or comment
+     */
+    isInsideStringOrComment(line, charIndex) {
+        let inString = false;
+        let inComment = false;
+        let stringChar = null;
+        
+        for (let i = 0; i < charIndex; i++) {
+            const char = line[i];
+            const nextChar = line[i + 1];
+            
+            // Handle string detection
+            if (!inComment && (char === '"' || char === "'")) {
+                if (!inString) {
+                    inString = true;
+                    stringChar = char;
+                } else if (char === stringChar && line[i - 1] !== '\\') {
+                    inString = false;
+                    stringChar = null;
+                }
+            }
+            
+            // Handle comment detection
+            if (!inString && char === '/' && nextChar === '/') {
+                inComment = true;
+            }
+        }
+        
+        return inString || inComment;
+    }
+
+    /**
      * Parse Arduino code into setup and loop functions
      */
     parseCode(code) {
@@ -218,6 +343,12 @@ class ArduinoParser {
             if (!code || code.trim().length === 0) {
                 throw new Error('Code is empty');
             }
+            
+            // NEW: Validate bracket syntax first
+            this.validateBracketSyntax(code);
+            
+            // NEW: Validate library includes
+            this.validateLibraryIncludes(code);
             
             // Clean up the code
             let cleanCode = code.replace(/\/\*[\s\S]*?\*\//g, ''); // Remove block comments
