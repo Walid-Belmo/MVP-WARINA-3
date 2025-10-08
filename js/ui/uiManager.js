@@ -343,7 +343,7 @@ class UIManager {
      * Execute loop code with proper delay handling
      */
     executeLoopWithDelays(loopCode, loopStartLine, onComplete) {
-        const lines = loopCode.split('\n').filter(line => line.trim());
+        const lines = loopCode.split('\n');
         let currentLineIndex = 0;
         
         const executeNextLine = () => {
@@ -362,8 +362,9 @@ class UIManager {
             const actualLineNumber = loopStartLine + currentLineIndex;
             currentLineIndex++;
             
-            if (!line) {
-                // Empty line, continue to next
+            // Skip empty lines and comments instantly
+            if (!line || line.startsWith('//')) {
+                console.log(`⏭️ Skipping empty/comment line: "${line}"`);
                 executeNextLine();
                 return;
             }
@@ -378,13 +379,12 @@ class UIManager {
                     throw new Error(`Delay value ${ms} is invalid. Use values 0-10000ms.`);
                 }
                 
-                // Highlight the delay line
+                // Highlight the delay line immediately
                 if (window.codeEditor) {
                     window.codeEditor.highlightLine(actualLineNumber);
                 }
                 
                 // Use setTimeout for delays to keep UI responsive
-                // Add a small delay to show the highlighting before starting the actual delay
                 const timeout = setTimeout(() => {
                     if (this.isExecuting) {
                         executeNextLine();
@@ -394,25 +394,31 @@ class UIManager {
                 return;
             }
             
-            // Execute non-delay commands with a small delay to show highlighting
+            // Execute non-delay commands with minimal timing
             try {
-                // Highlight the line first
+                const startTime = Date.now();
+                console.log(`⚡ Executing line ${actualLineNumber}: "${line}"`);
+                
+                // Highlight the line immediately
                 if (window.codeEditor) {
                     window.codeEditor.highlightLine(actualLineNumber);
                 }
                 
-                // Then execute the line
+                // Execute the line immediately after highlighting
                 this.arduinoParser.executeLine(line, actualLineNumber);
                 
                 // Update visual pins immediately after each command
                 this.updateVisualPinsFromParser();
                 
-                // Add a small delay to make the highlighting visible
+                const executionTime = Date.now() - startTime;
+                console.log(`✅ Line executed in ${executionTime}ms`);
+                
+                // Add a very short delay to make the highlighting visible, then continue
                 const timeout = setTimeout(() => {
                     if (this.isExecuting) {
                         executeNextLine();
                     }
-                }, 200); // 200ms delay to see the highlighting
+                }, 50); // Very short delay just to show the highlighting
                 this.executionTimeouts.push(timeout);
             } catch (error) {
                 console.error(`Error executing line: ${line}`, error);
@@ -648,6 +654,127 @@ void loop() {
             this.pinManager.updatePinVisual(13);
             console.log('Pin 13 test completed');
         }, 2000);
+    }
+    
+    /**
+     * Test code execution timing with debug output
+     * Call this from browser console: window.uiManager.testCodeExecution()
+     */
+    testCodeExecution() {
+        const testCode = `void setup() {
+  pinMode(9, OUTPUT);
+}
+
+void loop() {
+  // Slow speed
+  analogWrite(9, 85);
+  delay(1000);
+  // Medium speed
+  analogWrite(9, 170);
+  delay(1000);
+  // Fast speed
+  analogWrite(9, 255);
+  delay(1000);
+  // Stop
+  analogWrite(9, 0);
+  delay(1000);
+}`;
+        
+        console.log('🧪 Testing code execution timing...');
+        this.codeEditor.setValue(testCode);
+        
+        // Add debug logging to the execution
+        const originalExecuteLoopWithDelays = this.executeLoopWithDelays.bind(this);
+        this.executeLoopWithDelays = (loopCode, loopStartLine, onComplete) => {
+            console.log('🚀 Starting executeLoopWithDelays with debug...');
+            const lines = loopCode.split('\n');
+            let currentLineIndex = 0;
+            
+            const executeNextLine = () => {
+                if (!this.isExecuting) {
+                    console.log('❌ Execution stopped');
+                    return;
+                }
+                
+                if (currentLineIndex >= lines.length) {
+                    console.log('✅ Loop iteration completed');
+                    onComplete();
+                    return;
+                }
+                
+                const line = lines[currentLineIndex].trim();
+                const actualLineNumber = loopStartLine + currentLineIndex;
+                const startTime = Date.now();
+                
+                console.log(`🎯 Processing line ${actualLineIndex + 1}/${lines.length} (actual line ${actualLineNumber}): "${line}"`);
+                
+                currentLineIndex++;
+                
+                // Skip empty lines and comments instantly
+                if (!line || line.startsWith('//')) {
+                    console.log(`⏭️ Skipping empty/comment line instantly`);
+                    executeNextLine();
+                    return;
+                }
+                
+                // Handle delay calls
+                const delayMatch = line.match(/delay\s*\(\s*(\d+)\s*\)/i);
+                if (delayMatch) {
+                    const ms = parseInt(delayMatch[1]);
+                    console.log(`⏰ Found delay: ${ms}ms`);
+                    
+                    if (window.codeEditor) {
+                        window.codeEditor.highlightLine(actualLineNumber);
+                    }
+                    
+                    const timeout = setTimeout(() => {
+                        console.log(`⏰ Delay ${ms}ms completed`);
+                        if (this.isExecuting) {
+                            executeNextLine();
+                        }
+                    }, ms);
+                    this.executionTimeouts.push(timeout);
+                    return;
+                }
+                
+                // Execute non-delay commands
+                try {
+                    console.log(`⚡ Highlighting line ${actualLineNumber}`);
+                    if (window.codeEditor) {
+                        window.codeEditor.highlightLine(actualLineNumber);
+                    }
+                    
+                    console.log(`⚡ Executing line: "${line}"`);
+                    this.arduinoParser.executeLine(line, actualLineNumber);
+                    
+                    this.updateVisualPinsFromParser();
+                    
+                    const timeout = setTimeout(() => {
+                        const endTime = Date.now();
+                        console.log(`✅ Line execution completed in ${endTime - startTime}ms`);
+                        if (this.isExecuting) {
+                            executeNextLine();
+                        }
+                    }, 50);
+                    this.executionTimeouts.push(timeout);
+                } catch (error) {
+                    console.error(`❌ Error executing line: ${line}`, error);
+                    this.showError(error.message);
+                    onComplete();
+                }
+            };
+            
+            executeNextLine();
+        };
+        
+        // Run the test
+        this.runCode();
+        
+        // Restore original method after 10 seconds
+        setTimeout(() => {
+            this.executeLoopWithDelays = originalExecuteLoopWithDelays;
+            console.log('🔄 Restored original executeLoopWithDelays method');
+        }, 10000);
     }
 }
 

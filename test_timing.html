@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arduino Code Execution Timing Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #1a1a1a;
+            color: #fff;
+        }
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .test-button {
+            background: #00D4FF;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            margin: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .test-button:hover {
+            background: #0099FF;
+        }
+        .console-output {
+            background: #000;
+            color: #0f0;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            height: 300px;
+            overflow-y: auto;
+            margin: 20px 0;
+            border: 1px solid #333;
+        }
+        .instructions {
+            background: #2a2a2a;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 Arduino Code Execution Timing Test</h1>
+        
+        <div class="instructions">
+            <h3>Instructions:</h3>
+            <ol>
+                <li>Open the main application in another tab</li>
+                <li>Open browser developer tools (F12)</li>
+                <li>Go to the Console tab</li>
+                <li>Click the test buttons below to run timing tests</li>
+                <li>Watch the console output and observe the highlighting behavior</li>
+            </ol>
+        </div>
+        
+        <button class="test-button" onclick="testHighlighting()">Test Basic Highlighting</button>
+        <button class="test-button" onclick="testExecutionTiming()">Test Execution Timing</button>
+        <button class="test-button" onclick="testCodeExecution()">Test Full Code Execution</button>
+        
+        <div class="console-output" id="consoleOutput">
+            <div>Console output will appear here...</div>
+            <div>Open browser developer tools (F12) and go to Console tab for detailed output.</div>
+        </div>
+        
+        <div class="instructions">
+            <h3>Expected Behavior:</h3>
+            <ul>
+                <li>✅ Empty lines and comments should be skipped instantly (no delays)</li>
+                <li>✅ analogWrite commands should highlight immediately and execute quickly</li>
+                <li>✅ delay() commands should highlight immediately and wait for the specified time</li>
+                <li>✅ No long pauses on non-executable lines</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Test functions that will be called from the main application
+        function testHighlighting() {
+            if (window.codeEditor) {
+                window.codeEditor.testHighlighting();
+                logToConsole('🧪 Started basic highlighting test...');
+            } else {
+                logToConsole('❌ Code editor not available. Make sure the main app is loaded.');
+            }
+        }
+        
+        function testExecutionTiming() {
+            if (window.codeEditor) {
+                window.codeEditor.testExecutionTiming();
+                logToConsole('🧪 Started execution timing test...');
+            } else {
+                logToConsole('❌ Code editor not available. Make sure the main app is loaded.');
+            }
+        }
+        
+        function testCodeExecution() {
+            if (window.uiManager) {
+                window.uiManager.testCodeExecution();
+                logToConsole('🧪 Started full code execution test...');
+            } else {
+                logToConsole('❌ UI Manager not available. Make sure the main app is loaded.');
+            }
+        }
+        
+        function logToConsole(message) {
+            const output = document.getElementById('consoleOutput');
+            const timestamp = new Date().toLocaleTimeString();
+            output.innerHTML += `<div>[${timestamp}] ${message}</div>`;
+            output.scrollTop = output.scrollHeight;
+        }
+        
+        // Check if main app is loaded
+        setInterval(() => {
+            if (window.codeEditor && window.uiManager) {
+                document.getElementById('consoleOutput').innerHTML = 
+                    '<div style="color: #0f0;">✅ Main application detected and ready for testing!</div>';
+            }
+        }, 1000);
+    </script>
+</body>
+</html>

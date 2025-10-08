@@ -447,7 +447,7 @@ class ArduinoCodeEditor {
         for (let i = 1; i <= lines.length; i++) {
             setTimeout(() => {
                 this.highlightLine(i);
-                console.log(`Testing line ${i}/${lines.length}`);
+                console.log(`Testing line ${i}/${lines.length}: "${lines[i-1]}"`);
                 
                 // Test scrolling while highlighting
                 if (i === Math.floor(lines.length / 2)) {
@@ -464,6 +464,71 @@ class ArduinoCodeEditor {
             this.clearLineHighlight();
             console.log('Highlighting test completed');
         }, (lines.length + 1) * 1000);
+    }
+    
+    /**
+     * Test method to simulate code execution timing
+     * Call this from browser console: window.codeEditor.testExecutionTiming()
+     */
+    testExecutionTiming() {
+        const testCode = `void setup() {
+  pinMode(9, OUTPUT);
+}
+
+void loop() {
+  // Slow speed
+  analogWrite(9, 85);
+  delay(2000);
+  // Medium speed
+  analogWrite(9, 170);
+  delay(2000);
+  // Fast speed
+  analogWrite(9, 255);
+  delay(2000);
+  // Stop
+  analogWrite(9, 0);
+  delay(2000);
+}`;
+        
+        console.log('🧪 Testing execution timing with motor control code...');
+        this.setValue(testCode);
+        
+        // Simulate the execution timing
+        const lines = testCode.split('\n');
+        let currentLine = 0;
+        
+        const simulateExecution = () => {
+            if (currentLine >= lines.length) {
+                console.log('✅ Execution timing test completed');
+                this.clearLineHighlight();
+                return;
+            }
+            
+            const line = lines[currentLine].trim();
+            const lineNumber = currentLine + 1;
+            
+            console.log(`🎯 Line ${lineNumber}: "${line}"`);
+            
+            if (line && !line.startsWith('//') && !line.includes('void') && !line.includes('{') && !line.includes('}')) {
+                // This is an executable line
+                this.highlightLine(lineNumber);
+                
+                // Simulate execution delay
+                const delay = line.includes('delay') ? 100 : 50; // Shorter delays for testing
+                setTimeout(() => {
+                    console.log(`⚡ Executed line ${lineNumber}`);
+                    currentLine++;
+                    simulateExecution();
+                }, delay);
+            } else {
+                // Skip non-executable lines instantly
+                console.log(`⏭️ Skipping line ${lineNumber} (non-executable)`);
+                currentLine++;
+                setTimeout(simulateExecution, 0);
+            }
+        };
+        
+        simulateExecution();
     }
 }
 
