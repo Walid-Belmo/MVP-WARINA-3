@@ -20,15 +20,15 @@ class ArduinoCodeEditor {
             cursorPosition: !!this.cursorPosition
         });
         
-        // Arduino function completions
+        // Arduino function completions - Focused on robotics learning
         this.arduinoFunctions = [
-            { name: 'pinMode', desc: '(pin, mode) - Set pin as INPUT or OUTPUT' },
-            { name: 'digitalWrite', desc: '(pin, value) - Write HIGH or LOW to pin' },
-            { name: 'digitalRead', desc: '(pin) - Read HIGH or LOW from pin' },
-            { name: 'analogWrite', desc: '(pin, value) - Write PWM value (0-255)' },
-            { name: 'analogRead', desc: '(pin) - Read analog value (0-1023)' },
+            { name: 'pinMode', desc: '(pin, mode) - Set pin as OUTPUT' },
+            { name: 'digitalWrite', desc: '(pin, value) - Turn pin HIGH or LOW' },
             { name: 'delay', desc: '(ms) - Wait for milliseconds' },
-            { name: 'millis', desc: '() - Get milliseconds since start' },
+            { name: 'Timer1.initialize', desc: '(20000) - Setup 50Hz PWM (for servos)' },
+            { name: 'Timer1.pwm', desc: '(pin, duty) - Set servo position (0-1023)' },
+            { name: 'Timer0.initialize', desc: '() - Setup PWM for motors' },
+            { name: 'Timer0.pwm', desc: '(pin, duty) - Set motor speed (0-255)' },
             { name: 'setup', desc: '() - Initialize code (runs once)' },
             { name: 'loop', desc: '() - Main code (runs repeatedly)' }
         ];
@@ -471,23 +471,19 @@ class ArduinoCodeEditor {
      * Call this from browser console: window.codeEditor.testExecutionTiming()
      */
     testExecutionTiming() {
-        const testCode = `void setup() {
-  pinMode(9, OUTPUT);
+        const testCode = `#include <TimerOne.h>
+
+void setup() {
+  pinMode(13, OUTPUT);         // LED pin
+  Timer1.initialize(20000);   // 50Hz for servo
+  Timer1.pwm(9, 512);         // Servo center position
 }
 
 void loop() {
-  // Slow speed
-  analogWrite(9, 85);
-  delay(2000);
-  // Medium speed
-  analogWrite(9, 170);
-  delay(2000);
-  // Fast speed
-  analogWrite(9, 255);
-  delay(2000);
-  // Stop
-  analogWrite(9, 0);
-  delay(2000);
+  digitalWrite(13, HIGH);     // Turn LED on
+  delay(1000);
+  digitalWrite(13, LOW);      // Turn LED off
+  delay(1000);
 }`;
         
         console.log('🧪 Testing execution timing with motor control code...');

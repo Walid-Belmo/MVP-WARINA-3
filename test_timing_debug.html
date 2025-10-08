@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arduino Timing Debug Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #1a1a1a;
+            color: #fff;
+        }
+        .test-container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        .test-button {
+            background: #00D4FF;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            margin: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .test-button:hover {
+            background: #0099FF;
+        }
+        .console-output {
+            background: #000;
+            color: #0f0;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            height: 400px;
+            overflow-y: auto;
+            margin: 20px 0;
+            border: 1px solid #333;
+        }
+        .test-results {
+            background: #2a2a2a;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .pass { color: #0f0; }
+        .fail { color: #f00; }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 Arduino Timing Debug Test</h1>
+        
+        <div class="test-results">
+            <h3>Quick Tests:</h3>
+            <button class="test-button" onclick="testMotorControl()">Test Motor Control Code</button>
+            <button class="test-button" onclick="testDelayTiming()">Test Delay Timing</button>
+            <button class="test-button" onclick="testFastCommands()">Test Fast Commands</button>
+            <button class="test-button" onclick="runAllTests()">Run All Tests</button>
+        </div>
+        
+        <div class="console-output" id="consoleOutput">
+            <div>Console output will appear here...</div>
+            <div>Open browser developer tools (F12) and go to Console tab for detailed output.</div>
+        </div>
+        
+        <div class="test-results" id="testResults">
+            <h3>Test Results:</h3>
+            <div id="resultsContent">No tests run yet.</div>
+        </div>
+    </div>
+
+    <script>
+        // Simple test functions
+        function testMotorControl() {
+            logToConsole('🧪 Testing Motor Control Code...');
+            
+            const motorCode = `void setup() {
+  pinMode(9, OUTPUT);
+}
+
+void loop() {
+  // Slow speed
+  analogWrite(9, 85);
+  delay(1000);
+  // Medium speed
+  analogWrite(9, 170);
+  delay(1000);
+  // Fast speed
+  analogWrite(9, 255);
+  delay(1000);
+  // Stop
+  analogWrite(9, 0);
+  delay(1000);
+}`;
+
+            if (window.codeEditor) {
+                window.codeEditor.setValue(motorCode);
+                logToConsole('✅ Motor control code loaded');
+                
+                // Run the code and measure timing
+                setTimeout(() => {
+                    if (window.uiManager) {
+                        window.uiManager.runCode();
+                        logToConsole('🚀 Motor control code execution started');
+                    }
+                }, 1000);
+            } else {
+                logToConsole('❌ Code editor not available');
+            }
+        }
+
+        function testDelayTiming() {
+            logToConsole('🧪 Testing Delay Timing...');
+            
+            const delayCode = `void loop() {
+  delay(500);
+  delay(1000);
+  delay(2000);
+}`;
+
+            if (window.codeEditor) {
+                window.codeEditor.setValue(delayCode);
+                logToConsole('✅ Delay test code loaded');
+                
+                setTimeout(() => {
+                    if (window.uiManager) {
+                        window.uiManager.runCode();
+                        logToConsole('🚀 Delay test execution started');
+                    }
+                }, 1000);
+            } else {
+                logToConsole('❌ Code editor not available');
+            }
+        }
+
+        function testFastCommands() {
+            logToConsole('🧪 Testing Fast Commands...');
+            
+            const fastCode = `void loop() {
+  pinMode(9, OUTPUT);
+  digitalWrite(9, HIGH);
+  analogWrite(9, 128);
+  digitalWrite(9, LOW);
+}`;
+
+            if (window.codeEditor) {
+                window.codeEditor.setValue(fastCode);
+                logToConsole('✅ Fast commands test code loaded');
+                
+                setTimeout(() => {
+                    if (window.uiManager) {
+                        window.uiManager.runCode();
+                        logToConsole('🚀 Fast commands test execution started');
+                    }
+                }, 1000);
+            } else {
+                logToConsole('❌ Code editor not available');
+            }
+        }
+
+        async function runAllTests() {
+            logToConsole('🧪 Running All Tests...');
+            
+            if (window.testRunner) {
+                try {
+                    const results = await window.testRunner.runAllTests();
+                    displayTestResults(results);
+                } catch (error) {
+                    logToConsole('❌ Test execution failed: ' + error.message);
+                }
+            } else {
+                logToConsole('❌ Test runner not available');
+            }
+        }
+
+        function displayTestResults(results) {
+            const resultsContent = document.getElementById('resultsContent');
+            let html = '<ul>';
+            
+            results.forEach(result => {
+                const statusClass = result.status === 'PASS' ? 'pass' : 'fail';
+                html += `<li class="${statusClass}">${result.name}: ${result.status}</li>`;
+                if (result.details) {
+                    html += `<li style="margin-left: 20px; color: #ccc;">${result.details}</li>`;
+                }
+            });
+            
+            html += '</ul>';
+            resultsContent.innerHTML = html;
+        }
+
+        function logToConsole(message) {
+            const output = document.getElementById('consoleOutput');
+            const timestamp = new Date().toLocaleTimeString();
+            output.innerHTML += `<div>[${timestamp}] ${message}</div>`;
+            output.scrollTop = output.scrollHeight;
+        }
+        
+        // Check if main app is loaded
+        setInterval(() => {
+            if (window.codeEditor && window.uiManager) {
+                const status = document.getElementById('consoleOutput').innerHTML;
+                if (!status.includes('Main application detected')) {
+                    document.getElementById('consoleOutput').innerHTML = 
+                        '<div style="color: #0f0;">✅ Main application detected and ready for testing!</div>';
+                }
+            }
+        }, 1000);
+    </script>
+</body>
+</html>
+

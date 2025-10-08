@@ -661,24 +661,15 @@ void loop() {
      * Call this from browser console: window.uiManager.testCodeExecution()
      */
     testCodeExecution() {
-        const testCode = `void setup() {
-  pinMode(9, OUTPUT);
+        const testCode = `#include <TimerOne.h>
+
+void setup() {
+  Timer1.initialize(20000);    // 20 ms = 50 Hz period
+  Timer1.pwm(9, 512);          // 50% duty on pin 9
+  Timer1.pwm(10, 256);         // 25% duty on pin 10
 }
 
-void loop() {
-  // Slow speed
-  analogWrite(9, 85);
-  delay(1000);
-  // Medium speed
-  analogWrite(9, 170);
-  delay(1000);
-  // Fast speed
-  analogWrite(9, 255);
-  delay(1000);
-  // Stop
-  analogWrite(9, 0);
-  delay(1000);
-}`;
+void loop() {}`;
         
         console.log('🧪 Testing code execution timing...');
         this.codeEditor.setValue(testCode);

@@ -9,13 +9,34 @@ class ArduinoParser {
         this.pinStates = {};
         this.pwmValues = {};
         this.variables = {};
+        
+        // TimerOne library state
+        this.timer1 = {
+            initialized: false,
+            period: 0,
+            pwmPins: {} // pin -> duty cycle
+        };
+        
+        // TimerZero library state  
+        this.timer0 = {
+            initialized: false,
+            pwmPins: {} // pin -> duty cycle
+        };
+        
         this.functions = {
             pinMode: this.pinMode.bind(this),
             digitalWrite: this.digitalWrite.bind(this),
-            digitalRead: this.digitalRead.bind(this),
-            analogWrite: this.analogWrite.bind(this),
+            setDutyCycle: this.setDutyCycle.bind(this),
             analogRead: this.analogRead.bind(this),
-            delay: this.delay.bind(this)
+            delay: this.delay.bind(this),
+            // TimerOne functions
+            'Timer1.initialize': this.timer1Initialize.bind(this),
+            'Timer1.pwm': this.timer1Pwm.bind(this),
+            'Timer1.stop': this.timer1Stop.bind(this),
+            // TimerZero functions
+            'Timer0.initialize': this.timer0Initialize.bind(this),
+            'Timer0.pwm': this.timer0Pwm.bind(this),
+            'Timer0.stop': this.timer0Stop.bind(this)
         };
     }
 
@@ -52,43 +73,120 @@ class ArduinoParser {
         return false;
     }
 
-    /**
-     * Read digital value from pin
-     */
-    digitalRead(pin) {
-        const pinNum = parseInt(pin);
-        if (pinNum >= 8 && pinNum <= 13) {
-            // Check if pin has been set to INPUT mode
-            if (this.pinModes[pinNum] !== 'INPUT') {
-                throw new Error(`Pin ${pinNum} must be set to INPUT mode before using digitalRead(). Add: pinMode(${pinNum}, INPUT);`);
-            }
-            
-            return this.pinStates[pinNum] ? 'HIGH' : 'LOW';
-        }
-        return 'LOW';
-    }
 
     /**
-     * Write PWM value to pin
+     * Set PWM duty cycle (0-100%) - This is the correct PWM method for this game
      */
-    analogWrite(pin, value) {
+    setDutyCycle(pin, dutyCycle) {
         const pinNum = parseInt(pin);
         if (pinNum >= 8 && pinNum <= 13) {
             // Check if pin has been set to OUTPUT mode
             if (this.pinModes[pinNum] !== 'OUTPUT') {
-                throw new Error(`Pin ${pinNum} must be set to OUTPUT mode before using analogWrite(). Add: pinMode(${pinNum}, OUTPUT);`);
+                throw new Error(`Pin ${pinNum} must be set to OUTPUT mode before using setDutyCycle(). Add: pinMode(${pinNum}, OUTPUT);`);
             }
             
-            const pwmValue = Math.max(0, Math.min(255, parseInt(value)));
+            const dutyCycleValue = Math.max(0, Math.min(100, parseInt(dutyCycle)));
+            const pwmValue = Math.round((dutyCycleValue / 100) * 255);
             this.pwmValues[pinNum] = pwmValue;
             
-            // For PWM pins, we should not set pinStates to simple HIGH/LOW
-            // Instead, we'll let the visual system determine the state based on PWM value
-            // Only set pinStates for digital operations (digitalWrite)
-            console.log(`Pin ${pinNum} PWM set to ${pwmValue} (${Math.round((pwmValue / 255) * 100)}%)`);
+            console.log(`Pin ${pinNum} duty cycle set to ${dutyCycleValue}% (PWM: ${pwmValue})`);
             return true;
         }
         return false;
+    }
+
+    /**
+     * analogWrite is deprecated - use setDutyCycle instead
+     */
+    analogWrite(pin, value) {
+        throw new Error('analogWrite() is not supported in this game. Use setDutyCycle(pin, dutyCycle) instead, where dutyCycle is 0-100%. Example: setDutyCycle(9, 50); // 50% duty cycle');
+    }
+
+    /**
+     * TimerOne Library Functions - Simplified for learning
+     */
+    timer1Initialize(period) {
+        // Just check if period is reasonable for 50Hz (20000 microseconds)
+        const periodValue = parseInt(period);
+        if (periodValue < 10000 || periodValue > 50000) {
+            console.warn(`Timer1 period ${periodValue}μs is not optimal for 50Hz. Recommended: 20000μs`);
+        }
+        
+        this.timer1.initialized = true;
+        this.timer1.period = periodValue;
+        console.log(`✅ Timer1 initialized for 50Hz PWM`);
+        return true;
+    }
+
+    timer1Pwm(pin, dutyCycle) {
+        if (!this.timer1.initialized) {
+            throw new Error('Timer1 must be initialized first. Add: Timer1.initialize(20000);');
+        }
+        
+        const pinNum = parseInt(pin);
+        const duty = parseInt(dutyCycle);
+        
+        if (pinNum < 8 || pinNum > 13) {
+            throw new Error(`Pin ${pinNum} not available. Use pins 8-13.`);
+        }
+        
+        if (duty < 0 || duty > 1023) {
+            throw new Error(`Duty cycle ${duty} invalid. Use 0-1023.`);
+        }
+        
+        // Convert TimerOne duty cycle (0-1023) to percentage (0-100%)
+        const percentage = Math.round((duty / 1023) * 100);
+        this.pwmValues[pinNum] = Math.round((duty / 1023) * 255);
+        
+        console.log(`✅ Pin ${pinNum}: ${percentage}% duty cycle (50Hz PWM)`);
+        return true;
+    }
+
+    timer1Stop() {
+        this.timer1.initialized = false;
+        this.timer1.pwmPins = {};
+        console.log('✅ Timer1 stopped');
+        return true;
+    }
+
+    /**
+     * TimerZero Library Functions - Simplified for learning
+     */
+    timer0Initialize() {
+        this.timer0.initialized = true;
+        console.log('✅ Timer0 initialized for PWM');
+        return true;
+    }
+
+    timer0Pwm(pin, dutyCycle) {
+        if (!this.timer0.initialized) {
+            throw new Error('Timer0 must be initialized first. Add: Timer0.initialize();');
+        }
+        
+        const pinNum = parseInt(pin);
+        const duty = parseInt(dutyCycle);
+        
+        if (pinNum < 8 || pinNum > 13) {
+            throw new Error(`Pin ${pinNum} not available. Use pins 8-13.`);
+        }
+        
+        if (duty < 0 || duty > 255) {
+            throw new Error(`Duty cycle ${duty} invalid. Use 0-255.`);
+        }
+        
+        // Convert TimerZero duty cycle (0-255) to percentage (0-100%)
+        const percentage = Math.round((duty / 255) * 100);
+        this.pwmValues[pinNum] = duty;
+        
+        console.log(`✅ Pin ${pinNum}: ${percentage}% duty cycle (PWM)`);
+        return true;
+    }
+
+    timer0Stop() {
+        this.timer0.initialized = false;
+        this.timer0.pwmPins = {};
+        console.log('✅ Timer0 stopped');
+        return true;
     }
 
     /**
@@ -194,15 +292,21 @@ class ArduinoParser {
                 }
             }
             
-            // Check for analogWrite usage
-            const analogWriteMatch = line.match(/analogWrite\s*\(\s*(\d+)\s*,\s*(\d+)\s*\)/i);
-            if (analogWriteMatch) {
-                const pin = parseInt(analogWriteMatch[1]);
+            // Check for setDutyCycle usage
+            const setDutyCycleMatch = line.match(/setDutyCycle\s*\(\s*(\d+)\s*,\s*(\d+)\s*\)/i);
+            if (setDutyCycleMatch) {
+                const pin = parseInt(setDutyCycleMatch[1]);
                 usedPins.add(`${pin}:OUTPUT`);
                 
                 if (!declaredPins.has(`${pin}:OUTPUT`)) {
-                    throw new Error(`Line ${lineNumber}: Pin ${pin} is used in analogWrite() but not declared as OUTPUT. Add: pinMode(${pin}, OUTPUT);`);
+                    throw new Error(`Line ${lineNumber}: Pin ${pin} is used in setDutyCycle() but not declared as OUTPUT. Add: pinMode(${pin}, OUTPUT);`);
                 }
+            }
+            
+            // Check for deprecated analogWrite usage and throw error
+            const analogWriteMatch = line.match(/analogWrite\s*\(\s*(\d+)\s*,\s*(\d+)\s*\)/i);
+            if (analogWriteMatch) {
+                throw new Error(`Line ${lineNumber}: analogWrite() is not supported. Use setDutyCycle(pin, dutyCycle) instead, where dutyCycle is 0-100%. Example: setDutyCycle(${analogWriteMatch[1]}, 50);`);
             }
             
             // Check for digitalRead usage
@@ -308,26 +412,101 @@ class ArduinoParser {
                 return;
             }
 
-            // Handle analogWrite calls with better validation
-            const analogWriteMatch = line.match(/analogWrite\s*\(\s*(\d+)\s*,\s*(\d+)\s*\)/i);
-            if (analogWriteMatch) {
-                const pin = parseInt(analogWriteMatch[1]);
-                const value = parseInt(analogWriteMatch[2]);
+            // Handle setDutyCycle calls with better validation
+            const setDutyCycleMatch = line.match(/setDutyCycle\s*\(\s*(\d+)\s*,\s*(\d+)\s*\)/i);
+            if (setDutyCycleMatch) {
+                const pin = parseInt(setDutyCycleMatch[1]);
+                const dutyCycle = parseInt(setDutyCycleMatch[2]);
                 
-                console.log(`Found analogWrite: pin=${pin}, value=${value}`);
+                console.log(`Found setDutyCycle: pin=${pin}, dutyCycle=${dutyCycle}%`);
                 
                 // Validate pin number
                 if (pin < 8 || pin > 13) {
                     throw new Error(`Line ${lineNumber}: Pin ${pin} is not available. Use pins 8-13.`);
                 }
                 
-                // Validate PWM value
-                if (isNaN(value) || value < 0 || value > 255) {
-                    throw new Error(`Line ${lineNumber}: Invalid PWM value "${analogWriteMatch[2]}". Use values 0-255.`);
+                // Validate duty cycle value
+                if (isNaN(dutyCycle) || dutyCycle < 0 || dutyCycle > 100) {
+                    throw new Error(`Line ${lineNumber}: Invalid duty cycle "${setDutyCycleMatch[2]}". Use values 0-100.`);
                 }
                 
-                this.analogWrite(pin, value);
+                this.setDutyCycle(pin, dutyCycle);
                 return;
+            }
+            
+            // Handle Timer1.initialize calls
+            const timer1InitMatch = line.match(/Timer1\.initialize\s*\(\s*(\d+)\s*\)/i);
+            if (timer1InitMatch) {
+                const period = parseInt(timer1InitMatch[1]);
+                console.log(`Found Timer1.initialize: period=${period}`);
+                this.timer1Initialize(period);
+                return;
+            }
+
+            // Handle Timer1.pwm calls
+            const timer1PwmMatch = line.match(/Timer1\.pwm\s*\(\s*(\d+)\s*,\s*(\d+)\s*\)/i);
+            if (timer1PwmMatch) {
+                const pin = parseInt(timer1PwmMatch[1]);
+                const duty = parseInt(timer1PwmMatch[2]);
+                console.log(`Found Timer1.pwm: pin=${pin}, duty=${duty}`);
+                this.timer1Pwm(pin, duty);
+                return;
+            }
+
+            // Handle Timer1.stop calls
+            const timer1StopMatch = line.match(/Timer1\.stop\s*\(\s*\)/i);
+            if (timer1StopMatch) {
+                console.log('Found Timer1.stop');
+                this.timer1Stop();
+                return;
+            }
+
+            // Handle Timer0.initialize calls
+            const timer0InitMatch = line.match(/Timer0\.initialize\s*\(\s*\)/i);
+            if (timer0InitMatch) {
+                console.log('Found Timer0.initialize');
+                this.timer0Initialize();
+                return;
+            }
+
+            // Handle Timer0.pwm calls
+            const timer0PwmMatch = line.match(/Timer0\.pwm\s*\(\s*(\d+)\s*,\s*(\d+)\s*\)/i);
+            if (timer0PwmMatch) {
+                const pin = parseInt(timer0PwmMatch[1]);
+                const duty = parseInt(timer0PwmMatch[2]);
+                console.log(`Found Timer0.pwm: pin=${pin}, duty=${duty}`);
+                this.timer0Pwm(pin, duty);
+                return;
+            }
+
+            // Handle Timer0.stop calls
+            const timer0StopMatch = line.match(/Timer0\.stop\s*\(\s*\)/i);
+            if (timer0StopMatch) {
+                console.log('Found Timer0.stop');
+                this.timer0Stop();
+                return;
+            }
+
+            // Handle if statements (basic syntax recognition)
+            const ifMatch = line.match(/if\s*\(\s*(.+?)\s*\)\s*\{/i);
+            if (ifMatch) {
+                const condition = ifMatch[1].trim();
+                console.log(`Found if statement: ${condition}`);
+                // For now, just recognize the syntax - actual evaluation would be more complex
+                return;
+            }
+
+            // Handle else statements
+            const elseMatch = line.match(/else\s*\{/i);
+            if (elseMatch) {
+                console.log('Found else statement');
+                return;
+            }
+
+            // Handle deprecated analogWrite calls and throw error
+            const analogWriteMatch = line.match(/analogWrite\s*\(\s*(\d+)\s*,\s*(\d+)\s*\)/i);
+            if (analogWriteMatch) {
+                throw new Error(`Line ${lineNumber}: analogWrite() is not supported. Use setDutyCycle(pin, dutyCycle) instead, where dutyCycle is 0-100%. Example: setDutyCycle(${analogWriteMatch[1]}, 50);`);
             }
 
             // Handle delay calls with better validation
@@ -353,7 +532,7 @@ class ArduinoParser {
             }
 
             // If we get here, it's an unrecognized command
-            throw new Error(`Line ${lineNumber}: Unrecognized command "${line}". Supported commands: pinMode, digitalWrite, analogWrite, delay`);
+            throw new Error(`Line ${lineNumber}: Unrecognized command "${line}". Supported: pinMode, digitalWrite, delay, Timer1.initialize, Timer1.pwm, Timer0.initialize, Timer0.pwm, if/else statements`);
             
         } catch (error) {
             console.error(`Error executing line "${line}":`, error.message);

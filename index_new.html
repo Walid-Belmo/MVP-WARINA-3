@@ -242,26 +242,15 @@ void loop() {
 }</pre>
                         <p><strong>Motor Control with PWM:</strong></p>
                         <pre style="background: #1a2a3a; padding: 10px; border-radius: 5px; margin: 10px 0; overflow-x: auto;">
+#include <TimerOne.h>
+
 void setup() {
-  pinMode(9, OUTPUT);
+  Timer1.initialize(20000);    // 20 ms = 50 Hz period
+  Timer1.pwm(9, 512);          // 50% duty on pin 9
+  Timer1.pwm(10, 256);         // 25% duty on pin 10
 }
 
-void loop() {
-  // Slow speed
-  analogWrite(9, 85);
-  delay(2000);
-  
-  // Medium speed
-  analogWrite(9, 170);
-  delay(2000);
-  
-  // Fast speed
-  analogWrite(9, 255);
-  delay(2000);
-  
-  // Stop
-  analogWrite(9, 0);
-  delay(2000);
+void loop() {}
 }</pre>
                     </div>
                 </div>

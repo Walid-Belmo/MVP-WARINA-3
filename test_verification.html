@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arduino Timing Verification</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #1a1a1a;
+            color: #fff;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .test-button {
+            background: #00D4FF;
+            color: #000;
+            border: none;
+            padding: 15px 25px;
+            margin: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        .test-button:hover {
+            background: #0099FF;
+        }
+        .test-button:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+        .console-output {
+            background: #000;
+            color: #0f0;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            height: 500px;
+            overflow-y: auto;
+            margin: 20px 0;
+            border: 1px solid #333;
+        }
+        .requirements {
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .requirement {
+            margin: 10px 0;
+            padding: 10px;
+            border-left: 3px solid #00D4FF;
+            background: #333;
+        }
+        .pass { color: #0f0; }
+        .fail { color: #f00; }
+        .status {
+            font-weight: bold;
+            font-size: 18px;
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .status.pass { background: #0f0; color: #000; }
+        .status.fail { background: #f00; color: #fff; }
+        .status.running { background: #ffa500; color: #000; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Arduino Timing Verification</h1>
+        
+        <div class="requirements">
+            <h3>Timing Requirements:</h3>
+            <div class="requirement">
+                <strong>analogWrite:</strong> Should execute fast (&lt; 100ms, ideally ~30ms)
+            </div>
+            <div class="requirement">
+                <strong>pinMode:</strong> Should execute fast (&lt; 100ms, ideally ~40ms)
+            </div>
+            <div class="requirement">
+                <strong>digitalWrite:</strong> Should execute fast (&lt; 100ms, ideally ~40ms)
+            </div>
+            <div class="requirement">
+                <strong>delay():</strong> Should respect exact timing (± 10% tolerance)
+            </div>
+            <div class="requirement">
+                <strong>Empty lines/comments:</strong> Should be instant (&lt; 10ms)
+            </div>
+        </div>
+        
+        <div class="status" id="status">Ready to test</div>
+        
+        <button class="test-button" onclick="runQuickTest()" id="quickTestBtn">Quick Test (Motor Control)</button>
+        <button class="test-button" onclick="runFullVerification()" id="fullTestBtn">Full Verification</button>
+        <button class="test-button" onclick="runAllTests()" id="allTestsBtn">Run All Tests</button>
+        
+        <div class="console-output" id="consoleOutput">
+            <div>Console output will appear here...</div>
+            <div>Open browser developer tools (F12) and go to Console tab for detailed output.</div>
+        </div>
+    </div>
+
+    <script>
+        let isRunning = false;
+
+        function updateStatus(message, type = 'running') {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status ${type}`;
+        }
+
+        function setButtonsEnabled(enabled) {
+            document.getElementById('quickTestBtn').disabled = !enabled;
+            document.getElementById('fullTestBtn').disabled = !enabled;
+            document.getElementById('allTestsBtn').disabled = !enabled;
+        }
+
+        async function runQuickTest() {
+            if (isRunning) return;
+            
+            isRunning = true;
+            setButtonsEnabled(false);
+            updateStatus('Running Quick Test...', 'running');
+            logToConsole('🧪 Starting Quick Test...');
+            
+            try {
+                if (window.uiManager) {
+                    window.uiManager.quickTimingTest();
+                    logToConsole('✅ Quick test started - watch console for timing details');
+                    updateStatus('Quick test running - check console', 'running');
+                } else {
+                    throw new Error('UI Manager not available');
+                }
+            } catch (error) {
+                logToConsole('❌ Quick test failed: ' + error.message);
+                updateStatus('Quick test failed', 'fail');
+            } finally {
+                setTimeout(() => {
+                    isRunning = false;
+                    setButtonsEnabled(true);
+                    updateStatus('Ready to test', 'pass');
+                }, 10000); // Reset after 10 seconds
+            }
+        }
+
+        async function runFullVerification() {
+            if (isRunning) return;
+            
+            isRunning = true;
+            setButtonsEnabled(false);
+            updateStatus('Running Full Verification...', 'running');
+            logToConsole('🧪 Starting Full Timing Verification...');
+            
+            try {
+                if (window.verifyTiming) {
+                    const measurements = await window.verifyTiming();
+                    logToConsole('✅ Full verification completed');
+                    updateStatus('Full verification completed - check console', 'pass');
+                } else {
+                    throw new Error('Timing verification not available');
+                }
+            } catch (error) {
+                logToConsole('❌ Full verification failed: ' + error.message);
+                updateStatus('Full verification failed', 'fail');
+            } finally {
+                isRunning = false;
+                setButtonsEnabled(true);
+            }
+        }
+
+        async function runAllTests() {
+            if (isRunning) return;
+            
+            isRunning = true;
+            setButtonsEnabled(false);
+            updateStatus('Running All Tests...', 'running');
+            logToConsole('🧪 Starting All Tests...');
+            
+            try {
+                if (window.testRunner) {
+                    const results = await window.testRunner.runAllTests();
+                    const passed = results.filter(r => r.status === 'PASS').length;
+                    const total = results.length;
+                    
+                    if (passed === total) {
+                        logToConsole('✅ All tests passed!');
+                        updateStatus(`All tests passed (${passed}/${total})`, 'pass');
+                    } else {
+                        logToConsole(`❌ Some tests failed (${passed}/${total} passed)`);
+                        updateStatus(`Some tests failed (${passed}/${total} passed)`, 'fail');
+                    }
+                } else {
+                    throw new Error('Test runner not available');
+                }
+            } catch (error) {
+                logToConsole('❌ Test execution failed: ' + error.message);
+                updateStatus('Test execution failed', 'fail');
+            } finally {
+                isRunning = false;
+                setButtonsEnabled(true);
+            }
+        }
+
+        function logToConsole(message) {
+            const output = document.getElementById('consoleOutput');
+            const timestamp = new Date().toLocaleTimeString();
+            output.innerHTML += `<div>[${timestamp}] ${message}</div>`;
+            output.scrollTop = output.scrollHeight;
+        }
+        
+        // Check if main app is loaded
+        setInterval(() => {
+            if (window.codeEditor && window.uiManager) {
+                const status = document.getElementById('consoleOutput').innerHTML;
+                if (!status.includes('Main application detected')) {
+                    document.getElementById('consoleOutput').innerHTML = 
+                        '<div style="color: #0f0;">✅ Main application detected and ready for testing!</div>';
+                }
+            }
+        }, 1000);
+    </script>
+</body>
+</html>
+
