@@ -18,6 +18,15 @@ class UIManager {
         this.isGameActive = false;
         this.hasPlayedTarget = false;
         this.currentLevel = null;
+        
+        // Execution sequence tracking
+        this.executionSequence = [];
+        this.executionStartTime = 0;
+        this.shouldValidate = false;
+        
+        // Player execution timer
+        this.playerExecutionElapsedTime = 0;
+        this.playerExecutionTimerInterval = null;
     }
 
     /**
@@ -299,6 +308,28 @@ class UIManager {
             this.currentLoopInterval = null;
         }
         
+        // Clear player execution timer
+        if (this.playerExecutionTimerInterval) {
+            clearInterval(this.playerExecutionTimerInterval);
+            this.playerExecutionTimerInterval = null;
+        }
+        
+        // Hide elapsed timer
+        const elapsedTimer = document.getElementById('elapsedTimer');
+        if (elapsedTimer) {
+            elapsedTimer.style.display = 'none';
+        }
+        
+        // Remove animation classes from pins
+        document.querySelectorAll('.pin-circle').forEach(pin => {
+            pin.classList.remove('target-animation');
+        });
+        
+        // Remove PWM info
+        document.querySelectorAll('.target-animation-pwm').forEach(info => {
+            info.remove();
+        });
+        
         // Clear line highlighting
         if (window.codeEditor) {
             window.codeEditor.clearLineHighlight();
@@ -314,6 +345,10 @@ class UIManager {
     executeLoopWithTiming(loopCode, loopStartLine = 1) {
         let loopCount = 0;
         const maxLoops = 1000; // Increased limit for longer execution
+        
+        // Get validation loops from current level (default to 1)
+        const validationLoops = this.currentLevel?.validationLoops || 1;
+        console.log(`🎯 Will validate after ${validationLoops} loop iterations`);
         
         const executeLoopIteration = () => {
             if (!this.isExecuting || loopCount >= maxLoops) {
@@ -340,6 +375,13 @@ class UIManager {
                     
                     // Update status with loop count
                     this.showCodeStatus(`⚡ Loop ${loopCount}/${maxLoops}`);
+                    
+                    // Check if we should validate after this loop iteration
+                    if (loopCount === validationLoops && !this.shouldValidate) {
+                        console.log(`🎯 Validation trigger: ${loopCount} loops completed`);
+                        this.shouldValidate = true;
+                        this.validateExecution();
+                    }
                     
                     // Schedule next loop iteration
                     const timeout = setTimeout(executeLoopIteration, 0);
@@ -533,6 +575,32 @@ void loop() {
     }
 
     /**
+     * Record a pin event during execution
+     * @param {number} pin - Pin number
+     * @param {boolean} state - Pin state (true/false)
+     * @param {string} type - Event type ('digital' or 'pwm')
+     * @param {number} pwm - PWM value (0-255)
+     * @param {number} dutyCycle - Duty cycle percentage (0-100)
+     */
+    recordPinEvent(pin, state, type, pwm = 0, dutyCycle = 0) {
+        if (!this.isExecuting) return;
+        
+        const timestamp = Date.now() - this.executionStartTime;
+        
+        const event = {
+            pin: pin,
+            state: state,
+            type: type,
+            pwm: pwm,
+            dutyCycle: dutyCycle,
+            time: timestamp
+        };
+        
+        this.executionSequence.push(event);
+        console.log(`📝 Recorded event: Pin ${pin} → ${state} (${type}) at ${timestamp}ms`);
+    }
+
+    /**
      * Update visual pins based on parser state
      */
     updateVisualPinsFromParser() {
@@ -576,6 +644,21 @@ void loop() {
             // Update visual representation with code-controlled flag
             this.pinManager.updatePinVisual(pin, true);
             hasChanges = true;
+            
+            // Record the pin event during execution
+            if (this.isExecuting) {
+                const eventType = this.gameState.pinModes[pin] === 'PWM' ? 'pwm' : 'digital';
+                this.recordPinEvent(
+                    pin, 
+                    this.gameState.pins[pin], 
+                    eventType, 
+                    this.gameState.pwmValues[pin], 
+                    this.gameState.dutyCycles[pin]
+                );
+                
+                // Add visual effects for player execution
+                this.addPlayerExecutionVisualEffects(pin, this.gameState.pins[pin], eventType, this.gameState.dutyCycles[pin]);
+            }
         }
         
         // Always update component states for debugging
@@ -937,6 +1020,14 @@ void loop() {}`;
         // Stop any existing execution
         this.stopExecution();
         
+        // Stop target animation if playing
+        if (window.targetAnimationPlayer.isAnimationPlaying()) {
+            console.log('⏹️ Stopping target animation for player code execution');
+            window.targetAnimationPlayer.stopAnimation();
+            // Update button states to hide stop animation button
+            this.updateGameButtons();
+        }
+        
         const code = this.codeEditor.getValue();
         console.log('📝 Code to execute:', code);
         
@@ -946,51 +1037,426 @@ void loop() {}`;
             return;
         }
         
+        // Start player code execution with animation system
+        this.executePlayerCodeWithAnimation(code);
+    }
+
+    /**
+     * Execute player code using the animation system
+     * @param {string} code - Player's Arduino code
+     */
+    executePlayerCodeWithAnimation(code) {
         try {
-            // Show status
-            this.showCodeStatus('⚡ Analyzing Code...');
-            console.log('✅ Status shown: Analyzing Code');
+            // Reset execution tracking
+            this.executionSequence = [];
+            this.executionStartTime = Date.now();
+            this.shouldValidate = false;
             
-            // Parse the player's code
+            // Reset parser state
+            this.arduinoParser.reset();
+            console.log('✅ Parser reset');
+            
+            // Parse the code
             const parsedCode = this.arduinoParser.parseCode(code);
             console.log('✅ Code parsed:', parsedCode);
             
-            // Extract sequence from player's code
-            const playerSequence = window.sequenceExtractor.extractSequence(parsedCode);
-            console.log('✅ Player sequence extracted:', playerSequence);
+            // Calculate line numbers for setup and loop
+            const codeLines = code.split('\n');
+            let setupStartLine = 1;
+            let loopStartLine = 1;
             
-            // Get target sequence
-            const targetSequence = window.levelManager.getTargetSequence();
-            if (!targetSequence) {
-                console.error('❌ No target sequence available');
-                this.showMessage('Target sequence not available', 'error');
-                return;
-            }
-            
-            // Validate sequences
-            this.showCodeStatus('⚡ Validating Sequence...');
-            const validation = window.sequenceValidator.validateSequence(targetSequence, playerSequence);
-            console.log('✅ Validation result:', validation);
-            
-            if (validation.matches) {
-                console.log('🎉 SEQUENCE MATCH! Player wins!');
-                this.handleWin();
-            } else {
-                console.log('❌ Sequence does not match');
-                this.showMessage(`Sequence doesn't match. Score: ${validation.score}%`, 'warning');
-                
-                // Show detailed feedback
-                if (validation.differences.length > 0) {
-                    const firstDiff = validation.differences[0];
-                    this.showMessage(`Issue: ${firstDiff.message}`, 'info');
+            // Find the actual line numbers of setup and loop functions
+            for (let i = 0; i < codeLines.length; i++) {
+                if (codeLines[i].includes('void setup()')) {
+                    setupStartLine = i + 2; // Skip the function declaration line
+                }
+                if (codeLines[i].includes('void loop()')) {
+                    loopStartLine = i + 2; // Skip the function declaration line
                 }
             }
             
+            // Mark as executing
+            this.isExecuting = true;
+            console.log('✅ Execution marked as active');
+            
+            // Start elapsed timer (same as target animation)
+            this.startPlayerExecutionTimer();
+            
+            // Execute setup first
+            this.executeSetupWithAnimation(parsedCode.setup, setupStartLine, () => {
+                // Setup complete, now execute loop with animation
+                console.log('✅ Setup execution completed');
+                
+                if (!this.isExecuting) return;
+                
+                // Only execute loop if there's code in it
+                if (parsedCode.loop && parsedCode.loop.trim().length > 0) {
+                    this.executeLoopWithAnimation(parsedCode.loop, loopStartLine);
+                    console.log('✅ Loop execution started with animation');
+                } else {
+                    // No loop code, just finish
+                    console.log('✅ No loop code, finishing execution');
+                    this.isExecuting = false;
+                }
+            });
+            
         } catch (error) {
             console.error('❌ Code execution error:', error);
-            this.hideCodeStatus();
+            this.isExecuting = false;
             this.showMessage(error.message, 'error');
         }
+    }
+
+    /**
+     * Execute setup with animation system
+     */
+    executeSetupWithAnimation(setupCode, setupStartLine, onComplete) {
+        const lines = setupCode.split('\n');
+        let currentLineIndex = 0;
+        
+        const executeNextLine = () => {
+            if (!this.isExecuting) {
+                return;
+            }
+            
+            if (currentLineIndex >= lines.length) {
+                // Setup complete
+                onComplete();
+                return;
+            }
+            
+            const line = lines[currentLineIndex].trim();
+            const actualLineNumber = setupStartLine + currentLineIndex;
+            currentLineIndex++;
+            
+            // Skip empty lines and comments instantly
+            if (!line || line.startsWith('//')) {
+                executeNextLine();
+                return;
+            }
+            
+            // Handle delay calls
+            const delayMatch = line.match(/delay\s*\(\s*(\d+)\s*\)/i);
+            if (delayMatch) {
+                const ms = parseInt(delayMatch[1]);
+                console.log(`Found delay: ${ms}ms`);
+                
+                if (window.codeEditor) {
+                    window.codeEditor.highlightLine(actualLineNumber);
+                }
+                
+                const timeout = setTimeout(() => {
+                    if (this.isExecuting) {
+                        executeNextLine();
+                    }
+                }, ms);
+                this.executionTimeouts.push(timeout);
+                return;
+            }
+            
+            // Execute non-delay commands
+            try {
+                console.log(`⚡ Executing setup line ${actualLineNumber}: "${line}"`);
+                
+                if (window.codeEditor) {
+                    window.codeEditor.highlightLine(actualLineNumber);
+                }
+                
+                this.arduinoParser.executeLine(line, actualLineNumber);
+                this.updateVisualPinsFromParser();
+                
+                const timeout = setTimeout(() => {
+                    if (this.isExecuting) {
+                        executeNextLine();
+                    }
+                }, 50);
+                this.executionTimeouts.push(timeout);
+            } catch (error) {
+                console.error(`Error executing setup line: ${line}`, error);
+                this.showMessage(error.message, 'error');
+                onComplete();
+            }
+        };
+        
+        executeNextLine();
+    }
+
+    /**
+     * Execute loop with animation system (similar to target animation)
+     */
+    executeLoopWithAnimation(loopCode, loopStartLine) {
+        let loopCount = 0;
+        const maxLoops = 1000;
+        const validationLoops = this.currentLevel?.validationLoops || 1;
+        
+        const executeLoopIteration = () => {
+            if (!this.isExecuting || loopCount >= maxLoops) {
+                this.isExecuting = false;
+                console.log('Loop execution stopped');
+                return;
+            }
+            
+            try {
+                // Execute one loop iteration with animation
+                this.executeLoopIterationWithAnimation(loopCode, loopStartLine, () => {
+                    if (!this.isExecuting) return;
+                    
+                    loopCount++;
+                    
+                    // Check if we should validate after this loop iteration
+                    if (loopCount === validationLoops && !this.shouldValidate) {
+                        console.log(`🎯 Validation trigger: ${loopCount} loops completed`);
+                        this.shouldValidate = true;
+                        this.validateExecution();
+                    }
+                    
+                    // Continue to next loop iteration
+                    const timeout = setTimeout(executeLoopIteration, 0);
+                    this.executionTimeouts.push(timeout);
+                });
+                
+            } catch (error) {
+                console.error('Loop execution error:', error);
+                this.isExecuting = false;
+                this.showMessage(error.message, 'error');
+            }
+        };
+        
+        executeLoopIteration();
+    }
+
+    /**
+     * Execute one loop iteration with animation
+     */
+    executeLoopIterationWithAnimation(loopCode, loopStartLine, onComplete) {
+        const lines = loopCode.split('\n');
+        let currentLineIndex = 0;
+        
+        const executeNextLine = () => {
+            if (!this.isExecuting) {
+                return;
+            }
+            
+            if (currentLineIndex >= lines.length) {
+                // Loop iteration complete
+                onComplete();
+                return;
+            }
+            
+            const line = lines[currentLineIndex].trim();
+            const actualLineNumber = loopStartLine + currentLineIndex;
+            currentLineIndex++;
+            
+            // Skip empty lines and comments instantly
+            if (!line || line.startsWith('//')) {
+                executeNextLine();
+                return;
+            }
+            
+            // Handle delay calls
+            const delayMatch = line.match(/delay\s*\(\s*(\d+)\s*\)/i);
+            if (delayMatch) {
+                const ms = parseInt(delayMatch[1]);
+                
+                if (window.codeEditor) {
+                    window.codeEditor.highlightLine(actualLineNumber);
+                }
+                
+                const timeout = setTimeout(() => {
+                    if (this.isExecuting) {
+                        executeNextLine();
+                    }
+                }, ms);
+                this.executionTimeouts.push(timeout);
+                return;
+            }
+            
+            // Execute non-delay commands
+            try {
+                if (window.codeEditor) {
+                    window.codeEditor.highlightLine(actualLineNumber);
+                }
+                
+                this.arduinoParser.executeLine(line, actualLineNumber);
+                this.updateVisualPinsFromParser();
+                
+                const timeout = setTimeout(() => {
+                    if (this.isExecuting) {
+                        executeNextLine();
+                    }
+                }, 50);
+                this.executionTimeouts.push(timeout);
+            } catch (error) {
+                console.error(`Error executing loop line: ${line}`, error);
+                this.showMessage(error.message, 'error');
+                onComplete();
+            }
+        };
+        
+        executeNextLine();
+    }
+
+    /**
+     * Start elapsed timer for player code execution
+     */
+    startPlayerExecutionTimer() {
+        this.playerExecutionElapsedTime = 0;
+        this.updatePlayerExecutionTimerDisplay();
+        
+        // Show elapsed timer
+        const elapsedTimer = document.getElementById('elapsedTimer');
+        if (elapsedTimer) {
+            elapsedTimer.style.display = 'block';
+        }
+        
+        // Update every 100ms
+        this.playerExecutionTimerInterval = setInterval(() => {
+            this.playerExecutionElapsedTime += 100;
+            this.updatePlayerExecutionTimerDisplay();
+        }, 100);
+    }
+
+    /**
+     * Update the player execution timer display
+     */
+    updatePlayerExecutionTimerDisplay() {
+        const elapsedTimerValue = document.querySelector('.elapsed-timer-value');
+        if (elapsedTimerValue) {
+            const seconds = Math.floor(this.playerExecutionElapsedTime / 1000);
+            const deciseconds = Math.floor((this.playerExecutionElapsedTime % 1000) / 100);
+            elapsedTimerValue.textContent = `${seconds.toString().padStart(2, '0')}:${deciseconds}s`;
+        }
+    }
+
+    /**
+     * Add visual effects for player code execution (same as target animation)
+     * @param {number} pin - Pin number
+     * @param {boolean} state - Pin state
+     * @param {string} type - Event type
+     * @param {number} dutyCycle - Duty cycle percentage
+     */
+    addPlayerExecutionVisualEffects(pin, state, type, dutyCycle) {
+        // Add target-animation class to pin
+        const pinElement = document.querySelector(`.pin-circle[data-pin="${pin}"]`);
+        if (pinElement) {
+            pinElement.classList.add('target-animation');
+        }
+
+        // Create event flash
+        this.createEventFlash({ pin, state, type });
+        
+        // Create timing marker
+        this.createTimingMarker({ pin, state, type, dutyCycle });
+        
+        // Highlight elapsed timer
+        this.highlightElapsedTimer();
+    }
+
+    /**
+     * Create event flash effect (same as target animation)
+     * @param {Object} event - Event that triggered the flash
+     */
+    createEventFlash(event) {
+        const flash = document.createElement('div');
+        flash.className = 'event-flash';
+        document.body.appendChild(flash);
+        
+        setTimeout(() => {
+            flash.remove();
+        }, 600);
+    }
+
+    /**
+     * Create timing marker (same as target animation)
+     * @param {Object} event - Event to mark
+     */
+    createTimingMarker(event) {
+        const marker = document.createElement('div');
+        marker.className = 'timing-marker';
+        marker.textContent = `Pin ${event.pin}: ${event.state ? 'ON' : 'OFF'}`;
+        document.body.appendChild(marker);
+        
+        setTimeout(() => {
+            marker.style.opacity = '0';
+            setTimeout(() => marker.remove(), 300);
+        }, 1500);
+    }
+
+    /**
+     * Highlight elapsed timer on event (same as target animation)
+     */
+    highlightElapsedTimer() {
+        const timer = document.getElementById('elapsedTimer');
+        const timerValue = document.querySelector('.elapsed-timer-value');
+        
+        if (timer && timerValue) {
+            timer.classList.add('event-highlight');
+            timerValue.classList.add('event-highlight');
+            
+            setTimeout(() => {
+                timer.classList.remove('event-highlight');
+                timerValue.classList.remove('event-highlight');
+            }, 300);
+        }
+    }
+
+    /**
+     * Validate execution after N loop iterations
+     */
+    validateExecution() {
+        console.log('🎯 Validating execution...');
+        
+        // Build sequence from recorded execution events
+        const playerSequence = this.buildSequenceFromExecution();
+        console.log('📝 Player execution sequence:', playerSequence);
+        
+        // Get target sequence
+        const targetSequence = window.levelManager.getTargetSequence();
+        if (!targetSequence) {
+            console.error('❌ No target sequence available');
+            this.showMessage('Target sequence not available', 'error');
+            return;
+        }
+        
+        // Validate sequences
+        const validation = window.sequenceValidator.validateSequence(targetSequence, playerSequence);
+        console.log('✅ Validation result:', validation);
+        
+        if (validation.matches) {
+            console.log('🎉 SEQUENCE MATCH! Player wins!');
+            this.showWinModal(); // Don't stop execution!
+        } else {
+            console.log('❌ Sequence does not match');
+            this.showMessage(`Not quite right. Keep trying! Score: ${validation.score}%`, 'warning');
+            
+            // Show detailed feedback
+            if (validation.differences.length > 0) {
+                const firstDiff = validation.differences[0];
+                this.showMessage(`Issue: ${firstDiff.message}`, 'info');
+            }
+        }
+    }
+
+    /**
+     * Build sequence from recorded execution events
+     */
+    buildSequenceFromExecution() {
+        if (this.executionSequence.length === 0) {
+            return { events: [], totalDuration: 0, isLooping: false };
+        }
+        
+        // Sort events by time
+        const sortedEvents = [...this.executionSequence].sort((a, b) => a.time - b.time);
+        
+        // Calculate total duration
+        const totalDuration = sortedEvents.length > 0 ? 
+            sortedEvents[sortedEvents.length - 1].time : 0;
+        
+        return {
+            events: sortedEvents,
+            totalDuration: totalDuration,
+            isLooping: false
+        };
     }
 
     /**
@@ -1002,10 +1468,7 @@ void loop() {}`;
         // Stop timer
         window.timerManager.stopTimer();
         
-        // Stop any running execution
-        this.stopExecution();
-        
-        // Show win message
+        // Show win message (but don't stop execution - let it continue in background)
         this.showWinModal();
         
         // Update game state
@@ -1019,10 +1482,7 @@ void loop() {}`;
     handleLose() {
         console.log('💀 PLAYER LOSES!');
         
-        // Stop any running execution
-        this.stopExecution();
-        
-        // Show lose message
+        // Show lose message (but don't stop execution - let it continue in background)
         this.showLoseModal();
         
         // Update game state

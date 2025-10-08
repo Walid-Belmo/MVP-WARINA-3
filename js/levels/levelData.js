@@ -22,7 +22,8 @@ void loop() {
         hint: "Use digitalWrite(13, HIGH) and digitalWrite(13, LOW) with delay(1000) between them",
         difficulty: "beginner",
         requiredPins: [13],
-        maxEvents: 4
+        maxEvents: 4,
+        validationLoops: 1
     },
     {
         id: 2,
@@ -45,7 +46,8 @@ void loop() {
         hint: "Use two pins with opposite states and 1 second delays",
         difficulty: "beginner",
         requiredPins: [12, 13],
-        maxEvents: 6
+        maxEvents: 6,
+        validationLoops: 1
     },
     {
         id: 3,
@@ -65,7 +67,8 @@ void loop() {
         hint: "Use delay(1000) for 1 second timing",
         difficulty: "beginner",
         requiredPins: [13],
-        maxEvents: 4
+        maxEvents: 4,
+        validationLoops: 1
     },
     {
         id: 4,
