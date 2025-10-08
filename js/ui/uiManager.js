@@ -175,8 +175,11 @@ class UIManager {
         // Replay button
         if (replayBtn) {
             replayBtn.addEventListener('click', () => {
-                console.log('Replaying animation');
-                // TODO: Implement replay functionality
+                console.log('🔄 Replay button clicked - replaying target sequence');
+                // Stop any running player code execution
+                this.stopExecution();
+                // Play the target animation (it will stop any existing animation automatically)
+                this.playTargetAnimation();
             });
         }
         
@@ -927,6 +930,12 @@ void loop() {}`;
 
         console.log('🎬 Playing target animation...');
         
+        // Stop any running player code execution
+        this.stopExecution();
+        
+        // Reset pin visuals to clean state
+        this.resetPinVisuals();
+        
         const targetSequence = window.levelManager.getTargetSequence();
         if (!targetSequence) {
             console.error('❌ No target sequence available');
@@ -1027,6 +1036,9 @@ void loop() {}`;
             // Update button states to hide stop animation button
             this.updateGameButtons();
         }
+        
+        // Reset pin visuals to clean state
+        this.resetPinVisuals();
         
         const code = this.codeEditor.getValue();
         console.log('📝 Code to execute:', code);
@@ -1655,6 +1667,27 @@ void loop() {}`;
         if (this.currentLevel) {
             this.loadLevel(this.currentLevel.id);
         }
+    }
+
+    /**
+     * Reset all pin visuals to clean state
+     */
+    resetPinVisuals() {
+        // Reset game state pins
+        Object.keys(this.gameState.pins).forEach(pin => {
+            this.gameState.pins[pin] = false;
+            this.gameState.pwmValues[pin] = 0;
+            this.gameState.dutyCycles[pin] = 0;
+            this.gameState.pinModes[pin] = 'DIGITAL';
+        });
+        
+        // Update all pin visuals
+        this.pinManager.initializePins();
+        
+        // Update component states
+        this.componentManager.updateComponentStates();
+        
+        console.log('🔄 Pin visuals reset to clean state');
     }
 }
 
