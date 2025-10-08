@@ -37,20 +37,20 @@ void loop() {
 void loop() {
   digitalWrite(13, HIGH);
   digitalWrite(12, LOW);
-  delay(500);
+  delay(1000);
   digitalWrite(13, LOW);
   digitalWrite(12, HIGH);
-  delay(500);
+  delay(1000);
 }`,
-        hint: "Use two pins with opposite states and shorter delays",
+        hint: "Use two pins with opposite states and 1 second delays",
         difficulty: "beginner",
         requiredPins: [12, 13],
         maxEvents: 6
     },
     {
         id: 3,
-        name: "Fast Blink",
-        description: "Make LED blink very fast (100ms intervals)",
+        name: "Normal Blink",
+        description: "Make LED blink with 1 second intervals",
         timeLimit: 75000, // 1.25 minutes
         targetCode: `void setup() {
   pinMode(13, OUTPUT);
@@ -58,11 +58,11 @@ void loop() {
 
 void loop() {
   digitalWrite(13, HIGH);
-  delay(100);
+  delay(1000);
   digitalWrite(13, LOW);
-  delay(100);
+  delay(1000);
 }`,
-        hint: "Use delay(100) for fast blinking",
+        hint: "Use delay(1000) for 1 second timing",
         difficulty: "beginner",
         requiredPins: [13],
         maxEvents: 4
@@ -125,19 +125,19 @@ void loop() {
 
 void loop() {
   digitalWrite(13, HIGH);
-  delay(200);
+  delay(1000);
   digitalWrite(12, HIGH);
-  delay(200);
+  delay(1000);
   digitalWrite(11, HIGH);
-  delay(200);
+  delay(1000);
   digitalWrite(13, LOW);
-  delay(200);
+  delay(1000);
   digitalWrite(12, LOW);
-  delay(200);
+  delay(1000);
   digitalWrite(11, LOW);
-  delay(200);
+  delay(1000);
 }`,
-        hint: "Use multiple pins in sequence to create a wave effect",
+        hint: "Use multiple pins in sequence with 1 second delays",
         difficulty: "intermediate",
         requiredPins: [11, 12, 13],
         maxEvents: 12
