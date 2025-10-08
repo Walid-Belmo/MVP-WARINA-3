@@ -224,10 +224,17 @@ class ArduinoParser {
             
             // Check for include statements
             if (trimmedLine.includes('#include')) {
-                if (trimmedLine.includes('TimerOne.h')) {
+                // Validate #include syntax - must have angle brackets
+                const includeMatch = trimmedLine.match(/^#include\s+<(.+?)>$/);
+                if (!includeMatch) {
+                    throw new Error(`Line ${index + 1}: Invalid #include syntax. Use: #include <LibraryName.h>`);
+                }
+                
+                const libraryName = includeMatch[1];
+                if (libraryName === 'TimerOne.h') {
                     includes.push('TimerOne');
                 }
-                if (trimmedLine.includes('TimerZero.h')) {
+                if (libraryName === 'TimerZero.h') {
                     includes.push('TimerZero');
                 }
             }
