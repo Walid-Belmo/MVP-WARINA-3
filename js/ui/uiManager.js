@@ -62,6 +62,20 @@ class UIManager {
         // Initialize Visual Effects
         window.visualEffectsManager.init();
         
+        // Initialize Level Selector Manager
+        this.levelSelectorManager = new LevelSelectorManager(this.gameFlowManager);
+        this.levelSelectorManager.init();
+        
+        // Make it globally available
+        window.levelSelectorManager = this.levelSelectorManager;
+        
+        // Add keyboard shortcut for 'L' key to toggle level selector
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'l' || e.key === 'L') {
+                this.levelSelectorManager.toggle();
+            }
+        });
+        
         // Initialize the game
         this.gameFlowManager.initializeGame();
         
