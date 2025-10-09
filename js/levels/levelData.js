@@ -51,6 +51,32 @@ void loop() {
     },
     {
         id: 3,
+        name: "Sequential Blink",
+        description: "Make two LEDs blink in a sequential pattern",
+        timeLimit: 90000, // 1.5 minutes
+        targetCode: `void setup() {
+  pinMode(13, OUTPUT);
+  pinMode(12, OUTPUT);
+}
+
+void loop() {
+  digitalWrite(13, HIGH);
+  delay(1000);
+  digitalWrite(12, LOW);
+  delay(1000);
+  digitalWrite(13, LOW);
+  delay(1000);
+  digitalWrite(12, HIGH);
+  delay(1000);
+}`,
+        hint: "Change one pin at a time with 1 second delays between each change",
+        difficulty: "beginner",
+        requiredPins: [12, 13],
+        maxEvents: 8,
+        validationLoops: 1
+    },
+    {
+        id: 4,
         name: "Normal Blink",
         description: "Make LED blink with 1 second intervals",
         timeLimit: 75000, // 1.25 minutes
@@ -71,7 +97,7 @@ void loop() {
         validationLoops: 1
     },
     {
-        id: 4,
+        id: 5,
         name: "Motor Control",
         description: "Control a motor with PWM on pin 9",
         timeLimit: 120000, // 2 minutes
@@ -92,7 +118,7 @@ void loop() {
         requiresPWM: true
     },
     {
-        id: 5,
+        id: 6,
         name: "Servo Control",
         description: "Control a servo motor using TimerOne library",
         timeLimit: 150000, // 2.5 minutes
@@ -116,7 +142,7 @@ void loop() {
         requiresTimer1: true
     },
     {
-        id: 6,
+        id: 7,
         name: "Complex Pattern",
         description: "Create a complex LED pattern with multiple pins",
         timeLimit: 180000, // 3 minutes
@@ -146,7 +172,7 @@ void loop() {
         maxEvents: 12
     },
     {
-        id: 7,
+        id: 8,
         name: "Motor Speed Control",
         description: "Control motor speed with different PWM values",
         timeLimit: 120000, // 2 minutes
@@ -171,7 +197,7 @@ void loop() {
         requiresPWM: true
     },
     {
-        id: 8,
+        id: 9,
         name: "Dual Servo Control",
         description: "Control two servos with different positions",
         timeLimit: 180000, // 3 minutes
@@ -204,17 +230,17 @@ const LEVEL_CATEGORIES = {
     beginner: {
         name: "Beginner",
         description: "Basic digital control and simple patterns",
-        levels: [1, 2, 3]
+        levels: [1, 2, 3, 4]
     },
     intermediate: {
         name: "Intermediate", 
         description: "PWM control and more complex patterns",
-        levels: [4, 6, 7]
+        levels: [5, 7, 8]
     },
     advanced: {
         name: "Advanced",
         description: "Timer libraries and servo control",
-        levels: [5, 8]
+        levels: [6, 9]
     }
 };
 
