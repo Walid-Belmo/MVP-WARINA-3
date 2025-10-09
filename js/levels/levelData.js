@@ -27,125 +27,177 @@ void loop() {
     },
     {
         id: 2,
-        name: "Double Blink",
-        description: "Make LEDs on pins 13 and 12 blink alternately",
-        timeLimit: 90000, // 1.5 minutes
-        targetCode: `void setup() {
-  pinMode(13, OUTPUT);
-  pinMode(12, OUTPUT);
-}
-
-void loop() {
-  digitalWrite(13, HIGH);
-  digitalWrite(12, LOW);
-  delay(1000);
-  digitalWrite(13, LOW);
-  digitalWrite(12, HIGH);
-  delay(1000);
-}`,
-        hint: "Use two pins with opposite states and 1 second delays",
-        difficulty: "beginner",
-        requiredPins: [12, 13],
-        maxEvents: 6,
-        validationLoops: 1
-    },
-    {
-        id: 3,
-        name: "Sequential Blink",
-        description: "Make two LEDs blink in a sequential pattern",
-        timeLimit: 90000, // 1.5 minutes
-        targetCode: `void setup() {
-  pinMode(13, OUTPUT);
-  pinMode(12, OUTPUT);
-}
-
-void loop() {
-  digitalWrite(13, HIGH);
-  delay(1000);
-  digitalWrite(12, LOW);
-  delay(1000);
-  digitalWrite(13, LOW);
-  delay(1000);
-  digitalWrite(12, HIGH);
-  delay(1000);
-}`,
-        hint: "Change one pin at a time with 1 second delays between each change",
-        difficulty: "beginner",
-        requiredPins: [12, 13],
-        maxEvents: 8,
-        validationLoops: 1
-    },
-    {
-        id: 4,
-        name: "Normal Blink",
-        description: "Make LED blink with 1 second intervals",
-        timeLimit: 75000, // 1.25 minutes
+        name: "Slow Pulse",
+        description: "Make the LED on pin 13 blink with 2 second intervals",
+        timeLimit: 60000, // 1 minute
         targetCode: `void setup() {
   pinMode(13, OUTPUT);
 }
 
 void loop() {
   digitalWrite(13, HIGH);
-  delay(1000);
+  delay(2000);
   digitalWrite(13, LOW);
-  delay(1000);
+  delay(2000);
 }`,
-        hint: "Use delay(1000) for 1 second timing",
+        hint: "Similar to First Light, but use delay(2000) for 2 seconds",
         difficulty: "beginner",
         requiredPins: [13],
         maxEvents: 4,
         validationLoops: 1
     },
     {
-        id: 5,
-        name: "Motor Control",
-        description: "Control a motor with PWM on pin 9",
-        timeLimit: 120000, // 2 minutes
+        id: 3,
+        name: "Double Light",
+        description: "Make both LEDs on pins 13 and 12 blink together at the same time",
+        timeLimit: 75000, // 1.25 minutes
         targetCode: `void setup() {
-  pinMode(9, OUTPUT);
+  pinMode(13, OUTPUT);
+  pinMode(12, OUTPUT);
 }
 
 void loop() {
-  setDutyCycle(9, 50);
-  delay(2000);
-  setDutyCycle(9, 0);
-  delay(2000);
+  digitalWrite(13, HIGH);
+  digitalWrite(12, HIGH);
+  delay(1000);
+  digitalWrite(13, LOW);
+  digitalWrite(12, LOW);
+  delay(1000);
 }`,
-        hint: "Use setDutyCycle(pin, percentage) for PWM control",
-        difficulty: "intermediate",
-        requiredPins: [9],
-        maxEvents: 4,
-        requiresPWM: true
+        hint: "Both LEDs should turn on together, then off together",
+        difficulty: "beginner",
+        requiredPins: [12, 13],
+        maxEvents: 6,
+        validationLoops: 1
+    },
+    {
+        id: 4,
+        name: "See-Saw",
+        description: "Make LEDs on pins 13 and 12 alternate - when one is on, the other is off",
+        timeLimit: 75000, // 1.25 minutes
+        targetCode: `void setup() {
+  pinMode(13, OUTPUT);
+  pinMode(12, OUTPUT);
+}
+
+void loop() {
+  digitalWrite(13, HIGH);
+  digitalWrite(12, LOW);
+  delay(1000);
+  digitalWrite(13, LOW);
+  digitalWrite(12, HIGH);
+  delay(1000);
+}`,
+        hint: "Set one HIGH and the other LOW, then swap them",
+        difficulty: "beginner",
+        requiredPins: [12, 13],
+        maxEvents: 6,
+        validationLoops: 1
+    },
+    {
+        id: 5,
+        name: "One After Another",
+        description: "Turn on pin 13, wait, then turn on pin 12, then turn both off",
+        timeLimit: 90000, // 1.5 minutes
+        targetCode: `void setup() {
+  pinMode(13, OUTPUT);
+  pinMode(12, OUTPUT);
+}
+
+void loop() {
+  digitalWrite(13, HIGH);
+  delay(1000);
+  digitalWrite(12, HIGH);
+  delay(1000);
+  digitalWrite(13, LOW);
+  digitalWrite(12, LOW);
+  delay(1000);
+}`,
+        hint: "Turn on first LED, delay, turn on second LED, delay, turn both off",
+        difficulty: "beginner",
+        requiredPins: [12, 13],
+        maxEvents: 6,
+        validationLoops: 1
     },
     {
         id: 6,
-        name: "Servo Control",
-        description: "Control a servo motor using TimerOne library",
-        timeLimit: 150000, // 2.5 minutes
-        targetCode: `#include <TimerOne.h>
-
-void setup() {
-  Timer1.initialize(20000);
-  Timer1.pwm(9, 512);
+        name: "Sequential Wave",
+        description: "Turn pins on one by one, then off one by one",
+        timeLimit: 90000, // 1.5 minutes
+        targetCode: `void setup() {
+  pinMode(13, OUTPUT);
+  pinMode(12, OUTPUT);
 }
 
 void loop() {
-  Timer1.pwm(9, 256);
+  digitalWrite(13, HIGH);
   delay(1000);
-  Timer1.pwm(9, 768);
+  digitalWrite(12, HIGH);
+  delay(1000);
+  digitalWrite(13, LOW);
+  delay(1000);
+  digitalWrite(12, LOW);
   delay(1000);
 }`,
-        hint: "Include TimerOne.h and use Timer1.initialize(20000) for 50Hz PWM",
-        difficulty: "advanced",
-        requiredPins: [9],
-        maxEvents: 4,
-        requiresTimer1: true
+        hint: "Each pin state changes one at a time with 1 second delays",
+        difficulty: "beginner",
+        requiredPins: [12, 13],
+        maxEvents: 8,
+        validationLoops: 1
     },
     {
         id: 7,
-        name: "Complex Pattern",
-        description: "Create a complex LED pattern with multiple pins",
-        timeLimit: 180000, // 3 minutes
+        name: "Quick Flash",
+        description: "Make pin 13 blink quickly - on for 1 second, off for 1 second",
+        timeLimit: 60000, // 1 minute
+        targetCode: `void setup() {
+  pinMode(13, OUTPUT);
+}
+
+void loop() {
+  digitalWrite(13, HIGH);
+  delay(1000);
+  digitalWrite(13, LOW);
+  delay(1000);
+}`,
+        hint: "Back to basics - just one LED blinking",
+        difficulty: "beginner",
+        requiredPins: [13],
+        maxEvents: 4,
+        validationLoops: 1
+    },
+    {
+        id: 8,
+        name: "Triple Lights",
+        description: "Make three LEDs blink together",
+        timeLimit: 90000, // 1.5 minutes
+        targetCode: `void setup() {
+  pinMode(13, OUTPUT);
+  pinMode(12, OUTPUT);
+  pinMode(11, OUTPUT);
+}
+
+void loop() {
+  digitalWrite(13, HIGH);
+  digitalWrite(12, HIGH);
+  digitalWrite(11, HIGH);
+  delay(1000);
+  digitalWrite(13, LOW);
+  digitalWrite(12, LOW);
+  digitalWrite(11, LOW);
+  delay(1000);
+}`,
+        hint: "All three LEDs turn on together, then off together",
+        difficulty: "intermediate",
+        requiredPins: [11, 12, 13],
+        maxEvents: 8,
+        validationLoops: 1
+    },
+    {
+        id: 9,
+        name: "Running Lights",
+        description: "Create a sequential pattern across three LEDs",
+        timeLimit: 120000, // 2 minutes
         targetCode: `void setup() {
   pinMode(13, OUTPUT);
   pinMode(12, OUTPUT);
@@ -166,15 +218,84 @@ void loop() {
   digitalWrite(11, LOW);
   delay(1000);
 }`,
-        hint: "Use multiple pins in sequence with 1 second delays",
+        hint: "Turn LEDs on one by one, then off one by one",
         difficulty: "intermediate",
         requiredPins: [11, 12, 13],
-        maxEvents: 12
+        maxEvents: 12,
+        validationLoops: 1
     },
     {
-        id: 8,
-        name: "Motor Speed Control",
-        description: "Control motor speed with different PWM values",
+        id: 10,
+        name: "Back and Forth",
+        description: "Make two LEDs alternate with 2 second timing",
+        timeLimit: 75000, // 1.25 minutes
+        targetCode: `void setup() {
+  pinMode(13, OUTPUT);
+  pinMode(12, OUTPUT);
+}
+
+void loop() {
+  digitalWrite(13, HIGH);
+  digitalWrite(12, LOW);
+  delay(2000);
+  digitalWrite(13, LOW);
+  digitalWrite(12, HIGH);
+  delay(2000);
+}`,
+        hint: "Like See-Saw but slower - use delay(2000)",
+        difficulty: "beginner",
+        requiredPins: [12, 13],
+        maxEvents: 6,
+        validationLoops: 1
+    },
+    {
+        id: 11,
+        name: "First PWM",
+        description: "Control brightness using PWM - turn pin 9 on at 50% power, then off",
+        timeLimit: 90000, // 1.5 minutes
+        targetCode: `void setup() {
+  pinMode(9, OUTPUT);
+}
+
+void loop() {
+  setDutyCycle(9, 50);
+  delay(2000);
+  setDutyCycle(9, 0);
+  delay(2000);
+}`,
+        hint: "Use setDutyCycle(9, 50) for 50% brightness, setDutyCycle(9, 0) for off",
+        difficulty: "intermediate",
+        requiredPins: [9],
+        maxEvents: 4,
+        requiresPWM: true,
+        validationLoops: 1
+    },
+    {
+        id: 12,
+        name: "Dim and Bright",
+        description: "Alternate between 25% and 75% brightness",
+        timeLimit: 90000, // 1.5 minutes
+        targetCode: `void setup() {
+  pinMode(9, OUTPUT);
+}
+
+void loop() {
+  setDutyCycle(9, 25);
+  delay(2000);
+  setDutyCycle(9, 75);
+  delay(2000);
+}`,
+        hint: "Use different percentage values with setDutyCycle",
+        difficulty: "intermediate",
+        requiredPins: [9],
+        maxEvents: 4,
+        requiresPWM: true,
+        validationLoops: 1
+    },
+    {
+        id: 13,
+        name: "Three Speeds",
+        description: "Cycle through three different brightness levels",
         timeLimit: 120000, // 2 minutes
         targetCode: `void setup() {
   pinMode(9, OUTPUT);
@@ -190,38 +311,69 @@ void loop() {
   setDutyCycle(9, 0);
   delay(1000);
 }`,
-        hint: "Use different duty cycle percentages to control motor speed",
+        hint: "Use four different duty cycle values: 25, 50, 75, and 0",
         difficulty: "intermediate",
         requiredPins: [9],
         maxEvents: 8,
-        requiresPWM: true
+        requiresPWM: true,
+        validationLoops: 1
     },
     {
-        id: 9,
-        name: "Dual Servo Control",
-        description: "Control two servos with different positions",
-        timeLimit: 180000, // 3 minutes
-        targetCode: `#include <TimerOne.h>
-
-void setup() {
-  Timer1.initialize(20000);
-  Timer1.pwm(9, 512);
-  Timer1.pwm(10, 256);
+        id: 14,
+        name: "Mixed Control",
+        description: "Control a digital LED and PWM LED together",
+        timeLimit: 120000, // 2 minutes
+        targetCode: `void setup() {
+  pinMode(13, OUTPUT);
+  pinMode(9, OUTPUT);
 }
 
 void loop() {
-  Timer1.pwm(9, 768);
-  Timer1.pwm(10, 512);
+  digitalWrite(13, HIGH);
+  setDutyCycle(9, 50);
   delay(2000);
-  Timer1.pwm(9, 256);
-  Timer1.pwm(10, 768);
+  digitalWrite(13, LOW);
+  setDutyCycle(9, 0);
   delay(2000);
 }`,
-        hint: "Control multiple servos with different Timer1.pwm values",
-        difficulty: "advanced",
-        requiredPins: [9, 10],
+        hint: "Combine digitalWrite for pin 13 and setDutyCycle for pin 9",
+        difficulty: "intermediate",
+        requiredPins: [9, 13],
         maxEvents: 6,
-        requiresTimer1: true
+        requiresPWM: true,
+        validationLoops: 1
+    },
+    {
+        id: 15,
+        name: "Pattern Master",
+        description: "Create a complex pattern with digital and PWM control",
+        timeLimit: 150000, // 2.5 minutes
+        targetCode: `void setup() {
+  pinMode(13, OUTPUT);
+  pinMode(12, OUTPUT);
+  pinMode(9, OUTPUT);
+}
+
+void loop() {
+  digitalWrite(13, HIGH);
+  setDutyCycle(9, 25);
+  delay(1000);
+  digitalWrite(12, HIGH);
+  setDutyCycle(9, 50);
+  delay(1000);
+  digitalWrite(13, LOW);
+  setDutyCycle(9, 75);
+  delay(1000);
+  digitalWrite(12, LOW);
+  setDutyCycle(9, 0);
+  delay(1000);
+}`,
+        hint: "Coordinate multiple digital pins with changing PWM values",
+        difficulty: "intermediate",
+        requiredPins: [9, 12, 13],
+        maxEvents: 12,
+        requiresPWM: true,
+        validationLoops: 1
     }
 ];
 
@@ -230,17 +382,12 @@ const LEVEL_CATEGORIES = {
     beginner: {
         name: "Beginner",
         description: "Basic digital control and simple patterns",
-        levels: [1, 2, 3, 4]
+        levels: [1, 2, 3, 4, 5, 6, 7, 10]
     },
     intermediate: {
         name: "Intermediate", 
-        description: "PWM control and more complex patterns",
-        levels: [5, 7, 8]
-    },
-    advanced: {
-        name: "Advanced",
-        description: "Timer libraries and servo control",
-        levels: [6, 9]
+        description: "Multi-pin patterns and PWM control",
+        levels: [8, 9, 11, 12, 13, 14, 15]
     }
 };
 
