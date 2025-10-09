@@ -9,6 +9,18 @@ class SequenceValidator {
     }
 
     /**
+     * Normalize event times by subtracting the first event's time
+     * This eliminates execution start delay from validation
+     * @param {Array} events - Array of events with time property
+     * @returns {Array} - Events with normalized times starting from 0
+     */
+    normalizeEventTimes(events) {
+        if (events.length === 0) return events;
+        const firstTime = events[0].time;
+        return events.map(e => ({...e, time: e.time - firstTime}));
+    }
+
+    /**
      * Validate if player sequence matches target sequence
      * @param {Object} targetSequence - Target sequence from level
      * @param {Object} playerSequence - Player's extracted sequence
@@ -95,18 +107,22 @@ class SequenceValidator {
             }
         };
 
+        // Normalize times to start from 0 (eliminates execution start delay)
+        const normalizedTarget = this.normalizeEventTimes(targetEvents);
+        const normalizedPlayer = this.normalizeEventTimes(playerEvents);
+
         // Check if event counts match
-        if (targetEvents.length !== playerEvents.length) {
+        if (normalizedTarget.length !== normalizedPlayer.length) {
             result.differences.push({
                 type: 'length_mismatch',
-                message: `Different number of events: target=${targetEvents.length}, player=${playerEvents.length}`
+                message: `Different number of events: target=${normalizedTarget.length}, player=${normalizedPlayer.length}`
             });
             
             // Calculate partial score for mismatched lengths
-            const minLength = Math.min(targetEvents.length, playerEvents.length);
+            const minLength = Math.min(normalizedTarget.length, normalizedPlayer.length);
             if (minLength > 0) {
                 for (let i = 0; i < minLength; i++) {
-                    this.compareEvent(targetEvents[i], playerEvents[i], tolerance, result, i, targetEvents, playerEvents);
+                    this.compareEvent(normalizedTarget[i], normalizedPlayer[i], tolerance, result, i, normalizedTarget, normalizedPlayer);
                 }
             }
             
@@ -116,8 +132,8 @@ class SequenceValidator {
         }
 
         // Same length - compare each event with interval-based timing
-        for (let i = 0; i < targetEvents.length; i++) {
-            this.compareEvent(targetEvents[i], playerEvents[i], tolerance, result, i, targetEvents, playerEvents);
+        for (let i = 0; i < normalizedTarget.length; i++) {
+            this.compareEvent(normalizedTarget[i], normalizedPlayer[i], tolerance, result, i, normalizedTarget, normalizedPlayer);
         }
 
         // Calculate final score
@@ -210,18 +226,21 @@ class SequenceValidator {
         }
 
         // Compare INTERVAL to next event (relative timing - KEY FIX)
-        if (index < targetEvents.length - 1) {
+        if (index < targetEvents.length - 1 && index < playerEvents.length - 1) {
             // Calculate interval between this event and next event
             const targetInterval = targetEvents[index + 1].time - targetEvents[index].time;
             const playerInterval = playerEvents[index + 1].time - playerEvents[index].time;
             const intervalDiff = Math.abs(targetInterval - playerInterval);
             
-            if (intervalDiff <= tolerance) {
+            // For simultaneous events (interval ≈ 0), allow more tolerance due to execution overhead
+            const intervalTolerance = targetInterval < 10 ? 100 : tolerance;
+            
+            if (intervalDiff <= intervalTolerance) {
                 result.details.intervalMatches++;
             } else {
                 result.differences.push({
                     type: 'timing_mismatch',
-                    message: `Time mismatch: target=${targetEvent.time}ms, player=${playerEvent.time}ms (diff: ${Math.abs(targetEvent.time - playerEvent.time)}ms)`,
+                    message: `Event ${index}: Interval mismatch - expected ${targetInterval}ms between events, got ${playerInterval}ms (diff: ${intervalDiff}ms)`,
                     eventIndex: index,
                     targetTime: targetEvent.time,
                     playerTime: playerEvent.time,

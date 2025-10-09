@@ -67,7 +67,7 @@ void loop() {
         hint: "Both LEDs should turn on together, then off together",
         difficulty: "beginner",
         requiredPins: [12, 13],
-        maxEvents: 6,
+        maxEvents: 4,
         validationLoops: 1
     },
     {
