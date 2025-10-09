@@ -91,7 +91,7 @@ void loop() {
         hint: "Set one HIGH and the other LOW, then swap them",
         difficulty: "beginner",
         requiredPins: [12, 13],
-        maxEvents: 6,
+        maxEvents: 4,
         validationLoops: 1
     },
     {

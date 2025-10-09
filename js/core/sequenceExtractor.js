@@ -23,7 +23,10 @@ class SequenceExtractor {
         // Reset state
         this.currentTime = 0;
         this.events = [];
-        this.pinStates = {};
+        this.pinStates = {
+            8: false, 9: false, 10: false,
+            11: false, 12: false, 13: false
+        }; // All pins start LOW/0
         this.pinModes = {};
         
         try {
@@ -184,6 +187,26 @@ class SequenceExtractor {
             return;
         }
 
+        // DEDUPLICATION: Only record if state actually changes
+        const currentState = this.pinStates[pin];
+        
+        if (type === 'digital') {
+            // For digital pins, skip if state hasn't changed
+            if (currentState === state) {
+                console.log(`⏭️ Skipping redundant digital event: Pin ${pin} already ${state}`);
+                return;
+            }
+        } else if (type === 'pwm') {
+            // For PWM pins, skip if duty cycle is within tolerance (~10%)
+            const currentDutyCycle = this.pinStates[pin] || 0;
+            const pwmTolerance = 10; // 10% tolerance for duty cycle
+            
+            if (Math.abs((dutyCycle || 0) - currentDutyCycle) <= pwmTolerance) {
+                console.log(`⏭️ Skipping redundant PWM event: Pin ${pin} already at ~${dutyCycle}%`);
+                return;
+            }
+        }
+
         const event = {
             time: this.currentTime,
             pin: pin,
@@ -194,7 +217,9 @@ class SequenceExtractor {
         };
 
         this.events.push(event);
-        this.pinStates[pin] = state;
+        
+        // Update tracked state (use dutyCycle for PWM, state for digital)
+        this.pinStates[pin] = type === 'pwm' ? (dutyCycle || 0) : state;
         
         console.log(`📌 Event added: Pin ${pin} → ${state} (${type}) at ${this.currentTime}ms`);
     }
