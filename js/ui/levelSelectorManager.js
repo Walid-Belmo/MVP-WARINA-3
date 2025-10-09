@@ -143,13 +143,8 @@ class LevelSelectorManager {
             }
         });
         
-        // Listen for level changes to update highlight
-        if (this.gameFlowManager) {
-            this.gameFlowManager.setLevelLoadCallback((level) => {
-                this.currentLevelId = level.id;
-                this.updateCurrentLevelHighlight();
-            });
-        }
+        // NOTE: We don't set a callback here to avoid overwriting UIManager's callback
+        // Instead, we update the current level whenever the menu is shown
     }
     
     /**
@@ -167,6 +162,12 @@ class LevelSelectorManager {
         if (this.menuElement) {
             this.menuElement.style.display = 'flex';
             this.isVisible = true;
+            
+            // Update current level from gameFlowManager
+            if (this.gameFlowManager && this.gameFlowManager.getCurrentLevel()) {
+                this.currentLevelId = this.gameFlowManager.getCurrentLevel().id;
+            }
+            
             this.updateCurrentLevelHighlight();
             console.log('🔧 Level selector menu opened');
         } else {
@@ -241,6 +242,15 @@ class LevelSelectorManager {
      */
     isMenuVisible() {
         return this.isVisible;
+    }
+    
+    /**
+     * Update current level and highlight (called from UIManager)
+     * @param {number} levelId - Level ID to set as current
+     */
+    updateCurrentLevel(levelId) {
+        this.currentLevelId = levelId;
+        this.updateCurrentLevelHighlight();
     }
 }
 

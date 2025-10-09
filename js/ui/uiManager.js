@@ -256,6 +256,11 @@ void loop() {
         // Update UI
         this.updateLevelDisplay();
         this.updateGameButtons();
+        
+        // Update level selector if it exists
+        if (this.levelSelectorManager) {
+            this.levelSelectorManager.updateCurrentLevel(level.id);
+        }
     }
 
     /**
