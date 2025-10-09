@@ -37,7 +37,7 @@ class LevelSelectorManager {
             <div class="debug-menu-content">
                 <div class="debug-menu-header">
                     <h3>🔧 DEBUG: LEVEL SELECTOR</h3>
-                    <p>Press L to toggle • Click level to load</p>
+                    <p>Click level to load</p>
                 </div>
                 
                 <div class="debug-menu-section">
@@ -66,24 +66,6 @@ class LevelSelectorManager {
         // Create level buttons
         this.createLevelButtons();
         
-        // Add a test button for debugging (temporary)
-        const testButton = document.createElement('button');
-        testButton.textContent = '🔧 DEBUG: Toggle Level Menu';
-        testButton.style.position = 'fixed';
-        testButton.style.top = '10px';
-        testButton.style.right = '10px';
-        testButton.style.zIndex = '3000';
-        testButton.style.padding = '10px';
-        testButton.style.background = '#FF6B35';
-        testButton.style.color = 'white';
-        testButton.style.border = 'none';
-        testButton.style.borderRadius = '5px';
-        testButton.style.cursor = 'pointer';
-        testButton.addEventListener('click', () => {
-            console.log('🔧 Test button clicked');
-            this.toggle();
-        });
-        document.body.appendChild(testButton);
     }
     
     /**

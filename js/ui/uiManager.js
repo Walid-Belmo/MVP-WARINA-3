@@ -69,12 +69,6 @@ class UIManager {
         // Make it globally available
         window.levelSelectorManager = this.levelSelectorManager;
         
-        // Add keyboard shortcut for 'L' key to toggle level selector
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'l' || e.key === 'L') {
-                this.levelSelectorManager.toggle();
-            }
-        });
         
         // Initialize the game
         this.gameFlowManager.initializeGame();
