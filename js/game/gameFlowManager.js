@@ -16,6 +16,7 @@ class GameFlowManager {
         // Callbacks
         this.onLevelLoad = null;
         this.onGameStateChange = null;
+        this.onLoseCallback = null;
     }
 
     /**
@@ -157,9 +158,17 @@ class GameFlowManager {
     handleLose(onLoseCallback) {
         console.log('💀 PLAYER LOSES!');
         
+        // Stop timer
+        this.timerManager.stopTimer();
+        
         // Update game state
         this.isGameActive = false;
         this.notifyGameStateChange();
+        
+        // Trigger lose callback (shows modal)
+        if (this.onLoseCallback) {
+            this.onLoseCallback();
+        }
         
         if (onLoseCallback) {
             onLoseCallback();
@@ -242,6 +251,14 @@ class GameFlowManager {
      */
     setGameStateChangeCallback(callback) {
         this.onGameStateChange = callback;
+    }
+
+    /**
+     * Set lose callback
+     * @param {Function} callback - Callback function()
+     */
+    setLoseCallback(callback) {
+        this.onLoseCallback = callback;
     }
 
     /**

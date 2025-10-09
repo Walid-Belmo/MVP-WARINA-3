@@ -52,6 +52,9 @@ class UIManager {
         // Set up game flow callbacks
         this.gameFlowManager.setLevelLoadCallback((level) => this.onLevelLoaded(level));
         this.gameFlowManager.setGameStateChangeCallback(() => this.updateGameButtons());
+        this.gameFlowManager.setLoseCallback(() => {
+            window.modalManager.showLoseModal();
+        });
         
         // Initialize Validation Manager
         this.validationManager = new ValidationManager(window.executionRecorder);
