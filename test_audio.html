@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #1a1a1a;
+            color: #fff;
+            padding: 50px;
+            text-align: center;
+        }
+        button {
+            background: #00D4FF;
+            color: #000;
+            border: none;
+            padding: 20px 40px;
+            font-size: 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            margin: 10px;
+        }
+        button:hover {
+            background: #00b8e6;
+        }
+        .status {
+            margin: 20px;
+            padding: 20px;
+            background: #2a2a2a;
+            border-radius: 10px;
+            font-size: 16px;
+        }
+        .error { color: #ff4444; }
+        .success { color: #44ff44; }
+        .warning { color: #ffaa00; }
+    </style>
+</head>
+<body>
+    <h1>🎵 Audio Test Page</h1>
+    <p>This page will test if your background.mp3 file works</p>
+    
+    <button onclick="testAudio()">▶️ PLAY MUSIC</button>
+    <button onclick="stopAudio()">⏹️ STOP MUSIC</button>
+    <button onclick="checkStatus()">📊 CHECK STATUS</button>
+    
+    <div class="status" id="status">
+        <p>Click "PLAY MUSIC" to test your audio file</p>
+    </div>
+
+    <script>
+        let audio = null;
+        const statusDiv = document.getElementById('status');
+
+        function log(message, type = 'success') {
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type === 'error' ? 'error' : type === 'warning' ? 'warning' : 'success';
+            statusDiv.innerHTML += `<p class="${className}">[${timestamp}] ${message}</p>`;
+            console.log(message);
+        }
+
+        function testAudio() {
+            log('🎵 Attempting to play music/background.mp3...', 'warning');
+            
+            try {
+                // Create new audio element
+                audio = new Audio('music/background.mp3.mp3');
+                audio.loop = true;
+                audio.volume = 0.5; // 50% volume
+                
+                // Add event listeners
+                audio.addEventListener('loadeddata', () => {
+                    log('✅ Audio file loaded successfully!', 'success');
+                    log(`Duration: ${audio.duration.toFixed(2)} seconds`, 'success');
+                });
+                
+                audio.addEventListener('canplay', () => {
+                    log('✅ Audio is ready to play', 'success');
+                });
+                
+                audio.addEventListener('playing', () => {
+                    log('✅ Audio is now playing!', 'success');
+                });
+                
+                audio.addEventListener('error', (e) => {
+                    log('❌ ERROR loading audio file!', 'error');
+                    log(`Error type: ${audio.error.code}`, 'error');
+                    log('Possible causes:', 'error');
+                    log('1. File does not exist at music/background.mp3', 'error');
+                    log('2. File is corrupted', 'error');
+                    log('3. File is not a valid MP3', 'error');
+                    log('4. Browser cannot play this audio format', 'error');
+                });
+                
+                // Try to play
+                audio.play()
+                    .then(() => {
+                        log('✅ Play started successfully!', 'success');
+                    })
+                    .catch((error) => {
+                        log(`⚠️ Autoplay prevented: ${error.message}`, 'warning');
+                        log('This is normal - browser security blocked autoplay', 'warning');
+                        log('But audio should play now since you clicked the button!', 'warning');
+                    });
+                    
+            } catch (error) {
+                log(`❌ JavaScript error: ${error.message}`, 'error');
+            }
+        }
+
+        function stopAudio() {
+            if (audio) {
+                audio.pause();
+                audio.currentTime = 0;
+                log('⏹️ Audio stopped', 'warning');
+            } else {
+                log('⚠️ No audio playing', 'warning');
+            }
+        }
+
+        function checkStatus() {
+            if (!audio) {
+                log('⚠️ Audio not initialized yet. Click PLAY MUSIC first.', 'warning');
+                return;
+            }
+            
+            log('📊 Audio Status:', 'success');
+            log(`- Is playing: ${!audio.paused}`, 'success');
+            log(`- Current time: ${audio.currentTime.toFixed(2)}s`, 'success');
+            log(`- Duration: ${audio.duration.toFixed(2)}s`, 'success');
+            log(`- Volume: ${audio.volume * 100}%`, 'success');
+            log(`- Loop: ${audio.loop}`, 'success');
+            log(`- Ready state: ${audio.readyState}`, 'success');
+            log(`- Network state: ${audio.networkState}`, 'success');
+        }
+
+        // Test on page load
+        window.addEventListener('load', () => {
+            log('Page loaded. Ready to test audio.', 'success');
+            log('Your audio file should be at: music/background.mp3', 'success');
+        });
+    </script>
+</body>
+</html>
+

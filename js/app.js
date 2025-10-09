@@ -59,6 +59,12 @@ class ArduinoLearningGame {
         // Initialize UI and all sub-systems
         this.uiManager.init();
         
+        // Initialize audio manager
+        if (window.audioManager) {
+            window.audioManager.init();
+            console.log('🎵 Audio Manager initialized - music will start when you press REPLAY');
+        }
+        
         // Initialize pins
         this.pinManager.initializePins();
         
@@ -91,7 +97,8 @@ class ArduinoLearningGame {
             'targetAnimationPlayer',
             'executionRecorder',
             'modalManager',
-            'visualEffectsManager'
+            'visualEffectsManager',
+            'audioManager'
         ];
         
         const missing = [];
@@ -135,6 +142,7 @@ class ArduinoLearningGame {
         console.log('    - CodeEditor');
         console.log('    - TimerManager');
         console.log('    - TargetAnimationPlayer');
+        console.log('    - AudioManager');
     }
 
     /**

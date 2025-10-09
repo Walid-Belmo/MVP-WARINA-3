@@ -95,6 +95,12 @@ class UIManager {
         this.codeExecutor.stopExecution();
         this.resetPinVisuals();
         
+        // Start background music when game begins
+        if (window.audioManager && !window.audioManager.isPlaying()) {
+            console.log('🎵 Starting background music for game session');
+            window.audioManager.play();
+        }
+        
         this.gameFlowManager.playTargetAnimation(() => {
             this.updateGameButtons();
         });
@@ -208,6 +214,12 @@ class UIManager {
     handleReset() {
         // Stop any running execution
         this.codeExecutor.stopExecution();
+        
+        // Stop background music when game resets
+        if (window.audioManager && window.audioManager.isPlaying()) {
+            console.log('🎵 Stopping background music - game reset');
+            window.audioManager.pause();
+        }
         
         // Reset code editor
         this.codeEditor.setValue(`void setup() {
