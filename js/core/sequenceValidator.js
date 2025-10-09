@@ -75,10 +75,10 @@ class SequenceValidator {
     }
 
     /**
-     * Compare two event sequences
+     * Compare two event sequences using RELATIVE timing (intervals between events)
      * @param {Array} targetEvents - Target events
      * @param {Array} playerEvents - Player events
-     * @param {number} tolerance - Timing tolerance
+     * @param {number} tolerance - Timing tolerance for intervals
      * @returns {Object} - Comparison result
      */
     compareSequences(targetEvents, playerEvents, tolerance) {
@@ -87,96 +87,152 @@ class SequenceValidator {
             score: 0,
             differences: [],
             details: {
-                timingMatches: 0,
+                intervalMatches: 0,
                 pinMatches: 0,
                 stateMatches: 0,
+                pwmMatches: 0,
                 totalComparisons: 0
             }
         };
 
-        // If sequences have different lengths, it's likely not a match
+        // Check if event counts match
         if (targetEvents.length !== playerEvents.length) {
             result.differences.push({
                 type: 'length_mismatch',
                 message: `Different number of events: target=${targetEvents.length}, player=${playerEvents.length}`
             });
             
-            // Still try to compare what we can
+            // Calculate partial score for mismatched lengths
             const minLength = Math.min(targetEvents.length, playerEvents.length);
-            for (let i = 0; i < minLength; i++) {
-                this.compareEvent(targetEvents[i], playerEvents[i], tolerance, result);
+            if (minLength > 0) {
+                for (let i = 0; i < minLength; i++) {
+                    this.compareEvent(targetEvents[i], playerEvents[i], tolerance, result, i, targetEvents, playerEvents);
+                }
             }
-        } else {
-            // Same length - compare each event
-            for (let i = 0; i < targetEvents.length; i++) {
-                this.compareEvent(targetEvents[i], playerEvents[i], tolerance, result);
-            }
-        }
-
-        // Calculate score
-        const totalComparisons = result.details.totalComparisons;
-        if (totalComparisons > 0) {
-            const timingScore = (result.details.timingMatches / totalComparisons) * 40;
-            const pinScore = (result.details.pinMatches / totalComparisons) * 30;
-            const stateScore = (result.details.stateMatches / totalComparisons) * 30;
             
-            result.score = Math.round(timingScore + pinScore + stateScore);
+            // Calculate score but won't match due to length difference
+            this.calculateScore(result);
+            return result;
         }
 
-        // Consider it a match if score is high enough (80% or more)
+        // Same length - compare each event with interval-based timing
+        for (let i = 0; i < targetEvents.length; i++) {
+            this.compareEvent(targetEvents[i], playerEvents[i], tolerance, result, i, targetEvents, playerEvents);
+        }
+
+        // Calculate final score
+        this.calculateScore(result);
+        
+        // Consider it a match if score is 80% or higher
         result.matches = result.score >= 80;
 
         return result;
     }
 
     /**
-     * Compare two individual events
-     * @param {Object} targetEvent - Target event
-     * @param {Object} playerEvent - Player event
-     * @param {number} tolerance - Timing tolerance
+     * Calculate score from comparison details
      * @param {Object} result - Result object to update
      */
-    compareEvent(targetEvent, playerEvent, tolerance, result) {
+    calculateScore(result) {
+        const totalComparisons = result.details.totalComparisons;
+        if (totalComparisons > 0) {
+            // Weighting: Intervals 40%, Pin 25%, State 25%, PWM 10%
+            const intervalScore = (result.details.intervalMatches / totalComparisons) * 40;
+            const pinScore = (result.details.pinMatches / totalComparisons) * 25;
+            const stateScore = (result.details.stateMatches / totalComparisons) * 25;
+            const pwmScore = (result.details.pwmMatches / totalComparisons) * 10;
+            
+            result.score = Math.round(intervalScore + pinScore + stateScore + pwmScore);
+        }
+    }
+
+    /**
+     * Compare two individual events using relative timing
+     * @param {Object} targetEvent - Target event
+     * @param {Object} playerEvent - Player event
+     * @param {number} tolerance - Timing tolerance for intervals
+     * @param {Object} result - Result object to update
+     * @param {number} index - Current event index
+     * @param {Array} targetEvents - All target events (for interval calculation)
+     * @param {Array} playerEvents - All player events (for interval calculation)
+     */
+    compareEvent(targetEvent, playerEvent, tolerance, result, index, targetEvents, playerEvents) {
         result.details.totalComparisons++;
 
-        // Compare timing
-        const timeDiff = Math.abs(targetEvent.time - playerEvent.time);
-        if (timeDiff <= tolerance) {
-            result.details.timingMatches++;
-        } else {
-            result.differences.push({
-                type: 'timing_mismatch',
-                message: `Time mismatch: target=${targetEvent.time}ms, player=${playerEvent.time}ms (diff: ${timeDiff}ms)`,
-                targetTime: targetEvent.time,
-                playerTime: playerEvent.time,
-                difference: timeDiff
-            });
-        }
-
-        // Compare pin number
+        // Compare PIN number (must match exactly)
         if (targetEvent.pin === playerEvent.pin) {
             result.details.pinMatches++;
         } else {
             result.differences.push({
                 type: 'pin_mismatch',
-                message: `Pin mismatch: target=pin${targetEvent.pin}, player=pin${playerEvent.pin}`,
-                targetPin: targetEvent.pin,
-                playerPin: playerEvent.pin
+                message: `Event ${index}: Expected pin ${targetEvent.pin}, got pin ${playerEvent.pin}`,
+                eventIndex: index,
+                expectedPin: targetEvent.pin,
+                actualPin: playerEvent.pin
             });
         }
 
-        // Compare state
-        if (this.compareStates(targetEvent, playerEvent)) {
+        // Compare STATE (must match exactly)
+        if (targetEvent.state === playerEvent.state) {
             result.details.stateMatches++;
         } else {
             result.differences.push({
                 type: 'state_mismatch',
-                message: `State mismatch: target=${targetEvent.state} (${targetEvent.type}), player=${playerEvent.state} (${playerEvent.type})`,
-                targetState: targetEvent.state,
-                playerState: playerEvent.state,
-                targetType: targetEvent.type,
-                playerType: playerEvent.type
+                message: `Event ${index}: Pin ${targetEvent.pin} expected state=${targetEvent.state}, got state=${playerEvent.state}`,
+                eventIndex: index,
+                pin: targetEvent.pin,
+                expectedState: targetEvent.state,
+                actualState: playerEvent.state
             });
+        }
+
+        // Compare PWM values if applicable (for PWM events)
+        if (targetEvent.type === 'pwm' && playerEvent.type === 'pwm') {
+            // Allow 10% tolerance for PWM values
+            const pwmDiff = Math.abs(targetEvent.pwm - playerEvent.pwm);
+            const pwmTolerance = 25; // ~10% of 255
+            
+            if (pwmDiff <= pwmTolerance) {
+                result.details.pwmMatches++;
+            } else {
+                result.differences.push({
+                    type: 'pwm_mismatch',
+                    message: `Event ${index}: Pin ${targetEvent.pin} expected PWM=${targetEvent.pwm}, got PWM=${playerEvent.pwm}`,
+                    eventIndex: index,
+                    pin: targetEvent.pin,
+                    expectedPwm: targetEvent.pwm,
+                    actualPwm: playerEvent.pwm
+                });
+            }
+        } else {
+            // Not PWM comparison, count as match
+            result.details.pwmMatches++;
+        }
+
+        // Compare INTERVAL to next event (relative timing - KEY FIX)
+        if (index < targetEvents.length - 1) {
+            // Calculate interval between this event and next event
+            const targetInterval = targetEvents[index + 1].time - targetEvents[index].time;
+            const playerInterval = playerEvents[index + 1].time - playerEvents[index].time;
+            const intervalDiff = Math.abs(targetInterval - playerInterval);
+            
+            if (intervalDiff <= tolerance) {
+                result.details.intervalMatches++;
+            } else {
+                result.differences.push({
+                    type: 'timing_mismatch',
+                    message: `Time mismatch: target=${targetEvent.time}ms, player=${playerEvent.time}ms (diff: ${Math.abs(targetEvent.time - playerEvent.time)}ms)`,
+                    eventIndex: index,
+                    targetTime: targetEvent.time,
+                    playerTime: playerEvent.time,
+                    targetInterval: targetInterval,
+                    playerInterval: playerInterval,
+                    intervalDiff: intervalDiff
+                });
+            }
+        } else {
+            // Last event - no next interval to check, count as match
+            result.details.intervalMatches++;
         }
     }
 

@@ -648,19 +648,22 @@ void loop() {
             this.pinManager.updatePinVisual(pin, true);
             hasChanges = true;
             
-            // Record the pin event during execution
+            // Record the pin event during execution - ONLY if state changed
             if (this.isExecuting) {
-                const eventType = this.gameState.pinModes[pin] === 'PWM' ? 'pwm' : 'digital';
-                this.recordPinEvent(
-                    pin, 
-                    this.gameState.pins[pin], 
-                    eventType, 
-                    this.gameState.pwmValues[pin], 
-                    this.gameState.dutyCycles[pin]
-                );
-                
-                // Add visual effects for player execution
-                this.addPlayerExecutionVisualEffects(pin, this.gameState.pins[pin], eventType, this.gameState.dutyCycles[pin]);
+                // Only record if this pin actually changed state or PWM value
+                if (oldState !== this.gameState.pins[pin] || oldPwm !== this.gameState.pwmValues[pin]) {
+                    const eventType = this.gameState.pinModes[pin] === 'PWM' ? 'pwm' : 'digital';
+                    this.recordPinEvent(
+                        pin, 
+                        this.gameState.pins[pin], 
+                        eventType, 
+                        this.gameState.pwmValues[pin], 
+                        this.gameState.dutyCycles[pin]
+                    );
+                    
+                    // Add visual effects for player execution
+                    this.addPlayerExecutionVisualEffects(pin, this.gameState.pins[pin], eventType, this.gameState.dutyCycles[pin]);
+                }
             }
         }
         
