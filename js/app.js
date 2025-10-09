@@ -1,16 +1,19 @@
 /**
  * Main Application Entry Point
- * Initializes the Arduino Learning Game
+ * Initializes the Arduino Learning Game with modular architecture
  */
 
 class ArduinoLearningGame {
     constructor() {
+        // Core systems
         this.gameState = window.gameState;
         this.pinManager = window.pinManager;
         this.componentManager = window.componentManager;
         this.arduinoParser = window.arduinoParser;
         this.codeEditor = window.codeEditor;
-        this.uiManager = null; // Will be initialized after all dependencies are ready
+        
+        // UI Manager (coordinator)
+        this.uiManager = null;
     }
 
     /**
@@ -35,7 +38,13 @@ class ArduinoLearningGame {
     start() {
         console.log('🎮 Starting Arduino Learning Game...');
         
-        // Initialize UIManager now that all dependencies are ready
+        // Verify all dependencies are loaded
+        if (!this.verifyDependencies()) {
+            console.error('❌ Missing required dependencies');
+            return;
+        }
+        
+        // Initialize UIManager (which will initialize all sub-managers)
         this.uiManager = new UIManager(
             this.gameState,
             this.pinManager,
@@ -44,17 +53,14 @@ class ArduinoLearningGame {
             this.codeEditor
         );
         
-        // Make UIManager globally available
+        // Make UIManager globally available for HTML onclick handlers
         window.uiManager = this.uiManager;
         
-        // Initialize UI
+        // Initialize UI and all sub-systems
         this.uiManager.init();
         
         // Initialize pins
         this.pinManager.initializePins();
-        
-        // Initialize game systems
-        this.initializeGameSystems();
         
         // Test pins after a short delay
         setTimeout(() => {
@@ -65,50 +71,70 @@ class ArduinoLearningGame {
         this.setupGlobalFunctions();
         
         console.log('✅ Arduino Learning Game initialized successfully!');
+        this.logModuleStatus();
     }
 
     /**
-     * Initialize game systems
+     * Verify all required dependencies are loaded
      */
-    initializeGameSystems() {
-        console.log('🎯 Initializing game systems...');
+    verifyDependencies() {
+        const required = [
+            'gameState',
+            'pinManager',
+            'arduinoParser',
+            'componentManager',
+            'codeEditor',
+            'levelManager',
+            'sequenceExtractor',
+            'sequenceValidator',
+            'timerManager',
+            'targetAnimationPlayer',
+            'executionRecorder',
+            'modalManager',
+            'visualEffectsManager'
+        ];
         
-        // Initialize level manager
-        if (window.levelManager) {
-            console.log('✅ Level manager ready');
-        } else {
-            console.error('❌ Level manager not available');
+        const missing = [];
+        
+        for (const dep of required) {
+            if (!window[dep]) {
+                missing.push(dep);
+            }
         }
         
-        // Initialize sequence extractor
-        if (window.sequenceExtractor) {
-            console.log('✅ Sequence extractor ready');
-        } else {
-            console.error('❌ Sequence extractor not available');
+        if (missing.length > 0) {
+            console.error('❌ Missing dependencies:', missing);
+            return false;
         }
         
-        // Initialize sequence validator
-        if (window.sequenceValidator) {
-            console.log('✅ Sequence validator ready');
-        } else {
-            console.error('❌ Sequence validator not available');
-        }
-        
-        // Initialize timer manager
-        if (window.timerManager) {
-            console.log('✅ Timer manager ready');
-        } else {
-            console.error('❌ Timer manager not available');
-        }
-        
-        // Initialize target animation player
-        if (window.targetAnimationPlayer) {
-            console.log('✅ Target animation player ready');
-        } else {
-            console.error('❌ Target animation player not available');
-        }
-        
-        console.log('🎯 Game systems initialized');
+        return true;
+    }
+
+    /**
+     * Log status of all modules
+     */
+    logModuleStatus() {
+        console.log('📦 Module Status:');
+        console.log('  ✅ Core Systems:');
+        console.log('    - GameState');
+        console.log('    - PinManager');
+        console.log('    - ArduinoParser');
+        console.log('    - ComponentManager');
+        console.log('  ✅ Execution Systems:');
+        console.log('    - CodeExecutor');
+        console.log('    - ExecutionRecorder');
+        console.log('  ✅ Game Flow:');
+        console.log('    - GameFlowManager');
+        console.log('    - ValidationManager');
+        console.log('    - LevelManager');
+        console.log('  ✅ UI Systems:');
+        console.log('    - UIManager (Coordinator)');
+        console.log('    - EventManager');
+        console.log('    - ModalManager');
+        console.log('    - VisualEffectsManager');
+        console.log('    - CodeEditor');
+        console.log('    - TimerManager');
+        console.log('    - TargetAnimationPlayer');
     }
 
     /**

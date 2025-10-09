@@ -8,8 +8,8 @@ This is an interactive educational game designed to teach kids how to program mi
 
 ```
 MVP WAKRINA 3/
-├── index.html              # Original monolithic file (for reference)
-├── index_new.html          # New modular HTML structure
+├── index.html              # Original monolithic file (archived)
+├── index_new.html          # Main HTML file (modular structure)
 ├── styles.css              # Original styles (kept for compatibility)
 ├── fx.js                   # Background particle effects
 ├── README.md               # This documentation
@@ -28,116 +28,118 @@ MVP WAKRINA 3/
     ├── core/              # Core game logic
     │   ├── gameState.js   # Game state management
     │   ├── pinManager.js  # Pin operations and PWM control
-    │   └── arduinoParser.js # Arduino code parser and executor
+    │   ├── arduinoParser.js # Arduino code parser and executor
+    │   ├── sequenceExtractor.js # Extract sequences from code
+    │   └── sequenceValidator.js # Validate execution sequences
+    ├── execution/         # Code execution systems
+    │   ├── codeExecutor.js      # Execute Arduino code with timing
+    │   └── executionRecorder.js # Record execution events
+    ├── game/              # Game flow management
+    │   ├── gameFlowManager.js   # Level progression and game state
+    │   └── validationManager.js # Validate player execution
+    ├── levels/            # Level system
+    │   ├── levelData.js   # Level definitions
+    │   └── levelManager.js # Level loading and management
     ├── components/        # Component management
     │   └── componentManager.js # LED and Motor component handling
-    └── ui/                # User interface management
-        ├── codeEditor.js  # Code editor with syntax highlighting
-        └── uiManager.js   # UI interactions and event handling
+    └── ui/                # User interface systems
+        ├── uiManager.js          # UI coordinator (slim)
+        ├── eventManager.js       # Event handling
+        ├── modalManager.js       # Modal dialogs and messages
+        ├── visualEffectsManager.js # Visual effects and particles
+        ├── codeEditor.js         # Code editor with syntax highlighting
+        ├── timerManager.js       # Timer display and countdown
+        └── targetAnimationPlayer.js # Target sequence animation
 ```
 
 ## Architecture Overview
 
-The application follows a modular architecture with clear separation of concerns:
+The application follows a modular architecture with clear separation of concerns. Each module has a single, well-defined responsibility.
 
 ### 1. Core Systems (`js/core/`)
 
 #### GameState (`gameState.js`)
 - **Purpose**: Central state management for the entire game
-- **Responsibilities**:
-  - Pin states (ON/OFF, PWM values, duty cycles)
-  - Pin modes (DIGITAL/PWM)
-  - Component connections and states
-  - Variable management
-- **Key Methods**:
-  - `resetPins()`: Reset all pins to default state
-  - `getAvailablePins()`: Get pins not connected to components
-  - `connectComponent()`: Connect a component to a pin
-  - `disconnectComponent()`: Disconnect a component from its pin
+- **Key Data**: Pin states, PWM values, duty cycles, pin modes, component connections
 
 #### PinManager (`pinManager.js`)
 - **Purpose**: Handles all pin-related operations and visual updates
-- **Responsibilities**:
-  - Pin toggling and mode switching
-  - PWM control and duty cycle management
-  - Visual pin state updates
-  - Pin selection for PWM control
-- **Key Methods**:
-  - `togglePin(pin)`: Toggle pin state or cycle through modes
-  - `setPinMode(pin, mode)`: Set pin to DIGITAL or PWM mode
-  - `setDutyCycle(pin, dutyCycle)`: Set PWM duty cycle (0-100%)
-  - `updatePinVisual(pin, isCodeControlled)`: Update pin visual state
+- **Key Methods**: `togglePin()`, `setPinMode()`, `setDutyCycle()`, `updatePinVisual()`
 
 #### ArduinoParser (`arduinoParser.js`)
 - **Purpose**: Parses and executes Arduino-style code
-- **Responsibilities**:
-  - Code parsing (setup/loop functions)
-  - Function execution (pinMode, digitalWrite, analogWrite, delay)
-  - Pin state synchronization with game state
-  - Error handling and validation
-- **Key Methods**:
-  - `parseCode(code)`: Parse Arduino code into setup/loop functions
-  - `executeSetup(setupCode)`: Execute setup code once
-  - `executeLoop(loopCode)`: Execute loop code repeatedly
-  - `syncWithGameState(gameState)`: Sync parser state with game state
+- **Key Methods**: `parseCode()`, `executeLine()`, `getPinState()`
 
-### 2. Component Management (`js/components/`)
+#### SequenceExtractor & SequenceValidator (`sequenceExtractor.js`, `sequenceValidator.js`)
+- **Purpose**: Extract sequences from code and validate player execution
+
+### 2. Execution Systems (`js/execution/`)
+
+#### CodeExecutor (`codeExecutor.js`)
+- **Purpose**: Execute Arduino code with proper timing and animation
+- **Key Methods**: `executeCode()`, `stopExecution()`, timing control
+- **Size**: ~400 lines (focused responsibility)
+
+#### ExecutionRecorder (`executionRecorder.js`)
+- **Purpose**: Record pin events during execution for validation
+- **Key Methods**: `recordPinEvent()`, `buildSequenceFromExecution()`
+- **Size**: ~100 lines (single responsibility)
+
+### 3. Game Flow Systems (`js/game/`)
+
+#### GameFlowManager (`gameFlowManager.js`)
+- **Purpose**: Manage game state, level progression, win/lose conditions
+- **Key Methods**: `loadLevel()`, `playTargetAnimation()`, `handleWin()`, `handleLose()`
+- **Size**: ~250 lines (focused on game flow)
+
+#### ValidationManager (`validationManager.js`)
+- **Purpose**: Validate player execution against target sequence
+- **Key Methods**: `validateExecution()` with callbacks
+- **Size**: ~50 lines (single responsibility)
+
+### 4. Level System (`js/levels/`)
+
+#### LevelData & LevelManager (`levelData.js`, `levelManager.js`)
+- **Purpose**: Store and manage level definitions
+- **Key Data**: Level configurations, target code, time limits
+
+### 5. Component System (`js/components/`)
 
 #### ComponentManager (`componentManager.js`)
-- **Purpose**: Manages LED and Motor components
-- **Responsibilities**:
-  - Component creation and connection
-  - Visual component rendering
-  - Component state updates based on pin states
-  - Connection line rendering
-- **Key Methods**:
-  - `addLEDComponent()`: Create a new LED component
-  - `addMotorComponent()`: Create a new Motor component
-  - `renderComponents()`: Render all components in the grid
-  - `updateComponentStates()`: Update component visuals based on pin states
-  - `updateConnectionLines()`: Draw connection lines between components and pins
+- **Purpose**: Manage LED and Motor components
+- **Key Methods**: `addLEDComponent()`, `addMotorComponent()`, `updateComponentStates()`
 
-### 3. User Interface (`js/ui/`)
+### 6. UI Systems (`js/ui/`)
 
-#### CodeEditor (`codeEditor.js`)
-- **Purpose**: Enhanced code editor with Arduino-specific features
-- **Responsibilities**:
-  - Code editing with line numbers
-  - Auto-completion for Arduino functions
-  - Syntax highlighting
-  - Auto-indentation
-- **Key Methods**:
-  - `getValue()`: Get current code content
-  - `setValue(value)`: Set code content
-  - `showCompletion()`: Show function auto-completion
-  - `handleEnterKey()`: Handle auto-indentation on Enter
+#### UIManager (`uiManager.js`) - **COORDINATOR**
+- **Purpose**: Coordinate between all sub-managers (slim coordinator)
+- **Size**: ~300 lines (down from 1698 lines!)
+- **Key Methods**: Initialize sub-managers, delegate actions, update displays
 
-#### UIManager (`uiManager.js`)
-- **Purpose**: Manages all user interactions and UI updates
-- **Responsibilities**:
-  - Event listener setup
-  - Keyboard controls (PWM mode, number keys)
-  - Button event handling
-  - Code execution coordination
-  - Background effects
-- **Key Methods**:
-  - `init()`: Initialize all UI event listeners
-  - `runCode()`: Execute Arduino code
-  - `resetGame()`: Reset entire game state
-  - `updateVisualPinsFromParser()`: Sync visual pins with parser state
+#### EventManager (`eventManager.js`)
+- **Purpose**: Handle all user input events
+- **Key Methods**: `setupPinEventListeners()`, `setupKeyboardControls()`, `setupButtonEventListeners()`
+- **Size**: ~200 lines (pure event handling)
 
-### 4. Main Application (`js/app.js`)
+#### ModalManager (`modalManager.js`)
+- **Purpose**: Manage all modal dialogs and messages
+- **Key Methods**: `showWinModal()`, `showError()`, `showMessage()`
+- **Size**: ~150 lines (modal management)
+
+#### VisualEffectsManager (`visualEffectsManager.js`)
+- **Purpose**: Manage visual effects and particles
+- **Key Methods**: `createDynamicParticle()`, `addPlayerExecutionVisualEffects()`
+- **Size**: ~200 lines (visual effects)
+
+#### CodeEditor, TimerManager, TargetAnimationPlayer
+- **Purpose**: Specialized UI components
+- **Maintained**: Existing modular structure
+
+### 7. Main Application (`js/app.js`)
 
 #### ArduinoLearningGame
-- **Purpose**: Main application entry point
-- **Responsibilities**:
-  - Initialize all systems
-  - Coordinate between modules
-  - Setup global functions for HTML onclick handlers
-- **Key Methods**:
-  - `init()`: Initialize the application
-  - `start()`: Start the game
-  - `setupGlobalFunctions()`: Make functions available globally
+- **Purpose**: Application entry point
+- **Key Methods**: `init()`, `start()`, `verifyDependencies()`, `setupGlobalFunctions()`
 
 ## CSS Architecture
 
@@ -235,15 +237,44 @@ The CSS is organized into logical modules:
 ### CSS Loading Order
 - `css/main.css` imports all other CSS files in the correct order
 
-## Migration from Original
+## Architecture Evolution
 
-The original `index.html` contained everything in a single file (~2700 lines). The refactored version:
+### Phase 1: Original Monolith
+- `index.html`: 2651 lines with embedded CSS and JavaScript
+- Everything in one file - difficult to maintain and modify
 
-- **Separates concerns** into logical modules
-- **Improves maintainability** with clear file organization
-- **Enhances readability** with focused, single-purpose files
-- **Enables easier debugging** with isolated functionality
-- **Supports future development** with modular architecture
+### Phase 2: Initial Modularization
+- Split CSS into separate files (`css/` folder)
+- Split JavaScript into modules (`js/` folder)
+- Created `index_new.html` with proper imports
+- **Result**: Better but `uiManager.js` grew to 1698 lines
+
+### Phase 3: Current Architecture (Optimized)
+- **UIManager split into 7 focused modules**:
+  - `codeExecutor.js` - Code execution (~400 lines)
+  - `executionRecorder.js` - Event recording (~100 lines)
+  - `gameFlowManager.js` - Game state (~250 lines)
+  - `validationManager.js` - Validation (~50 lines)
+  - `eventManager.js` - Event handling (~200 lines)
+  - `modalManager.js` - UI dialogs (~150 lines)
+  - `visualEffectsManager.js` - Visual effects (~200 lines)
+  - `uiManager.js` - Slim coordinator (~300 lines)
+
+### Benefits of Current Architecture
+
+1. **Single Responsibility Principle**: Each module has one clear purpose
+2. **Better Maintainability**: Easy to find and modify specific functionality
+3. **Improved Testability**: Smaller, focused units are easier to test
+4. **No Code Duplication**: Consolidated duplicate `runCode()` methods
+5. **Clear Dependencies**: Explicit relationships between modules
+6. **Easier Feature Addition**: Know exactly where to add new code
+7. **Better Documentation**: Smaller files are easier to understand
+8. **Reduced Cognitive Load**: Work on one concern at a time
+
+### Code Reduction Summary
+- **Before**: `index.html` (2651 lines) + `uiManager.js` (1698 lines) = **4349 lines in 2 files**
+- **After**: Distributed across **17 focused modules**, largest is ~400 lines
+- **UIManager**: Reduced from 1698 to ~300 lines (**82% reduction!**)
 
 ## Future Enhancements
 

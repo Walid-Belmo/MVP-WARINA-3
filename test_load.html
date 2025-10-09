@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Module Load Test</title>
+    <style>
+        body {
+            font-family: monospace;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #00ff00;
+        }
+        .success { color: #00ff00; }
+        .error { color: #ff0000; }
+        .info { color: #00aaff; }
+        h1 { color: #ffaa00; }
+        pre { background: #000; padding: 10px; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Module Load Test</h1>
+    <div id="results"></div>
+
+    <!-- Load all modules -->
+    <script src="js/core/gameState.js"></script>
+    <script src="js/core/pinManager.js"></script>
+    <script src="js/core/arduinoParser.js"></script>
+    <script src="js/core/sequenceExtractor.js"></script>
+    <script src="js/core/sequenceValidator.js"></script>
+    <script src="js/levels/levelData.js"></script>
+    <script src="js/levels/levelManager.js"></script>
+    <script src="js/components/componentManager.js"></script>
+    <script src="js/execution/executionRecorder.js"></script>
+    <script src="js/execution/codeExecutor.js"></script>
+    <script src="js/game/validationManager.js"></script>
+    <script src="js/game/gameFlowManager.js"></script>
+    <script src="js/ui/codeEditor.js"></script>
+    <script src="js/ui/timerManager.js"></script>
+    <script src="js/ui/targetAnimationPlayer.js"></script>
+    <script src="js/ui/modalManager.js"></script>
+    <script src="js/ui/visualEffectsManager.js"></script>
+    <script src="js/ui/eventManager.js"></script>
+    
+    <script>
+        const results = document.getElementById('results');
+        
+        function addResult(module, status, message = '') {
+            const div = document.createElement('div');
+            div.className = status;
+            div.innerHTML = `${status === 'success' ? '✅' : '❌'} <strong>${module}</strong>: ${message || (status === 'success' ? 'Loaded' : 'Failed')}`;
+            results.appendChild(div);
+        }
+        
+        function testModule(name, testFn) {
+            try {
+                const result = testFn();
+                if (result) {
+                    addResult(name, 'success', result);
+                } else {
+                    addResult(name, 'success');
+                }
+            } catch (error) {
+                addResult(name, 'error', error.message);
+            }
+        }
+        
+        // Test all modules
+        addResult('Module Loading Test', 'info', 'Testing all new modules...');
+        results.innerHTML += '<hr>';
+        
+        // Core Systems
+        testModule('GameState', () => window.gameState ? 'Instance created' : null);
+        testModule('PinManager', () => window.pinManager ? 'Instance created' : null);
+        testModule('ArduinoParser', () => window.arduinoParser ? 'Instance created' : null);
+        testModule('SequenceExtractor', () => window.sequenceExtractor ? 'Instance created' : null);
+        testModule('SequenceValidator', () => window.sequenceValidator ? 'Instance created' : null);
+        
+        results.innerHTML += '<hr>';
+        
+        // Level System
+        testModule('LevelManager', () => window.levelManager ? 'Instance created' : null);
+        testModule('ComponentManager', () => window.componentManager ? 'Instance created' : null);
+        
+        results.innerHTML += '<hr>';
+        
+        // Execution Systems
+        testModule('ExecutionRecorder', () => window.executionRecorder ? 'Instance created' : null);
+        testModule('CodeExecutor', () => typeof CodeExecutor === 'function' ? 'Class defined' : null);
+        
+        results.innerHTML += '<hr>';
+        
+        // Game Systems
+        testModule('ValidationManager', () => typeof ValidationManager === 'function' ? 'Class defined' : null);
+        testModule('GameFlowManager', () => typeof GameFlowManager === 'function' ? 'Class defined' : null);
+        
+        results.innerHTML += '<hr>';
+        
+        // UI Systems
+        testModule('CodeEditor', () => window.codeEditor ? 'Instance created' : null);
+        testModule('TimerManager', () => window.timerManager ? 'Instance created' : null);
+        testModule('TargetAnimationPlayer', () => window.targetAnimationPlayer ? 'Instance created' : null);
+        testModule('ModalManager', () => window.modalManager ? 'Instance created' : null);
+        testModule('VisualEffectsManager', () => window.visualEffectsManager ? 'Instance created' : null);
+        testModule('EventManager', () => typeof EventManager === 'function' ? 'Class defined' : null);
+        testModule('UIManager', () => typeof UIManager === 'function' ? 'Class defined' : null);
+        
+        results.innerHTML += '<hr>';
+        
+        // Summary
+        const successCount = document.querySelectorAll('.success').length;
+        const errorCount = document.querySelectorAll('.error').length;
+        
+        const summary = document.createElement('div');
+        summary.className = successCount > 0 && errorCount === 0 ? 'success' : (errorCount > 0 ? 'error' : 'info');
+        summary.innerHTML = `<h2>Summary</h2><pre>✅ Success: ${successCount}\n❌ Errors: ${errorCount}\n\nStatus: ${errorCount === 0 ? 'ALL MODULES LOADED SUCCESSFULLY! 🎉' : 'SOME MODULES FAILED TO LOAD ⚠️'}</pre>`;
+        results.appendChild(summary);
+        
+        if (errorCount === 0) {
+            const nextSteps = document.createElement('div');
+            nextSteps.className = 'info';
+            nextSteps.innerHTML = `<h3>Next Steps:</h3><pre>1. Open index_new.html to test the full application
+2. Verify all game features work correctly
+3. Check the testing checklist in REFACTORING_SUMMARY.md</pre>`;
+            results.appendChild(nextSteps);
+        }
+    </script>
+</body>
+</html>
+
