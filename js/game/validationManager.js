@@ -36,14 +36,44 @@ class ValidationManager {
         
         if (validation.matches) {
             console.log('🎉 SEQUENCE MATCH! Player wins!');
-            if (onWin) {
-                onWin();
+            
+            // Start suspense effect
+            if (window.visualEffectsManager) {
+                window.visualEffectsManager.playSuspenseEffect();
             }
+            
+            // Add suspenseful delay (1.5 seconds) before showing success
+            setTimeout(() => {
+                // Stop suspense effect
+                if (window.visualEffectsManager) {
+                    window.visualEffectsManager.stopSuspenseEffect();
+                    window.visualEffectsManager.playCascadeEffect();
+                }
+                
+                if (onWin) {
+                    onWin();
+                }
+            }, 1500);
         } else {
             console.log('❌ Sequence does not match');
-            if (onFail) {
-                onFail(validation.score, validation.differences);
+            
+            // Start suspense effect
+            if (window.visualEffectsManager) {
+                window.visualEffectsManager.playSuspenseEffect();
             }
+            
+            // Add suspenseful delay (1.5 seconds) before showing failure
+            setTimeout(() => {
+                // Stop suspense effect and add FAILURE screen shake
+                if (window.visualEffectsManager) {
+                    window.visualEffectsManager.stopSuspenseEffect();
+                    window.visualEffectsManager.addScreenShake('medium');
+                }
+                
+                if (onFail) {
+                    onFail(validation.score, validation.differences);
+                }
+            }, 1500);
         }
     }
 }

@@ -29,6 +29,11 @@ class CodeExecutor {
             // Stop any existing execution
             this.stopExecution();
             
+            // Add visual effects for code execution start
+            if (window.visualEffectsManager) {
+                window.visualEffectsManager.playCascadeEffect();
+            }
+            
             // Reset parser state
             this.arduinoParser.reset();
             console.log('✅ Parser reset');

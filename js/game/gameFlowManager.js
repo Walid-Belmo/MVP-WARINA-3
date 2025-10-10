@@ -139,6 +139,11 @@ class GameFlowManager {
     handleWin(onWinCallback) {
         console.log('🎉 PLAYER WINS!');
         
+        // Add win celebration effects
+        if (window.visualEffectsManager) {
+            window.visualEffectsManager.playWinCelebration();
+        }
+        
         // Stop timer
         this.timerManager.stopTimer();
         

@@ -35,6 +35,11 @@ class EventManager {
             pin.addEventListener('click', (e) => {
                 const pinNumber = parseInt(e.target.getAttribute('data-pin'));
                 this.pinManager.togglePin(pinNumber);
+                
+                // Add visual juice effects
+                if (window.visualEffectsManager) {
+                    window.visualEffectsManager.addPinClickEffects(pinNumber, e.target);
+                }
             });
         });
     }

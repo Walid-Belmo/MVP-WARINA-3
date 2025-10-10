@@ -128,6 +128,8 @@
 
 .pin-circle:hover {
     transform: scale(1.1);
+    box-shadow: 0 0 20px rgba(0, 212, 255, 0.6);
+    transition: all 0.2s ease;
 }
 
 /* PWM Mode Pin Styles */
