@@ -139,7 +139,10 @@ class ArduinoParser {
 
         // Convert to PWM value (0-255) for visualization
         const percentage = ((microseconds - servo.min) / (servo.max - servo.min)) * 100;
-        this.pwmValues[servo.pin] = Math.round((percentage / 100) * 255);
+        const rawPwmValue = Math.round((percentage / 100) * 255);
+
+        // IMPORTANT: Set minimum PWM value to 1 so motors show as active even at 0°/0% throttle
+        this.pwmValues[servo.pin] = rawPwmValue === 0 ? 1 : rawPwmValue;
 
         console.log(`✅ Servo '${objectName}': ${angleValue}° = ${Math.round(microseconds)}µs (${Math.round(percentage)}%)`);
         return true;
@@ -169,7 +172,12 @@ class ArduinoParser {
         // Convert to PWM value (0-255) for visualization
         // For ESC: 1000µs = 0%, 1500µs = 50%, 2000µs = 100%
         const percentage = ((us - servo.min) / (servo.max - servo.min)) * 100;
-        this.pwmValues[servo.pin] = Math.round((percentage / 100) * 255);
+        const rawPwmValue = Math.round((percentage / 100) * 255);
+
+        // IMPORTANT: For ESC visualization, we need to show the motor as "active" even at 0% throttle
+        // Set minimum PWM value to 1 so motors show as connected/armed (not completely off)
+        // This differentiates between "motor not attached" (0) and "motor at 0% throttle" (1+)
+        this.pwmValues[servo.pin] = rawPwmValue === 0 ? 1 : rawPwmValue;
 
         console.log(`✅ Servo '${objectName}': ${us}µs (${Math.round(percentage)}% throttle)`);
         return true;
