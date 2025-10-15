@@ -1,8 +1,8 @@
-# Arduino Learning Game - Code Architecture
+# ESP32 Learning Game - Code Architecture
 
 ## Overview
 
-This is an interactive educational game designed to teach kids how to program microcontrollers. The game simulates an Arduino environment where players can connect components, write code, and see the results in real-time.
+This is an interactive educational game designed to teach kids how to program ESP32 microcontrollers. The game simulates an ESP32 environment where players can connect components (LEDs, ESC motors), write code, and see the results in real-time.
 
 ## Project Structure
 
@@ -28,11 +28,11 @@ MVP WAKRINA 3/
     ├── core/              # Core game logic
     │   ├── gameState.js   # Game state management
     │   ├── pinManager.js  # Pin operations and PWM control
-    │   ├── arduinoParser.js # Arduino code parser and executor
+    │   ├── arduinoParser.js # ESP32 code parser and executor
     │   ├── sequenceExtractor.js # Extract sequences from code
     │   └── sequenceValidator.js # Validate execution sequences
     ├── execution/         # Code execution systems
-    │   ├── codeExecutor.js      # Execute Arduino code with timing
+    │   ├── codeExecutor.js      # Execute ESP32 code with timing
     │   └── executionRecorder.js # Record execution events
     ├── game/              # Game flow management
     │   ├── gameFlowManager.js   # Level progression and game state
@@ -66,9 +66,12 @@ The application follows a modular architecture with clear separation of concerns
 - **Purpose**: Handles all pin-related operations and visual updates
 - **Key Methods**: `togglePin()`, `setPinMode()`, `setDutyCycle()`, `updatePinVisual()`
 
-#### ArduinoParser (`arduinoParser.js`)
-- **Purpose**: Parses and executes Arduino-style code
+#### ArduinoParser (`arduinoParser.js`) - **Now ESP32Parser!**
+- **Purpose**: Parses and executes ESP32-style code with Servo library support
 - **Key Methods**: `parseCode()`, `executeLine()`, `getPinState()`
+- **Supported Commands**:
+  - `pinMode()`, `digitalWrite()`, `delay()`
+  - `Servo.attach()`, `Servo.writeMicroseconds()`, `Servo.write()`, `Servo.detach()`
 
 #### SequenceExtractor & SequenceValidator (`sequenceExtractor.js`, `sequenceValidator.js`)
 - **Purpose**: Extract sequences from code and validate player execution
@@ -76,7 +79,7 @@ The application follows a modular architecture with clear separation of concerns
 ### 2. Execution Systems (`js/execution/`)
 
 #### CodeExecutor (`codeExecutor.js`)
-- **Purpose**: Execute Arduino code with proper timing and animation
+- **Purpose**: Execute ESP32 code with proper timing and animation
 - **Key Methods**: `executeCode()`, `stopExecution()`, timing control
 - **Size**: ~400 lines (focused responsibility)
 
@@ -101,13 +104,17 @@ The application follows a modular architecture with clear separation of concerns
 
 #### LevelData & LevelManager (`levelData.js`, `levelManager.js`)
 - **Purpose**: Store and manage level definitions
-- **Key Data**: Level configurations, target code, time limits
+- **Key Data**: 20 levels teaching ESP32 programming
+- **Categories**:
+  - **Beginner (Levels 1-10)**: Basic digital control with digitalWrite()
+  - **Advanced (Levels 11-20)**: ESC motor control with ESP32 Servo library
 
 ### 5. Component System (`js/components/`)
 
 #### ComponentManager (`componentManager.js`)
-- **Purpose**: Manage LED and Motor components
+- **Purpose**: Manage LED and ESC Motor components
 - **Key Methods**: `addLEDComponent()`, `addMotorComponent()`, `updateComponentStates()`
+- **Auto-Spawn**: Levels can automatically create and connect components
 
 ### 6. UI Systems (`js/ui/`)
 
@@ -137,71 +144,92 @@ The application follows a modular architecture with clear separation of concerns
 
 ### 7. Main Application (`js/app.js`)
 
-#### ArduinoLearningGame
+#### ArduinoLearningGame (Name kept for compatibility)
 - **Purpose**: Application entry point
 - **Key Methods**: `init()`, `start()`, `verifyDependencies()`, `setupGlobalFunctions()`
 
-## CSS Architecture
-
-The CSS is organized into logical modules:
-
-- **`base.css`**: Reset styles and base typography
-- **`background.css`**: Animated background particles and effects
-- **`layout.css`**: Main layout structure and responsive design
-- **`microcontroller.css`**: Microcontroller and pin styling
-- **`components.css`**: Component (LED/Motor) styling and animations
-- **`editor.css`**: Code editor styling and syntax highlighting
-- **`ui.css`**: Button and UI component styling
-- **`timer.css`**: Timer panel and status indicators
-- **`main.css`**: Imports all other CSS files
-
 ## Key Features
 
-### 1. Interactive Microcontroller
+### 1. Interactive ESP32 Microcontroller
 - 6 digital pins (D8-D13) with visual feedback
-- PWM support with duty cycle control
+- PWM/Servo control for ESC motors
 - Pin mode switching (Digital ↔ PWM)
 - Visual indicators for pin states
 
 ### 2. Component System
-- LED components with brightness control
-- Motor components with speed control
+- LED components with ON/OFF control
+- ESC Motor components with speed control (via Servo library)
 - Visual connection lines
-- Drag-and-drop style connection interface
+- Auto-spawn components for tutorial levels
 
 ### 3. Code Editor
-- Arduino-style syntax
-- Auto-completion for Arduino functions
+- ESP32-style syntax with Servo library support
+- Auto-completion for ESP32 functions
 - Line numbers and cursor position
 - Auto-indentation
 
 ### 4. Code Execution
-- Real-time Arduino code parsing
+- Real-time ESP32 code parsing
 - Setup and loop function execution
 - Pin state synchronization
 - Error handling and validation
 
-### 5. Interactive Controls
+### 5. ESP32 Servo Library Support
+- `#include <ESP32Servo.h>` validation
+- `Servo` object creation and management
+- `attach(pin, min, max)` - Attach servo/ESC to pin
+- `writeMicroseconds(us)` - Direct pulse width control (1000-2000µs)
+- `write(angle)` - Angle-based control (0-180°)
+- `detach()` - Detach servo from pin
+
+### 6. Interactive Controls
 - Click pins to toggle states
 - Press 'P' + click for PWM mode
 - Number keys (0-9) for PWM duty cycles
 - +/- keys for fine PWM adjustment
 
+## ESP32 Programming Concepts Taught
+
+### Beginner Levels (1-10): Digital Control
+- `pinMode(pin, OUTPUT)` - Configure pin as output
+- `digitalWrite(pin, HIGH/LOW)` - Turn LEDs on/off
+- `delay(ms)` - Timing control
+- Multi-pin coordination
+- Sequential patterns
+
+### Advanced Levels (11-20): ESC/Motor Control
+- `#include <ESP32Servo.h>` - Import Servo library
+- `Servo objectName;` - Create Servo object
+- `objectName.attach(pin, 1000, 2000);` - Attach ESC to pin
+- **ARM Sequence**: `writeMicroseconds(1000)` + `delay(3000)` - Safety protocol
+- `objectName.writeMicroseconds(us);` - Control ESC speed:
+  - 1000µs = 0% throttle (stopped/armed)
+  - 1250µs = 25% throttle
+  - 1500µs = 50% throttle
+  - 1750µs = 75% throttle
+  - 2000µs = 100% throttle
+- Combining digital LED control with ESC motor control
+
 ## How to Use
 
 ### For Developers
 
-1. **Adding New Components**:
+1. **Adding New ESP32 Functions**:
+   - Extend `ArduinoParser` class in `arduinoParser.js`
+   - Add function to `executeLine()` method
+   - Update auto-completion in `CodeEditor`
+
+2. **Adding New Components**:
    - Extend `ComponentManager` class
    - Add component type to `renderComponents()`
    - Create corresponding CSS styles
 
-2. **Adding New Arduino Functions**:
-   - Extend `ArduinoParser` class
-   - Add function to `executeLine()` method
-   - Update auto-completion in `CodeEditor`
+3. **Creating New Levels**:
+   - Add level definition to `LEVELS` array in `levelData.js`
+   - Use `autoComponents` for tutorial-style levels
+   - Choose appropriate difficulty: "beginner" or "advanced"
 
-3. **Modifying UI**:
+4. **Modifying UI**:
    - Update CSS files in `css/` directory
    - Modify `UIManager` for new interactions
    - Add new event listeners as needed
@@ -209,15 +237,17 @@ The CSS is organized into logical modules:
 ### For Users
 
 1. **Connecting Components**:
-   - Click "Add LED" or "Add Motor" buttons
+   - Most levels auto-spawn components (no manual setup needed!)
+   - For manual mode: Click "Add LED" or "Add Motor" buttons
    - Click on component boxes to connect to available pins
 
-2. **Writing Code**:
-   - Use the code editor to write Arduino-style code
+2. **Writing ESP32 Code**:
+   - Use the code editor to write ESP32-style code
+   - Start with `#include <ESP32Servo.h>` for motor levels
    - Use auto-completion (type function names)
    - Click "RUN CODE" to execute
 
-3. **Controlling Pins**:
+3. **Controlling Pins** (Manual Mode):
    - Click pins to toggle digital states
    - Press 'P' + click pin to enter PWM mode
    - Use number keys (0-9) to set PWM duty cycles
@@ -227,7 +257,7 @@ The CSS is organized into logical modules:
 ### JavaScript Loading Order
 1. `js/core/gameState.js` - Core state management
 2. `js/core/pinManager.js` - Pin operations (depends on gameState)
-3. `js/core/arduinoParser.js` - Code parsing
+3. `js/core/arduinoParser.js` - ESP32 code parsing
 4. `js/components/componentManager.js` - Component management (depends on gameState)
 5. `js/ui/codeEditor.js` - Code editor
 6. `js/ui/uiManager.js` - UI management (depends on all above)
@@ -249,7 +279,7 @@ The CSS is organized into logical modules:
 - Created `index_new.html` with proper imports
 - **Result**: Better but `uiManager.js` grew to 1698 lines
 
-### Phase 3: Current Architecture (Optimized)
+### Phase 3: Optimized Architecture
 - **UIManager split into 7 focused modules**:
   - `codeExecutor.js` - Code execution (~400 lines)
   - `executionRecorder.js` - Event recording (~100 lines)
@@ -260,39 +290,38 @@ The CSS is organized into logical modules:
   - `visualEffectsManager.js` - Visual effects (~200 lines)
   - `uiManager.js` - Slim coordinator (~300 lines)
 
+### Phase 4: ESP32 Transformation (Current)
+- **Removed Arduino-specific code** (Timer1, Timer0, setDutyCycle)
+- **Added ESP32 Servo library support** for real ESC control
+- **Updated all 20 levels** to teach ESP32 programming
+- **Reorganized categories**: Beginner (Digital) → Advanced (ESC/Motor)
+
 ### Benefits of Current Architecture
 
 1. **Single Responsibility Principle**: Each module has one clear purpose
 2. **Better Maintainability**: Easy to find and modify specific functionality
 3. **Improved Testability**: Smaller, focused units are easier to test
-4. **No Code Duplication**: Consolidated duplicate `runCode()` methods
+4. **No Code Duplication**: Consolidated duplicate methods
 5. **Clear Dependencies**: Explicit relationships between modules
 6. **Easier Feature Addition**: Know exactly where to add new code
 7. **Better Documentation**: Smaller files are easier to understand
 8. **Reduced Cognitive Load**: Work on one concern at a time
+9. **Real-World Skills**: Students learn actual ESP32 programming used in robotics/drones
 
 ### Code Reduction Summary
 - **Before**: `index.html` (2651 lines) + `uiManager.js` (1698 lines) = **4349 lines in 2 files**
 - **After**: Distributed across **17 focused modules**, largest is ~400 lines
 - **UIManager**: Reduced from 1698 to ~300 lines (**82% reduction!**)
 
-## Future Enhancements
-
-1. **Additional Components**: Servo motors, sensors, displays
-2. **More Arduino Functions**: Serial communication, interrupts
-3. **Level System**: Progressive difficulty with missions
-4. **Code Validation**: Syntax checking and error highlighting
-5. **Save/Load**: Project persistence
-6. **Multiplayer**: Collaborative coding sessions
-
 ## Troubleshooting
 
 ### Common Issues
 
 1. **Components not connecting**: Check if pins are available in `gameState.connections`
-2. **Code not executing**: Verify Arduino syntax in `arduinoParser.js`
+2. **Code not executing**: Verify ESP32 syntax in `arduinoParser.js`
 3. **Visual updates not working**: Check `updatePinVisual()` and `updateComponentStates()`
-4. **PWM not working**: Ensure pin is in PWM mode and duty cycle is set
+4. **Servo not working**: Ensure `#include <ESP32Servo.h>` is at the top of your code
+5. **ESC not responding**: Check ARM sequence (1000µs + 3000ms delay in setup)
 
 ### Debug Mode
 
@@ -305,9 +334,9 @@ When making changes:
 1. **Follow the modular structure** - don't put everything in one file
 2. **Update this README** if you add new features or change architecture
 3. **Test thoroughly** - especially pin interactions and code execution
-4. **Maintain backward compatibility** with existing functionality
+4. **Maintain ESP32 compatibility** - this is an ESP32 learning tool
 5. **Use consistent naming** conventions across all files
 
 ---
 
-This architecture provides a solid foundation for the Arduino Learning Game while maintaining clean, maintainable code that can easily be extended with new features.
+This architecture provides a solid foundation for the ESP32 Learning Game while maintaining clean, maintainable code that teaches students real-world ESP32 programming skills used in robotics, drones, and IoT projects.

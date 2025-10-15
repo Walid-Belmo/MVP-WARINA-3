@@ -213,7 +213,7 @@ void loop() {
   delay(1000);
 }`,
         hint: "All three LEDs turn on together, then off together",
-        difficulty: "intermediate",
+        difficulty: "beginner",
         requiredPins: [11, 12, 13],
         maxEvents: 8,
         validationLoops: 1,
@@ -249,7 +249,7 @@ void loop() {
   delay(1000);
 }`,
         hint: "Turn LEDs on one by one, then off one by one",
-        difficulty: "intermediate",
+        difficulty: "beginner",
         requiredPins: [11, 12, 13],
         maxEvents: 12,
         validationLoops: 1,
@@ -289,21 +289,25 @@ void loop() {
     },
     {
         id: 11,
-        name: "First PWM",
-        description: "Control brightness using PWM - turn pin 9 on at 50% power, then off",
-        timeLimit: 90000, // 1.5 minutes
-        targetCode: `void setup() {
-  pinMode(9, OUTPUT);
+        name: "First ESC - ARM",
+        description: "Learn to ARM an ESC - attach it and keep it stopped",
+        timeLimit: 120000, // 2 minutes
+        targetCode: `#include <ESP32Servo.h>
+
+Servo motor;
+
+void setup() {
+  motor.attach(9, 1000, 2000);
+  motor.writeMicroseconds(1000);
+  delay(3000);
 }
 
 void loop() {
-  setDutyCycle(9, 50);
-  delay(2000);
-  setDutyCycle(9, 0);
+  motor.writeMicroseconds(1000);
   delay(2000);
 }`,
-        hint: "Use setDutyCycle(9, 50) for 50% brightness, setDutyCycle(9, 0) for off",
-        difficulty: "intermediate",
+        hint: "Use motor.attach(9, 1000, 2000) then motor.writeMicroseconds(1000) to ARM (stop) the ESC",
+        difficulty: "advanced",
         requiredPins: [9],
         maxEvents: 4,
         requiresPWM: true,
@@ -314,21 +318,27 @@ void loop() {
     },
     {
         id: 12,
-        name: "Dim and Bright",
-        description: "Alternate between 25% and 75% brightness",
-        timeLimit: 90000, // 1.5 minutes
-        targetCode: `void setup() {
-  pinMode(9, OUTPUT);
+        name: "Two Speeds",
+        description: "Control ESC at two different speeds - 25% and 50%",
+        timeLimit: 120000, // 2 minutes
+        targetCode: `#include <ESP32Servo.h>
+
+Servo motor;
+
+void setup() {
+  motor.attach(9, 1000, 2000);
+  motor.writeMicroseconds(1000);
+  delay(3000);
 }
 
 void loop() {
-  setDutyCycle(9, 25);
+  motor.writeMicroseconds(1250);
   delay(2000);
-  setDutyCycle(9, 75);
+  motor.writeMicroseconds(1500);
   delay(2000);
 }`,
-        hint: "Use different percentage values with setDutyCycle",
-        difficulty: "intermediate",
+        hint: "1250µs = 25% speed, 1500µs = 50% speed. Use motor.writeMicroseconds()",
+        difficulty: "advanced",
         requiredPins: [9],
         maxEvents: 4,
         requiresPWM: true,
@@ -339,25 +349,31 @@ void loop() {
     },
     {
         id: 13,
-        name: "Three Speeds",
-        description: "Cycle through three different brightness levels",
+        name: "Four Speed Levels",
+        description: "Cycle through four ESC speed levels including stop",
         timeLimit: 120000, // 2 minutes
-        targetCode: `void setup() {
-  pinMode(9, OUTPUT);
+        targetCode: `#include <ESP32Servo.h>
+
+Servo motor;
+
+void setup() {
+  motor.attach(9, 1000, 2000);
+  motor.writeMicroseconds(1000);
+  delay(3000);
 }
 
 void loop() {
-  setDutyCycle(9, 25);
+  motor.writeMicroseconds(1000);
   delay(1000);
-  setDutyCycle(9, 50);
+  motor.writeMicroseconds(1250);
   delay(1000);
-  setDutyCycle(9, 75);
+  motor.writeMicroseconds(1500);
   delay(1000);
-  setDutyCycle(9, 0);
+  motor.writeMicroseconds(1750);
   delay(1000);
 }`,
-        hint: "Use four different duty cycle values: 25, 50, 75, and 0",
-        difficulty: "intermediate",
+        hint: "Use 1000, 1250, 1500, 1750 microseconds for 0%, 25%, 50%, 75%",
+        difficulty: "advanced",
         requiredPins: [9],
         maxEvents: 8,
         requiresPWM: true,
@@ -368,26 +384,32 @@ void loop() {
     },
     {
         id: 14,
-        name: "Mixed Control",
-        description: "Control a digital LED and PWM motor together",
+        name: "LED and ESC Together",
+        description: "Control a digital LED and ESC motor together",
         timeLimit: 120000, // 2 minutes
-        targetCode: `void setup() {
+        targetCode: `#include <ESP32Servo.h>
+
+Servo motor;
+
+void setup() {
   pinMode(13, OUTPUT);
-  pinMode(9, OUTPUT);
+  motor.attach(9, 1000, 2000);
+  motor.writeMicroseconds(1000);
+  delay(3000);
 }
 
 void loop() {
   digitalWrite(13, HIGH);
-  setDutyCycle(9, 50);
+  motor.writeMicroseconds(1500);
   delay(2000);
   digitalWrite(13, LOW);
-  setDutyCycle(9, 0);
+  motor.writeMicroseconds(1000);
   delay(2000);
 }`,
-        hint: "Combine digitalWrite for pin 13 and setDutyCycle for pin 9",
-        difficulty: "intermediate",
+        hint: "Combine digitalWrite() for LED and motor.writeMicroseconds() for ESC",
+        difficulty: "advanced",
         requiredPins: [9, 13],
-        maxEvents: 6,
+        maxEvents: 8,
         requiresPWM: true,
         validationLoops: 1,
         autoComponents: [
@@ -397,31 +419,37 @@ void loop() {
     },
     {
         id: 15,
-        name: "Pattern Master",
-        description: "Create a complex pattern with digital LEDs and PWM motor",
+        name: "Complex Coordination",
+        description: "Create a complex pattern with two LEDs and variable ESC speeds",
         timeLimit: 150000, // 2.5 minutes
-        targetCode: `void setup() {
+        targetCode: `#include <ESP32Servo.h>
+
+Servo motor;
+
+void setup() {
   pinMode(13, OUTPUT);
   pinMode(12, OUTPUT);
-  pinMode(9, OUTPUT);
+  motor.attach(9, 1000, 2000);
+  motor.writeMicroseconds(1000);
+  delay(3000);
 }
 
 void loop() {
   digitalWrite(13, HIGH);
-  setDutyCycle(9, 25);
+  motor.writeMicroseconds(1250);
   delay(1000);
   digitalWrite(12, HIGH);
-  setDutyCycle(9, 50);
+  motor.writeMicroseconds(1500);
   delay(1000);
   digitalWrite(13, LOW);
-  setDutyCycle(9, 75);
+  motor.writeMicroseconds(1750);
   delay(1000);
   digitalWrite(12, LOW);
-  setDutyCycle(9, 0);
+  motor.writeMicroseconds(1000);
   delay(1000);
 }`,
-        hint: "Coordinate multiple digital pins with changing PWM values",
-        difficulty: "intermediate",
+        hint: "Coordinate two LEDs with ESC speeds: 1250, 1500, 1750, 1000 microseconds",
+        difficulty: "advanced",
         requiredPins: [9, 12, 13],
         maxEvents: 12,
         requiresPWM: true,
@@ -431,6 +459,183 @@ void loop() {
             { type: 'LED', pin: 12 },
             { type: 'MOTOR', pin: 9 }
         ]
+    },
+    {
+        id: 16,
+        name: "Different Pin ESC",
+        description: "Control ESC on pin 13 instead of pin 9 - same ARM sequence",
+        timeLimit: 120000, // 2 minutes
+        targetCode: `#include <ESP32Servo.h>
+
+Servo esc;
+
+void setup() {
+  esc.attach(13, 1000, 2000);
+  esc.writeMicroseconds(1000);
+  delay(3000);
+}
+
+void loop() {
+  esc.writeMicroseconds(1000);
+  delay(2000);
+}`,
+        hint: "Use esc.attach(13, 1000, 2000) for pin 13, then esc.writeMicroseconds(1000) to ARM",
+        difficulty: "advanced",
+        requiredPins: [13],
+        maxEvents: 4,
+        requiresPWM: true,
+        validationLoops: 1,
+        autoComponents: [
+            { type: 'MOTOR', pin: 13 }
+        ]
+    },
+    {
+        id: 17,
+        name: "ESC Speed Control",
+        description: "Control ESC speed - stop, 25%, 50%, then stop again",
+        timeLimit: 150000, // 2.5 minutes
+        targetCode: `#include <ESP32Servo.h>
+
+Servo esc;
+
+void setup() {
+  esc.attach(13, 1000, 2000);
+  esc.writeMicroseconds(1000);
+  delay(3000);
+}
+
+void loop() {
+  esc.writeMicroseconds(1000);
+  delay(2000);
+  esc.writeMicroseconds(1250);
+  delay(2000);
+  esc.writeMicroseconds(1500);
+  delay(2000);
+  esc.writeMicroseconds(1000);
+  delay(2000);
+}`,
+        hint: "1000µs = stop, 1250µs = 25%, 1500µs = 50%. Use writeMicroseconds() to control speed",
+        difficulty: "advanced",
+        requiredPins: [13],
+        maxEvents: 8,
+        requiresPWM: true,
+        validationLoops: 1,
+        autoComponents: [
+            { type: 'MOTOR', pin: 13 }
+        ]
+    },
+    {
+        id: 18,
+        name: "Full Speed Range",
+        description: "Cycle through four speed levels: 0%, 25%, 50%, 75%",
+        timeLimit: 150000, // 2.5 minutes
+        targetCode: `#include <ESP32Servo.h>
+
+Servo esc;
+
+void setup() {
+  esc.attach(13, 1000, 2000);
+  esc.writeMicroseconds(1000);
+  delay(3000);
+}
+
+void loop() {
+  esc.writeMicroseconds(1000);
+  delay(1000);
+  esc.writeMicroseconds(1250);
+  delay(1000);
+  esc.writeMicroseconds(1500);
+  delay(1000);
+  esc.writeMicroseconds(1750);
+  delay(1000);
+}`,
+        hint: "Use 1000, 1250, 1500, and 1750 microseconds for 0%, 25%, 50%, and 75% speeds",
+        difficulty: "advanced",
+        requiredPins: [13],
+        maxEvents: 8,
+        requiresPWM: true,
+        validationLoops: 1,
+        autoComponents: [
+            { type: 'MOTOR', pin: 13 }
+        ]
+    },
+    {
+        id: 19,
+        name: "Mixed ESP32 Control",
+        description: "Control digital LED and ESC together on ESP32",
+        timeLimit: 150000, // 2.5 minutes
+        targetCode: `#include <ESP32Servo.h>
+
+Servo esc;
+
+void setup() {
+  pinMode(12, OUTPUT);
+  esc.attach(13, 1000, 2000);
+  esc.writeMicroseconds(1000);
+  delay(3000);
+}
+
+void loop() {
+  digitalWrite(12, HIGH);
+  esc.writeMicroseconds(1500);
+  delay(2000);
+  digitalWrite(12, LOW);
+  esc.writeMicroseconds(1000);
+  delay(2000);
+}`,
+        hint: "Combine digitalWrite() for LED on pin 12 with esc.writeMicroseconds() for ESC on pin 13",
+        difficulty: "advanced",
+        requiredPins: [12, 13],
+        maxEvents: 8,
+        requiresPWM: true,
+        validationLoops: 1,
+        autoComponents: [
+            { type: 'LED', pin: 12 },
+            { type: 'MOTOR', pin: 13 }
+        ]
+    },
+    {
+        id: 20,
+        name: "ESP32 Pattern Master",
+        description: "Create a complex pattern with digital LEDs and variable ESC speeds",
+        timeLimit: 180000, // 3 minutes
+        targetCode: `#include <ESP32Servo.h>
+
+Servo esc;
+
+void setup() {
+  pinMode(12, OUTPUT);
+  pinMode(11, OUTPUT);
+  esc.attach(13, 1000, 2000);
+  esc.writeMicroseconds(1000);
+  delay(3000);
+}
+
+void loop() {
+  digitalWrite(12, HIGH);
+  esc.writeMicroseconds(1250);
+  delay(1000);
+  digitalWrite(11, HIGH);
+  esc.writeMicroseconds(1500);
+  delay(1000);
+  digitalWrite(12, LOW);
+  esc.writeMicroseconds(1750);
+  delay(1000);
+  digitalWrite(11, LOW);
+  esc.writeMicroseconds(1000);
+  delay(1000);
+}`,
+        hint: "Coordinate multiple digital pins with changing ESC speeds (1250, 1500, 1750, 1000)",
+        difficulty: "advanced",
+        requiredPins: [11, 12, 13],
+        maxEvents: 12,
+        requiresPWM: true,
+        validationLoops: 1,
+        autoComponents: [
+            { type: 'LED', pin: 12 },
+            { type: 'LED', pin: 11 },
+            { type: 'MOTOR', pin: 13 }
+        ]
     }
 ];
 
@@ -438,13 +643,13 @@ void loop() {
 const LEVEL_CATEGORIES = {
     beginner: {
         name: "Beginner",
-        description: "Basic digital control and simple patterns",
-        levels: [1, 2, 3, 4, 5, 6, 7, 10]
+        description: "Basic ESP32 digital control and simple LED patterns",
+        levels: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     },
-    intermediate: {
-        name: "Intermediate", 
-        description: "Multi-pin patterns and PWM control",
-        levels: [8, 9, 11, 12, 13, 14, 15]
+    advanced: {
+        name: "Advanced - ESC Control",
+        description: "ESP32 motor control using Servo library for ESC/motors",
+        levels: [11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
     }
 };
 

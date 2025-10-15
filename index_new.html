@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Arduino Learning Game</title>
+    <title>ESP32 Learning Game</title>
     
     <!-- CSS Imports -->
     <link rel="stylesheet" href="css/main.css">
@@ -191,12 +191,12 @@
                         <div class="components-title">📚 Learning Resources</div>
                     </div>
                     <div style="color: #b0b0b0; font-size: 14px; line-height: 1.6;">
-                        <p>Welcome to the Arduino Learning Game! This interactive platform helps you learn microcontroller programming through hands-on experience.</p>
+                        <p>Welcome to the ESP32 Learning Game! This interactive platform helps you learn ESP32 microcontroller programming through hands-on experience.</p>
                         <br>
                         <p><strong>Getting Started:</strong></p>
                         <ul style="margin-left: 20px;">
-                            <li>Connect components to the microcontroller pins</li>
-                            <li>Write Arduino code in the editor</li>
+                            <li>Connect components to the ESP32 pins</li>
+                            <li>Write ESP32 code in the editor</li>
                             <li>Run your code to see the results</li>
                             <li>Use hints when you need help</li>
                         </ul>
@@ -212,15 +212,15 @@
         <div class="right-panel">
             <div class="code-editor-container">
                 <div class="editor-header">
-                    <h3>💻 Arduino Code Editor</h3>
-                    <div class="editor-info">Write your code and watch it execute on the microcontroller!</div>
+                    <h3>💻 ESP32 Code Editor</h3>
+                    <div class="editor-info">Write your ESP32 code and watch it execute on the microcontroller!</div>
                 </div>
                 <div class="code-editor-wrapper">
                     <div class="line-numbers" id="lineNumbers"></div>
                     <div class="syntax-overlay-container">
                         <div class="syntax-overlay" id="syntaxOverlay"></div>
                     </div>
-                    <textarea class="code-editor code-editor-with-lines code-editor-with-syntax" id="codeEditor" placeholder="Write your Arduino code here...">void setup() {
+                    <textarea class="code-editor code-editor-with-lines code-editor-with-syntax" id="codeEditor" placeholder="Write your ESP32 code here...">void setup() {
   pinMode(13, OUTPUT);
 }
 
@@ -233,7 +233,7 @@ void loop() {
                 </div>
                 <div class="code-completion" id="codeCompletion" style="display: none;"></div>
                 <div class="editor-status">
-                    <span>Arduino IDE</span>
+                    <span>ESP32 IDE</span>
                     <span class="cursor-position" id="cursorPosition">Line 1, Column 1</span>
                 </div>
             </div>
@@ -279,17 +279,31 @@ void loop() {
   digitalWrite(12, HIGH);
   delay(500);
 }</pre>
-                        <p><strong>Motor Control with PWM:</strong></p>
+                        <p><strong>ESC/Motor Control with ESP32 Servo:</strong></p>
                         <pre style="background: #1a2a3a; padding: 10px; border-radius: 5px; margin: 10px 0; overflow-x: auto;">
-#include &lt;TimerOne.h&gt;
+#include &lt;ESP32Servo.h&gt;
+
+Servo motor1;  // First ESC/motor
+Servo motor2;  // Second ESC/motor
 
 void setup() {
-  Timer1.initialize(20000);    // 20 ms = 50 Hz period
-  Timer1.pwm(9, 512);          // 50% duty on pin 9
-  Timer1.pwm(10, 256);         // 25% duty on pin 10
+  // Attach motors to pins (1000-2000µs range)
+  motor1.attach(9, 1000, 2000);
+  motor2.attach(10, 1000, 2000);
+
+  // ARM the ESCs (safety protocol)
+  motor1.writeMicroseconds(1000);  // 0% throttle
+  motor2.writeMicroseconds(1000);  // 0% throttle
+  delay(3000);  // Wait for ESCs to ARM
+
+  // Set desired speeds
+  motor1.writeMicroseconds(1500);  // 50% throttle
+  motor2.writeMicroseconds(1250);  // 25% throttle
 }
 
-void loop() {}</pre>
+void loop() {
+  // Motors maintain their speed
+}</pre>
                     </div>
                 </div>
             </div>
