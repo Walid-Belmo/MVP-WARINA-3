@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(start index_new.html)"
+      "Bash(start index_new.html)",
+      "Bash(dir:*)"
     ],
     "deny": [],
     "ask": []

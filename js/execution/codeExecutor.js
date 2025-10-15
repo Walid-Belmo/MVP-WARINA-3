@@ -42,20 +42,82 @@ class CodeExecutor {
             const parsedCode = this.arduinoParser.parseCode(code);
             console.log('✅ Code parsed:', parsedCode);
             
-            // Calculate line numbers for setup and loop
+            // Build a mapping of executable lines to their original line numbers
             const codeLines = code.split('\n');
-            let setupStartLine = 1;
-            let loopStartLine = 1;
-            
-            // Find the actual line numbers of setup and loop functions
+            const setupLineMap = [];
+            const loopLineMap = [];
+
+            let inSetup = false;
+            let inLoop = false;
+            let braceCount = 0;
+
             for (let i = 0; i < codeLines.length; i++) {
-                if (codeLines[i].includes('void setup()')) {
-                    setupStartLine = i + 2;
+                const line = codeLines[i].trim();
+                const lineNum = i + 1;
+
+                // Detect entering setup
+                if (line.includes('void setup()')) {
+                    inSetup = true;
+                    braceCount = 0;
+                    // Count opening brace if on same line
+                    for (let char of line) {
+                        if (char === '{') braceCount++;
+                        if (char === '}') braceCount--;
+                    }
+                    continue;
                 }
-                if (codeLines[i].includes('void loop()')) {
-                    loopStartLine = i + 2;
+
+                // Detect entering loop
+                if (line.includes('void loop()')) {
+                    inLoop = true;
+                    inSetup = false;
+                    braceCount = 0;
+                    // Count opening brace if on same line
+                    for (let char of line) {
+                        if (char === '{') braceCount++;
+                        if (char === '}') braceCount--;
+                    }
+                    continue;
+                }
+
+                // Track braces and add executable lines
+                if (inSetup || inLoop) {
+                    // First, check if this is an executable line (before brace counting changes state)
+                    const isExecutable = line &&
+                                        !line.startsWith('//') &&
+                                        !line.startsWith('/*') &&
+                                        line !== '{' &&
+                                        line !== '}' &&
+                                        braceCount > 0;
+
+                    if (isExecutable) {
+                        if (inSetup) {
+                            setupLineMap.push(lineNum);
+                        } else if (inLoop) {
+                            loopLineMap.push(lineNum);
+                        }
+                    }
+
+                    // Then update brace count for next iteration
+                    for (let char of line) {
+                        if (char === '{') braceCount++;
+                        if (char === '}') braceCount--;
+                    }
+
+                    // Exit setup/loop when braces close
+                    if (braceCount === 0) {
+                        inSetup = false;
+                        inLoop = false;
+                    }
                 }
             }
+
+            // Debug logging
+            console.log('📍 Line mapping complete:');
+            console.log('   setupLineMap:', setupLineMap);
+            console.log('   loopLineMap:', loopLineMap);
+            console.log('   Parsed setup code lines:', parsedCode.setup.split('\n').filter(l => l.trim()));
+            console.log('   Parsed loop code lines:', parsedCode.loop.split('\n').filter(l => l.trim()));
             
             // Mark as executing
             this.isExecuting = true;
@@ -65,16 +127,16 @@ class CodeExecutor {
             this.startPlayerExecutionTimer();
             
             // Execute setup first
-            this.executeSetupWithAnimation(parsedCode.setup, setupStartLine, onPinChange, () => {
+            this.executeSetupWithAnimation(parsedCode.setup, setupLineMap, onPinChange, () => {
                 console.log('✅ Setup execution completed');
-                
+
                 if (!this.isExecuting) return;
-                
+
                 // Only execute loop if there's code in it
                 if (parsedCode.loop && parsedCode.loop.trim().length > 0) {
                     this.executeLoopWithAnimation(
-                        parsedCode.loop, 
-                        loopStartLine, 
+                        parsedCode.loop,
+                        loopLineMap,
                         onPinChange,
                         validationLoops,
                         onValidationTrigger
@@ -98,29 +160,34 @@ class CodeExecutor {
     /**
      * Execute setup code with animation
      */
-    executeSetupWithAnimation(setupCode, setupStartLine, onPinChange, onComplete) {
+    executeSetupWithAnimation(setupCode, setupLineMap, onPinChange, onComplete) {
         const lines = setupCode.split('\n');
         let currentLineIndex = 0;
-        
+        let executableLineIndex = 0; // Track executable lines
+
         const executeNextLine = () => {
             if (!this.isExecuting) {
                 return;
             }
-            
+
             if (currentLineIndex >= lines.length) {
                 onComplete();
                 return;
             }
-            
+
             const line = lines[currentLineIndex].trim();
-            const actualLineNumber = setupStartLine + currentLineIndex;
             currentLineIndex++;
-            
+
             // Skip empty lines and comments
             if (!line || line.startsWith('//')) {
                 executeNextLine();
                 return;
             }
+
+            // Get actual line number from the map
+            const actualLineNumber = setupLineMap[executableLineIndex] || currentLineIndex;
+            console.log(`📍 Setup execution: executableLineIndex=${executableLineIndex}, actualLineNumber=${actualLineNumber}, line="${line}"`);
+            executableLineIndex++;
             
             // Handle delay calls
             const delayMatch = line.match(/delay\s*\(\s*(\d+)\s*\)/i);
@@ -144,19 +211,20 @@ class CodeExecutor {
             // Execute non-delay commands
             try {
                 console.log(`⚡ Executing setup line ${actualLineNumber}: "${line}"`);
-                
+
                 if (this.codeEditor) {
                     this.codeEditor.highlightLine(actualLineNumber);
                 }
-                
+
                 this.arduinoParser.executeLine(line, actualLineNumber);
                 this.updateVisualPinsFromParser(onPinChange);
-                
+
+                // Keep highlight visible for 300ms so user can see what's executing
                 const timeout = setTimeout(() => {
                     if (this.isExecuting) {
                         executeNextLine();
                     }
-                }, 50);
+                }, 300);
                 this.executionTimeouts.push(timeout);
             } catch (error) {
                 console.error(`Error executing setup line: ${line}`, error);
@@ -170,11 +238,11 @@ class CodeExecutor {
     /**
      * Execute loop code with animation
      */
-    executeLoopWithAnimation(loopCode, loopStartLine, onPinChange, validationLoops, onValidationTrigger) {
+    executeLoopWithAnimation(loopCode, loopLineMap, onPinChange, validationLoops, onValidationTrigger) {
         let loopCount = 0;
         const maxLoops = 1000;
         let shouldValidate = false;
-        
+
         const executeLoopIteration = () => {
             if (!this.isExecuting || loopCount >= maxLoops) {
                 this.isExecuting = false;
@@ -182,9 +250,9 @@ class CodeExecutor {
                 console.log('Loop execution stopped');
                 return;
             }
-            
+
             try {
-                this.executeLoopIterationWithAnimation(loopCode, loopStartLine, onPinChange, () => {
+                this.executeLoopIterationWithAnimation(loopCode, loopLineMap, onPinChange, () => {
                     if (!this.isExecuting) return;
                     
                     loopCount++;
@@ -215,29 +283,34 @@ class CodeExecutor {
     /**
      * Execute one loop iteration with animation
      */
-    executeLoopIterationWithAnimation(loopCode, loopStartLine, onPinChange, onComplete) {
+    executeLoopIterationWithAnimation(loopCode, loopLineMap, onPinChange, onComplete) {
         const lines = loopCode.split('\n');
         let currentLineIndex = 0;
-        
+        let executableLineIndex = 0; // Track executable lines
+
         const executeNextLine = () => {
             if (!this.isExecuting) {
                 return;
             }
-            
+
             if (currentLineIndex >= lines.length) {
                 onComplete();
                 return;
             }
-            
+
             const line = lines[currentLineIndex].trim();
-            const actualLineNumber = loopStartLine + currentLineIndex;
             currentLineIndex++;
-            
+
             // Skip empty lines and comments
             if (!line || line.startsWith('//')) {
                 executeNextLine();
                 return;
             }
+
+            // Get actual line number from the map
+            const actualLineNumber = loopLineMap[executableLineIndex] || currentLineIndex;
+            console.log(`📍 Loop execution: executableLineIndex=${executableLineIndex}, actualLineNumber=${actualLineNumber}, line="${line}"`);
+            executableLineIndex++;
             
             // Handle delay calls
             const delayMatch = line.match(/delay\s*\(\s*(\d+)\s*\)/i);
@@ -262,15 +335,16 @@ class CodeExecutor {
                 if (this.codeEditor) {
                     this.codeEditor.highlightLine(actualLineNumber);
                 }
-                
+
                 this.arduinoParser.executeLine(line, actualLineNumber);
                 this.updateVisualPinsFromParser(onPinChange);
-                
+
+                // Keep highlight visible for 300ms so user can see what's executing
                 const timeout = setTimeout(() => {
                     if (this.isExecuting) {
                         executeNextLine();
                     }
-                }, 50);
+                }, 300);
                 this.executionTimeouts.push(timeout);
             } catch (error) {
                 console.error(`Error executing loop line: ${line}`, error);
