@@ -8,15 +8,17 @@ class GameFlowManager {
         this.timerManager = timerManager;
         this.levelManager = levelManager;
         this.targetAnimationPlayer = targetAnimationPlayer;
-        
+
         this.isGameActive = false;
         this.hasPlayedTarget = false;
         this.currentLevel = null;
-        
+        this.isPlaygroundMode = false;
+
         // Callbacks
         this.onLevelLoad = null;
         this.onGameStateChange = null;
         this.onLoseCallback = null;
+        this.onPlaygroundModeChange = null;
     }
 
     /**
@@ -273,6 +275,76 @@ class GameFlowManager {
         if (this.onGameStateChange) {
             this.onGameStateChange();
         }
+    }
+
+    /**
+     * Enable playground mode
+     */
+    enablePlaygroundMode() {
+        console.log('🎮 Enabling playground mode...');
+        this.isPlaygroundMode = true;
+        this.isGameActive = true; // Always active in playground mode
+
+        // Stop timer if running
+        this.timerManager.stopTimer();
+
+        // Stop any target animation
+        this.targetAnimationPlayer.stopAnimation();
+
+        // Notify listeners
+        if (this.onPlaygroundModeChange) {
+            this.onPlaygroundModeChange(true);
+        }
+        this.notifyGameStateChange();
+
+        console.log('✅ Playground mode enabled');
+    }
+
+    /**
+     * Disable playground mode
+     */
+    disablePlaygroundMode() {
+        console.log('🎮 Disabling playground mode...');
+        this.isPlaygroundMode = false;
+        this.isGameActive = false;
+        this.hasPlayedTarget = false;
+
+        // Notify listeners
+        if (this.onPlaygroundModeChange) {
+            this.onPlaygroundModeChange(false);
+        }
+        this.notifyGameStateChange();
+
+        console.log('✅ Playground mode disabled');
+    }
+
+    /**
+     * Toggle playground mode
+     * @returns {boolean} New playground mode state
+     */
+    togglePlaygroundMode() {
+        if (this.isPlaygroundMode) {
+            this.disablePlaygroundMode();
+        } else {
+            this.enablePlaygroundMode();
+        }
+        return this.isPlaygroundMode;
+    }
+
+    /**
+     * Check if playground mode is active
+     * @returns {boolean}
+     */
+    isInPlaygroundMode() {
+        return this.isPlaygroundMode;
+    }
+
+    /**
+     * Set playground mode change callback
+     * @param {Function} callback - Callback function(isPlaygroundMode)
+     */
+    setPlaygroundModeChangeCallback(callback) {
+        this.onPlaygroundModeChange = callback;
     }
 }
 

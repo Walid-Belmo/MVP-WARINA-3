@@ -126,63 +126,86 @@ class UIManager {
      */
     handleRunCode() {
         console.log('🎯 Run Code requested');
-        
-        // Check if game is active
-        if (!this.gameFlowManager.isActive()) {
+
+        // Check if in playground mode or if game is active
+        const isPlaygroundMode = this.gameFlowManager.isInPlaygroundMode();
+
+        if (!isPlaygroundMode && !this.gameFlowManager.isActive()) {
             console.log('⚠️ Game not active - cannot run code yet');
-            window.modalManager.showMessage('Play the target animation first!', 'warning');
+            window.modalManager.showMessage('Play the target animation first or enable Playground Mode!', 'warning');
             return;
         }
 
         // Stop any existing execution
         this.codeExecutor.stopExecution();
-        
+
         // Stop target animation if playing
         if (window.targetAnimationPlayer.isAnimationPlaying()) {
             console.log('⏹️ Stopping target animation for player code execution');
             window.targetAnimationPlayer.stopAnimation();
             this.updateGameButtons();
         }
-        
+
         // Reset pin visuals to clean state
         this.resetPinVisuals();
-        
+
         // Get code from editor
         const code = this.codeEditor.getValue();
         console.log('📝 Code to execute:', code);
-        
+
         if (!code || code.trim().length === 0) {
             console.error('❌ No code to execute!');
             window.modalManager.showMessage('Please write some code first!', 'error');
             return;
         }
-        
+
         try {
-            // Start recording execution
-            window.executionRecorder.startRecording();
-            
-            // Get validation loops from current level
-            const currentLevel = this.gameFlowManager.getCurrentLevel();
-            const validationLoops = currentLevel?.validationLoops || 1;
-            
-            // Execute code with callbacks
-            this.codeExecutor.executeCode(
-                code,
-                // onPinChange callback
-                (pin, state, type, pwm, dutyCycle) => {
-                    window.executionRecorder.recordPinEvent(pin, state, type, pwm, dutyCycle);
-                    window.visualEffectsManager.addPlayerExecutionVisualEffects(pin, state, type, dutyCycle);
-                },
-                // validationLoops
-                validationLoops,
-                // onValidationTrigger callback
-                () => this.handleValidation()
-            );
-            
+            // In playground mode, skip recording and validation
+            if (isPlaygroundMode) {
+                console.log('🎮 Running in playground mode - no validation');
+
+                // Execute code without validation
+                this.codeExecutor.executeCode(
+                    code,
+                    // onPinChange callback (just visual effects, no recording)
+                    (pin, state, type, pwm, dutyCycle) => {
+                        window.visualEffectsManager.addPlayerExecutionVisualEffects(pin, state, type, dutyCycle);
+                    },
+                    // validationLoops (not used in playground mode)
+                    1,
+                    // onValidationTrigger callback (null in playground mode)
+                    null
+                );
+            } else {
+                // Normal level mode with validation
+                // Start recording execution
+                window.executionRecorder.startRecording();
+
+                // Get validation loops from current level
+                const currentLevel = this.gameFlowManager.getCurrentLevel();
+                const validationLoops = currentLevel?.validationLoops || 1;
+
+                // Execute code with callbacks
+                this.codeExecutor.executeCode(
+                    code,
+                    // onPinChange callback
+                    (pin, state, type, pwm, dutyCycle) => {
+                        window.executionRecorder.recordPinEvent(pin, state, type, pwm, dutyCycle);
+                        window.visualEffectsManager.addPlayerExecutionVisualEffects(pin, state, type, dutyCycle);
+                    },
+                    // validationLoops
+                    validationLoops,
+                    // onValidationTrigger callback
+                    () => this.handleValidation()
+                );
+            }
+
         } catch (error) {
             console.error('❌ Code execution error:', error);
             window.modalManager.showMessage(error.message, 'error');
-            window.executionRecorder.stopRecording();
+            if (!isPlaygroundMode) {
+                window.executionRecorder.stopRecording();
+            }
         }
     }
 
@@ -300,11 +323,12 @@ void loop() {
      */
     updateGameButtons() {
         const gameState = this.gameFlowManager.getGameState();
-        
+        const isPlaygroundMode = this.gameFlowManager.isInPlaygroundMode();
+
         const playTargetBtn = document.querySelector('.btn-play');
         const stopAnimationBtn = document.querySelector('.btn-stop-animation');
         const runCodeBtn = document.querySelector('.btn-run');
-        
+
         if (playTargetBtn) {
             if (gameState.hasPlayedTarget) {
                 playTargetBtn.textContent = '🔄 REPLAY TARGET';
@@ -314,7 +338,7 @@ void loop() {
                 playTargetBtn.disabled = false;
             }
         }
-        
+
         // Show/hide stop animation button based on animation state
         if (stopAnimationBtn) {
             if (gameState.isAnimationPlaying) {
@@ -323,9 +347,13 @@ void loop() {
                 stopAnimationBtn.style.display = 'none';
             }
         }
-        
+
         if (runCodeBtn) {
-            if (gameState.isGameActive) {
+            // In playground mode, always enable run code button
+            if (isPlaygroundMode) {
+                runCodeBtn.disabled = false;
+                runCodeBtn.textContent = '▶️ RUN CODE';
+            } else if (gameState.isGameActive) {
                 runCodeBtn.disabled = false;
                 runCodeBtn.textContent = '▶️ RUN CODE';
             } else {
@@ -398,17 +426,72 @@ void loop() {
      */
     testPins() {
         console.log('🧪 Testing pin functionality...');
-        
+
         // Test pin 13
         console.log('Testing pin 13...');
         this.gameState.pins[13] = true;
         this.pinManager.updatePinVisual(13);
-        
+
         setTimeout(() => {
             this.gameState.pins[13] = false;
             this.pinManager.updatePinVisual(13);
             console.log('Pin 13 test completed');
         }, 2000);
+    }
+
+    /**
+     * Toggle playground mode
+     */
+    togglePlaygroundMode() {
+        const isPlaygroundMode = this.gameFlowManager.togglePlaygroundMode();
+
+        // Update UI to reflect playground mode state
+        this.updatePlaygroundModeUI(isPlaygroundMode);
+
+        // Update game buttons
+        this.updateGameButtons();
+
+        // Show message
+        if (isPlaygroundMode) {
+            window.modalManager.showMessage('Playground Mode Enabled! Code freely without timers or validation.', 'success');
+        } else {
+            window.modalManager.showMessage('Playground Mode Disabled. Return to level challenges!', 'info');
+        }
+    }
+
+    /**
+     * Update UI to reflect playground mode state
+     * @param {boolean} isPlaygroundMode - Whether playground mode is active
+     */
+    updatePlaygroundModeUI(isPlaygroundMode) {
+        const timerPanel = document.querySelector('.timer-panel');
+        const missionTitle = document.querySelector('.mission-title');
+        const playTargetBtn = document.querySelector('.btn-play');
+        const replayBtn = document.querySelector('.btn-replay');
+
+        // Hide/show timer in playground mode
+        if (timerPanel) {
+            timerPanel.style.display = isPlaygroundMode ? 'none' : 'block';
+        }
+
+        // Update mission title
+        if (missionTitle && isPlaygroundMode) {
+            missionTitle.textContent = '🎮 PLAYGROUND MODE - Free Coding';
+        } else if (missionTitle) {
+            // Restore original level title
+            const levelInfo = window.levelManager.getLevelInfo();
+            if (levelInfo) {
+                missionTitle.textContent = `🎯 MISSION ${levelInfo.id}: ${levelInfo.name}`;
+            }
+        }
+
+        // Hide/show play target and replay buttons in playground mode
+        if (playTargetBtn) {
+            playTargetBtn.style.display = isPlaygroundMode ? 'none' : 'inline-block';
+        }
+        if (replayBtn) {
+            replayBtn.style.display = isPlaygroundMode ? 'none' : 'inline-block';
+        }
     }
 }
 
