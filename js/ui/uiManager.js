@@ -279,6 +279,10 @@ void loop() {
      * @param {Object} level - Loaded level data
      */
     onLevelLoaded(level) {
+        console.log(`📥 Level ${level.id} loaded:`, level.name);
+        console.log(`   Required pins:`, level.requiredPins);
+        console.log(`   Auto-components:`, level.autoComponents);
+
         // Reset game state
         this.handleReset();
 
@@ -286,6 +290,10 @@ void loop() {
         if (level.autoComponents && Array.isArray(level.autoComponents)) {
             console.log('🔧 Auto-spawning components for level', level.id, ':', level.autoComponents);
             this.componentManager.autoSpawnComponents(level.autoComponents);
+        } else {
+            console.log('⚠️ No autoComponents defined for level', level.id);
+            // Make sure components are cleared if no autoComponents
+            this.componentManager.clearAllComponents();
         }
 
         // Update UI
