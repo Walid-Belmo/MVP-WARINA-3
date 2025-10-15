@@ -23,7 +23,10 @@ void loop() {
         difficulty: "beginner",
         requiredPins: [13],
         maxEvents: 4,
-        validationLoops: 1
+        validationLoops: 1,
+        autoComponents: [
+            { type: 'LED', pin: 13 }
+        ]
     },
     {
         id: 2,
@@ -44,7 +47,10 @@ void loop() {
         difficulty: "beginner",
         requiredPins: [13],
         maxEvents: 4,
-        validationLoops: 1
+        validationLoops: 1,
+        autoComponents: [
+            { type: 'LED', pin: 13 }
+        ]
     },
     {
         id: 3,
@@ -68,7 +74,11 @@ void loop() {
         difficulty: "beginner",
         requiredPins: [12, 13],
         maxEvents: 4,
-        validationLoops: 1
+        validationLoops: 1,
+        autoComponents: [
+            { type: 'LED', pin: 13 },
+            { type: 'LED', pin: 12 }
+        ]
     },
     {
         id: 4,
@@ -92,7 +102,11 @@ void loop() {
         difficulty: "beginner",
         requiredPins: [12, 13],
         maxEvents: 4,
-        validationLoops: 1
+        validationLoops: 1,
+        autoComponents: [
+            { type: 'LED', pin: 13 },
+            { type: 'LED', pin: 12 }
+        ]
     },
     {
         id: 5,
@@ -117,7 +131,11 @@ void loop() {
         difficulty: "beginner",
         requiredPins: [12, 13],
         maxEvents: 6,
-        validationLoops: 1
+        validationLoops: 1,
+        autoComponents: [
+            { type: 'LED', pin: 13 },
+            { type: 'LED', pin: 12 }
+        ]
     },
     {
         id: 6,
@@ -143,7 +161,11 @@ void loop() {
         difficulty: "beginner",
         requiredPins: [12, 13],
         maxEvents: 8,
-        validationLoops: 1
+        validationLoops: 1,
+        autoComponents: [
+            { type: 'LED', pin: 13 },
+            { type: 'LED', pin: 12 }
+        ]
     },
     {
         id: 7,
@@ -164,7 +186,10 @@ void loop() {
         difficulty: "beginner",
         requiredPins: [13],
         maxEvents: 4,
-        validationLoops: 1
+        validationLoops: 1,
+        autoComponents: [
+            { type: 'LED', pin: 13 }
+        ]
     },
     {
         id: 8,
@@ -191,7 +216,12 @@ void loop() {
         difficulty: "intermediate",
         requiredPins: [11, 12, 13],
         maxEvents: 8,
-        validationLoops: 1
+        validationLoops: 1,
+        autoComponents: [
+            { type: 'LED', pin: 13 },
+            { type: 'LED', pin: 12 },
+            { type: 'LED', pin: 11 }
+        ]
     },
     {
         id: 9,
@@ -222,7 +252,12 @@ void loop() {
         difficulty: "intermediate",
         requiredPins: [11, 12, 13],
         maxEvents: 12,
-        validationLoops: 1
+        validationLoops: 1,
+        autoComponents: [
+            { type: 'LED', pin: 13 },
+            { type: 'LED', pin: 12 },
+            { type: 'LED', pin: 11 }
+        ]
     },
     {
         id: 10,
@@ -246,7 +281,11 @@ void loop() {
         difficulty: "beginner",
         requiredPins: [12, 13],
         maxEvents: 6,
-        validationLoops: 1
+        validationLoops: 1,
+        autoComponents: [
+            { type: 'LED', pin: 13 },
+            { type: 'LED', pin: 12 }
+        ]
     },
     {
         id: 11,
@@ -268,7 +307,10 @@ void loop() {
         requiredPins: [9],
         maxEvents: 4,
         requiresPWM: true,
-        validationLoops: 1
+        validationLoops: 1,
+        autoComponents: [
+            { type: 'LED', pin: 9 }
+        ]
     },
     {
         id: 12,
@@ -290,7 +332,10 @@ void loop() {
         requiredPins: [9],
         maxEvents: 4,
         requiresPWM: true,
-        validationLoops: 1
+        validationLoops: 1,
+        autoComponents: [
+            { type: 'LED', pin: 9 }
+        ]
     },
     {
         id: 13,
@@ -316,7 +361,10 @@ void loop() {
         requiredPins: [9],
         maxEvents: 8,
         requiresPWM: true,
-        validationLoops: 1
+        validationLoops: 1,
+        autoComponents: [
+            { type: 'LED', pin: 9 }
+        ]
     },
     {
         id: 14,
@@ -341,7 +389,11 @@ void loop() {
         requiredPins: [9, 13],
         maxEvents: 6,
         requiresPWM: true,
-        validationLoops: 1
+        validationLoops: 1,
+        autoComponents: [
+            { type: 'LED', pin: 13 },
+            { type: 'LED', pin: 9 }
+        ]
     },
     {
         id: 15,
@@ -373,7 +425,12 @@ void loop() {
         requiredPins: [9, 12, 13],
         maxEvents: 12,
         requiresPWM: true,
-        validationLoops: 1
+        validationLoops: 1,
+        autoComponents: [
+            { type: 'LED', pin: 13 },
+            { type: 'LED', pin: 12 },
+            { type: 'LED', pin: 9 }
+        ]
     }
 ];
 

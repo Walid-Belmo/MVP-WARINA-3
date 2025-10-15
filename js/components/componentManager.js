@@ -261,14 +261,14 @@ class ComponentManager {
     updateMotorState(component, componentBox) {
         const motorIcon = componentBox.querySelector('.motor-icon');
         const pwmDisplay = componentBox.querySelector('.pwm-value');
-        
+
         if (motorIcon) {
             console.log(`Found Motor icon for component ${component.id}`);
             const pwmValue = this.gameState.pwmValues[component.pin];
-            
+
             // Remove all speed classes
             motorIcon.classList.remove('slow', 'medium', 'fast');
-            
+
             // Add appropriate speed class based on PWM value
             if (pwmValue > 170) {
                 motorIcon.classList.add('fast');
@@ -277,16 +277,81 @@ class ComponentManager {
             } else if (pwmValue > 0) {
                 motorIcon.classList.add('slow');
             }
-            
+
             // Update PWM display
             if (pwmDisplay) {
                 pwmDisplay.textContent = `PWM: ${pwmValue}`;
             }
-            
+
             console.log(`Motor ${component.id} PWM: ${pwmValue}`);
         } else {
             console.log(`Motor icon not found for component ${component.id}`);
         }
+    }
+
+    /**
+     * Clear all components from the game
+     */
+    clearAllComponents() {
+        console.log('Clearing all components');
+        this.gameState.resetComponents();
+        this.renderComponents();
+    }
+
+    /**
+     * Create a component and connect it to a specific pin
+     * @param {string} type - Component type ('LED' or 'MOTOR')
+     * @param {number} pin - Pin number to connect to
+     * @returns {Object|null} - Created component or null if failed
+     */
+    createConnectedComponent(type, pin) {
+        console.log(`Creating ${type} component connected to pin ${pin}`);
+
+        // Check if pin is available
+        if (!this.gameState.isPinAvailable(pin)) {
+            console.warn(`Pin ${pin} is not available for component connection`);
+            return null;
+        }
+
+        // Create component
+        const componentId = `${type.toLowerCase()}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        const component = {
+            id: componentId,
+            type: type,
+            pin: pin,
+            connected: true
+        };
+
+        // Add to game state
+        this.gameState.components.push(component);
+
+        // Connect to pin
+        this.gameState.connectComponent(componentId, pin);
+
+        console.log(`Created and connected component ${componentId} to pin ${pin}`);
+        return component;
+    }
+
+    /**
+     * Auto-spawn components from level configuration
+     * @param {Array} autoComponents - Array of {type, pin} objects
+     */
+    autoSpawnComponents(autoComponents) {
+        console.log('Auto-spawning components:', autoComponents);
+
+        // Clear existing components first
+        this.clearAllComponents();
+
+        // Create each component
+        if (autoComponents && Array.isArray(autoComponents)) {
+            autoComponents.forEach(config => {
+                this.createConnectedComponent(config.type, config.pin);
+            });
+        }
+
+        // Render all components
+        this.renderComponents();
+        console.log('Auto-spawn complete');
     }
 }
 

@@ -281,11 +281,17 @@ void loop() {
     onLevelLoaded(level) {
         // Reset game state
         this.handleReset();
-        
+
+        // Auto-spawn components if level has autoComponents defined
+        if (level.autoComponents && Array.isArray(level.autoComponents)) {
+            console.log('🔧 Auto-spawning components for level', level.id, ':', level.autoComponents);
+            this.componentManager.autoSpawnComponents(level.autoComponents);
+        }
+
         // Update UI
         this.updateLevelDisplay();
         this.updateGameButtons();
-        
+
         // Update level selector if it exists
         if (this.levelSelectorManager) {
             this.levelSelectorManager.updateCurrentLevel(level.id);
