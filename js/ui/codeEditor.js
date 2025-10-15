@@ -134,6 +134,10 @@ class ArduinoCodeEditor {
         
         this.editor.addEventListener('scroll', () => {
             this.lineNumbers.scrollTop = this.editor.scrollTop;
+            // Sync syntax overlay scroll
+            if (this.syntaxOverlay) {
+                this.syntaxOverlay.scrollTop = this.editor.scrollTop;
+            }
             // Update highlight position when scrolling
             this.updateHighlightPosition();
         });
@@ -175,7 +179,9 @@ class ArduinoCodeEditor {
      * Update syntax highlighting overlay
      */
     updateSyntaxHighlighting() {
-        if (!this.syntaxOverlay || !window.syntaxHighlighter) return;
+        if (!this.syntaxOverlay || !window.syntaxHighlighter) {
+            return;
+        }
 
         const code = this.editor.value;
         const highlightedCode = window.syntaxHighlighter.highlightCode(code);
@@ -376,11 +382,12 @@ class ArduinoCodeEditor {
         const start = this.editor.selectionStart;
         const end = this.editor.selectionEnd;
         const value = this.editor.value;
-        
+
         this.editor.value = value.substring(0, start) + text + value.substring(end);
         this.editor.selectionStart = this.editor.selectionEnd = start + text.length;
         this.updateLineNumbers();
         this.updateCursorPosition();
+        this.updateSyntaxHighlighting(); // Update syntax highlighting after programmatic text changes
     }
     
     handleEnterKey() {
@@ -488,13 +495,13 @@ class ArduinoCodeEditor {
                 const parsedTemplate = this.parseTemplate(template);
                 
                 this.editor.value = value.substring(0, start) + parsedTemplate.text + value.substring(end);
-                
+
                 // Position cursor at first placeholder
                 if (parsedTemplate.placeholders.length > 0) {
                     const firstPlaceholder = parsedTemplate.placeholders[0];
                     this.editor.selectionStart = start + firstPlaceholder.start;
                     this.editor.selectionEnd = start + firstPlaceholder.end;
-                    
+
                     // Store placeholders for Tab navigation
                     this.currentPlaceholders = parsedTemplate.placeholders.map(p => ({
                         start: start + p.start,
@@ -502,8 +509,9 @@ class ArduinoCodeEditor {
                     }));
                     this.currentPlaceholderIndex = 0;
                 }
-                
+
                 this.updateLineNumbers();
+                this.updateSyntaxHighlighting(); // Update syntax highlighting after autocomplete
             }
         }
         this.hideCompletion();

@@ -7,8 +7,8 @@ class SyntaxHighlighter {
     constructor() {
         // Token patterns
         this.patterns = {
-            // Keywords
-            keywords: /\b(void|if|else|for|while|do|switch|case|break|continue|return|const|static|volatile)\b/g,
+            // Keywords (includes constants like HIGH, LOW, etc.)
+            keywords: /\b(void|if|else|for|while|do|switch|case|break|continue|return|const|static|volatile|HIGH|LOW|INPUT|OUTPUT|INPUT_PULLUP|true|false)\b/g,
 
             // Function declarations (setup, loop)
             functionDecl: /\b(setup|loop)\b/g,
@@ -16,7 +16,7 @@ class SyntaxHighlighter {
             // Data types
             types: /\b(int|float|double|char|byte|boolean|bool|String|long|short|unsigned|signed)\b/g,
 
-            // Arduino functions
+            // Arduino functions (most specific, checked first)
             arduinoFunctions: /\b(pinMode|digitalWrite|digitalRead|analogRead|analogWrite|delay|delayMicroseconds|millis|micros|Serial|attachInterrupt|detachInterrupt)\b/g,
 
             // PWM/Custom functions
@@ -37,13 +37,13 @@ class SyntaxHighlighter {
 
         // Token type priorities (higher = applied first)
         this.priorities = [
-            'comments',    // Highest priority
+            'comments',         // Highest priority
             'strings',
+            'arduinoFunctions', // Check Arduino functions BEFORE keywords/types
+            'pwmFunctions',     // Check PWM functions early
             'functionDecl',
             'keywords',
             'types',
-            'pwmFunctions',
-            'arduinoFunctions',
             'numbers'
         ];
     }
@@ -85,14 +85,30 @@ class SyntaxHighlighter {
 
         // Remove overlapping tokens (keep higher priority ones)
         let filteredTokens = [];
-        let lastEnd = 0;
 
-        for (let token of tokens) {
-            if (token.start >= lastEnd) {
+        for (let i = 0; i < tokens.length; i++) {
+            const token = tokens[i];
+            let hasOverlap = false;
+
+            // Check if this token overlaps with any already accepted token
+            for (let j = 0; j < filteredTokens.length; j++) {
+                const existing = filteredTokens[j];
+
+                // Check for any overlap
+                if (!(token.end <= existing.start || token.start >= existing.end)) {
+                    hasOverlap = true;
+                    break;
+                }
+            }
+
+            // Only add if no overlap found
+            if (!hasOverlap) {
                 filteredTokens.push(token);
-                lastEnd = token.end;
             }
         }
+
+        // Sort filtered tokens by position for rendering
+        filteredTokens.sort((a, b) => a.start - b.start);
 
         // Build highlighted HTML
         let result = '';
