@@ -309,7 +309,7 @@ void loop() {
         requiresPWM: true,
         validationLoops: 1,
         autoComponents: [
-            { type: 'LED', pin: 9 }
+            { type: 'MOTOR', pin: 9 }
         ]
     },
     {
@@ -334,7 +334,7 @@ void loop() {
         requiresPWM: true,
         validationLoops: 1,
         autoComponents: [
-            { type: 'LED', pin: 9 }
+            { type: 'MOTOR', pin: 9 }
         ]
     },
     {
@@ -363,13 +363,13 @@ void loop() {
         requiresPWM: true,
         validationLoops: 1,
         autoComponents: [
-            { type: 'LED', pin: 9 }
+            { type: 'MOTOR', pin: 9 }
         ]
     },
     {
         id: 14,
         name: "Mixed Control",
-        description: "Control a digital LED and PWM LED together",
+        description: "Control a digital LED and PWM motor together",
         timeLimit: 120000, // 2 minutes
         targetCode: `void setup() {
   pinMode(13, OUTPUT);
@@ -392,13 +392,13 @@ void loop() {
         validationLoops: 1,
         autoComponents: [
             { type: 'LED', pin: 13 },
-            { type: 'LED', pin: 9 }
+            { type: 'MOTOR', pin: 9 }
         ]
     },
     {
         id: 15,
         name: "Pattern Master",
-        description: "Create a complex pattern with digital and PWM control",
+        description: "Create a complex pattern with digital LEDs and PWM motor",
         timeLimit: 150000, // 2.5 minutes
         targetCode: `void setup() {
   pinMode(13, OUTPUT);
@@ -429,7 +429,7 @@ void loop() {
         autoComponents: [
             { type: 'LED', pin: 13 },
             { type: 'LED', pin: 12 },
-            { type: 'LED', pin: 9 }
+            { type: 'MOTOR', pin: 9 }
         ]
     }
 ];
