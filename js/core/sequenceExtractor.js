@@ -10,6 +10,7 @@ class SequenceExtractor {
         this.events = [];
         this.pinStates = {}; // Track current state of each pin
         this.pinModes = {}; // Track pin modes (OUTPUT/INPUT)
+        this.servoObjects = {}; // Track ESP32 Servo objects: objectName -> { pin, min, max }
     }
 
     /**
@@ -28,6 +29,7 @@ class SequenceExtractor {
             11: false, 12: false, 13: false
         }; // All pins start LOW/0
         this.pinModes = {};
+        this.servoObjects = {};
         
         try {
             // Process setup function first
@@ -136,6 +138,71 @@ class SequenceExtractor {
             const pwmValue = duty;
             
             this.addPinEvent(pin, pwmValue > 0, 'pwm', context, dutyCycle);
+            return;
+        }
+
+        // Handle ESP32 Servo.attach() calls
+        const servoAttachMatch = line.match(/(\w+)\.attach\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)/i);
+        if (servoAttachMatch) {
+            const objectName = servoAttachMatch[1];
+            const pin = parseInt(servoAttachMatch[2]);
+            const minPulse = parseInt(servoAttachMatch[3]);
+            const maxPulse = parseInt(servoAttachMatch[4]);
+
+            // Track this servo object
+            this.servoObjects[objectName] = { pin, min: minPulse, max: maxPulse };
+
+            // Set pin mode to OUTPUT automatically for servo
+            this.pinModes[pin] = 'OUTPUT';
+
+            console.log(`🎛️ Servo '${objectName}' attached to pin ${pin} (${minPulse}-${maxPulse}µs)`);
+            return;
+        }
+
+        // Handle ESP32 Servo.writeMicroseconds() calls
+        const servoWriteMicrosecondsMatch = line.match(/(\w+)\.writeMicroseconds\s*\(\s*(\d+)\s*\)/i);
+        if (servoWriteMicrosecondsMatch) {
+            const objectName = servoWriteMicrosecondsMatch[1];
+            const microseconds = parseInt(servoWriteMicrosecondsMatch[2]);
+
+            if (!this.servoObjects[objectName]) {
+                console.warn(`⚠️ Servo '${objectName}' not attached`);
+                return;
+            }
+
+            const servo = this.servoObjects[objectName];
+            const pin = servo.pin;
+
+            // Convert microseconds to duty cycle percentage
+            const percentage = ((microseconds - servo.min) / (servo.max - servo.min)) * 100;
+            const dutyCycle = Math.round(percentage);
+
+            // Treat as PWM event
+            this.addPinEvent(pin, dutyCycle > 0, 'pwm', context, dutyCycle);
+            console.log(`🎛️ Servo '${objectName}': ${microseconds}µs = ${dutyCycle}% duty cycle`);
+            return;
+        }
+
+        // Handle ESP32 Servo.write() calls (angle-based)
+        const servoWriteMatch = line.match(/(\w+)\.write\s*\(\s*(\d+)\s*\)/i);
+        if (servoWriteMatch) {
+            const objectName = servoWriteMatch[1];
+            const angle = parseInt(servoWriteMatch[2]);
+
+            if (!this.servoObjects[objectName]) {
+                console.warn(`⚠️ Servo '${objectName}' not attached`);
+                return;
+            }
+
+            const servo = this.servoObjects[objectName];
+            const pin = servo.pin;
+
+            // Convert angle (0-180) to duty cycle percentage
+            const dutyCycle = Math.round((angle / 180) * 100);
+
+            // Treat as PWM event
+            this.addPinEvent(pin, dutyCycle > 0, 'pwm', context, dutyCycle);
+            console.log(`🎛️ Servo '${objectName}': ${angle}° = ${dutyCycle}% duty cycle`);
             return;
         }
 
