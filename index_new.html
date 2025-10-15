@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="css/level-selector.css">
+    <link rel="stylesheet" href="css/syntax-highlighting.css">
 </head>
 <body>
     <!-- Animated Background -->
@@ -216,7 +217,10 @@
                 </div>
                 <div class="code-editor-wrapper">
                     <div class="line-numbers" id="lineNumbers"></div>
-                    <textarea class="code-editor code-editor-with-lines" id="codeEditor" placeholder="Write your Arduino code here...">void setup() {
+                    <div class="syntax-overlay-container">
+                        <div class="syntax-overlay" id="syntaxOverlay"></div>
+                    </div>
+                    <textarea class="code-editor code-editor-with-lines code-editor-with-syntax" id="codeEditor" placeholder="Write your Arduino code here...">void setup() {
   pinMode(13, OUTPUT);
 }
 
@@ -316,6 +320,7 @@ void loop() {}</pre>
     <script src="js/game/gameFlowManager.js"></script>
     
     <!-- UI Systems -->
+    <script src="js/ui/syntaxHighlighter.js"></script>
     <script src="js/ui/codeEditor.js"></script>
     <script src="js/ui/timerManager.js"></script>
     <script src="js/ui/targetAnimationPlayer.js"></script>

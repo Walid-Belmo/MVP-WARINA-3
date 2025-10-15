@@ -9,17 +9,20 @@ class ArduinoCodeEditor {
         this.lineNumbers = document.getElementById('lineNumbers');
         this.completion = document.getElementById('codeCompletion');
         this.cursorPosition = document.getElementById('cursorPosition');
+        this.syntaxOverlay = document.getElementById('syntaxOverlay');
         this.completionItems = [];
         this.selectedCompletionIndex = -1;
         this.currentHighlightedLine = null;
         this.currentPlaceholders = null;
         this.currentPlaceholderIndex = -1;
+        this.lastCompletedLine = -1; // Track last completed line to avoid duplicate animations
         
         console.log('📝 CodeEditor initialized:', {
             editor: !!this.editor,
             lineNumbers: !!this.lineNumbers,
             completion: !!this.completion,
-            cursorPosition: !!this.cursorPosition
+            cursorPosition: !!this.cursorPosition,
+            syntaxOverlay: !!this.syntaxOverlay
         });
         
         // Arduino function completions - Focused on robotics learning
@@ -115,11 +118,14 @@ class ArduinoCodeEditor {
     }
     
     setupEventListeners() {
-        this.editor.addEventListener('input', () => {
+        this.editor.addEventListener('input', (e) => {
             this.updateLineNumbers();
             this.updateCursorPosition();
-            this.applySyntaxHighlighting();
-            
+            this.updateSyntaxHighlighting();
+
+            // Check for line completion and trigger animation
+            this.checkLineCompletion(e);
+
             // Recalculate placeholder positions after typing
             if (this.currentPlaceholders && this.currentPlaceholderIndex >= 0) {
                 this.recalculatePlaceholderPositions();
@@ -165,14 +171,78 @@ class ArduinoCodeEditor {
         this.cursorPosition.textContent = `Line ${currentLine}, Column ${currentColumn}`;
     }
     
-    applySyntaxHighlighting() {
-        // This is a simplified syntax highlighting
-        // In a real implementation, you'd want to use a proper syntax highlighter
+    /**
+     * Update syntax highlighting overlay
+     */
+    updateSyntaxHighlighting() {
+        if (!this.syntaxOverlay || !window.syntaxHighlighter) return;
+
         const code = this.editor.value;
-        
-        // For now, we'll just ensure the text is properly formatted
-        // The actual highlighting would require a more complex implementation
-        // that replaces the textarea with a contentEditable div or uses a library
+        const highlightedCode = window.syntaxHighlighter.highlightCode(code);
+        this.syntaxOverlay.innerHTML = highlightedCode;
+    }
+
+    /**
+     * Check if a line was just completed and trigger animation
+     */
+    checkLineCompletion(e) {
+        if (!window.syntaxHighlighter) return;
+
+        const cursorPos = this.editor.selectionStart;
+        const textBeforeCursor = this.editor.value.substring(0, cursorPos);
+        const lines = textBeforeCursor.split('\n');
+        const currentLineNumber = lines.length;
+        const currentLine = lines[lines.length - 1];
+
+        // Check if line is complete and wasn't just animated
+        if (window.syntaxHighlighter.isLineComplete(currentLine) &&
+            this.lastCompletedLine !== currentLineNumber) {
+
+            this.lastCompletedLine = currentLineNumber;
+            this.animateLineCompletion(currentLineNumber);
+        }
+
+        // Reset last completed line if user moves to a different line
+        if (!currentLine.trim().match(/[;{}]$/)) {
+            this.lastCompletedLine = -1;
+        }
+    }
+
+    /**
+     * Animate line completion
+     */
+    animateLineCompletion(lineNumber) {
+        if (!this.syntaxOverlay) return;
+
+        // Find all line elements in the syntax overlay
+        const lines = this.syntaxOverlay.innerHTML.split('\n');
+        if (lineNumber < 1 || lineNumber > lines.length) return;
+
+        // Wrap the completed line in an animated span
+        const lineIndex = lineNumber - 1;
+        const line = lines[lineIndex];
+
+        // Rebuild the HTML with animation wrapper
+        const animatedLines = lines.map((l, idx) => {
+            if (idx === lineIndex) {
+                return `<span class="syntax-line line-completion-animation">${l}</span>`;
+            }
+            return `<span class="syntax-line">${l}</span>`;
+        });
+
+        this.syntaxOverlay.innerHTML = animatedLines.join('\n');
+
+        // Remove animation class after animation completes
+        setTimeout(() => {
+            this.updateSyntaxHighlighting(); // Refresh without animation class
+        }, 300);
+    }
+
+    /**
+     * Legacy method for compatibility
+     */
+    applySyntaxHighlighting() {
+        this.updateSyntaxHighlighting();
     }
     
     handleKeyDown(e) {

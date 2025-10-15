@@ -1,0 +1,224 @@
+/**
+ * Syntax Highlighting Styles
+ * Custom glowing color scheme for Arduino code
+ */
+
+/* ========================================
+   Token Colors with Glowing Effects
+   ======================================== */
+
+/* Keywords: void, if, else, for, while, return */
+.syntax-keywords {
+    color: #C586C0;
+    text-shadow: 0 0 3px rgba(197, 134, 192, 0.6);
+    font-weight: 500;
+}
+
+/* Function Declarations: setup, loop */
+.syntax-functionDecl {
+    color: #00D4FF;
+    text-shadow: 0 0 4px rgba(0, 212, 255, 0.7);
+    font-weight: 600;
+}
+
+/* Data Types: int, float, bool, char */
+.syntax-types {
+    color: #4EC9B0;
+    text-shadow: 0 0 3px rgba(78, 201, 176, 0.6);
+    font-weight: 500;
+}
+
+/* Arduino Functions: pinMode, digitalWrite, delay */
+.syntax-arduinoFunctions {
+    color: #4FC1FF;
+    text-shadow: 0 0 3px rgba(79, 193, 255, 0.6);
+}
+
+/* PWM Functions: setDutyCycle, analogWrite */
+.syntax-pwmFunctions {
+    color: #FF6B00;
+    text-shadow: 0 0 4px rgba(255, 107, 0, 0.7);
+    font-weight: 500;
+}
+
+/* Numbers: 13, 1000, 255 */
+.syntax-numbers {
+    color: #FFD700;
+    text-shadow: 0 0 3px rgba(255, 215, 0, 0.5);
+}
+
+/* Strings: "text" */
+.syntax-strings {
+    color: #B5CEA8;
+    text-shadow: 0 0 2px rgba(181, 206, 168, 0.5);
+}
+
+/* Comments: // comment */
+.syntax-comments {
+    color: #6A9955;
+    text-shadow: 0 0 2px rgba(106, 153, 85, 0.3);
+    font-style: italic;
+    opacity: 0.85;
+}
+
+/* Operators: =, +, -, etc. (no glow, white) */
+.syntax-operators {
+    color: #D4D4D4;
+}
+
+/* ========================================
+   Syntax Overlay Container
+   ======================================== */
+
+.syntax-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    padding-left: 60px; /* Match textarea padding-left */
+    padding-top: 25px; /* Match textarea padding-top */
+    padding-bottom: 25px; /* Match textarea padding-bottom */
+    padding-right: 25px; /* Match textarea padding-right */
+    font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+    font-size: 16px;
+    line-height: 1.8;
+    white-space: pre;
+    word-wrap: normal;
+    overflow: hidden;
+    pointer-events: none; /* Allow clicks to pass through to textarea */
+    color: #D4D4D4; /* Default text color */
+    z-index: 1;
+}
+
+/* Make textarea text transparent so overlay shows through */
+.code-editor-with-syntax {
+    position: relative;
+    color: transparent !important; /* Completely transparent */
+    caret-color: #00D4FF !important; /* Keep cursor visible */
+    background: transparent !important;
+    z-index: 2;
+    -webkit-text-fill-color: transparent; /* For WebKit browsers */
+}
+
+/* Selection should still be visible */
+.code-editor-with-syntax::selection {
+    background: rgba(0, 212, 255, 0.4) !important;
+    color: transparent !important;
+    -webkit-text-fill-color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* ========================================
+   Line Completion Animation
+   ======================================== */
+
+@keyframes line-complete-pulse {
+    0% {
+        transform: scale(1) translateX(0);
+        filter: brightness(1);
+        text-shadow: inherit;
+    }
+    50% {
+        transform: scale(1.04) translateX(2px);
+        filter: brightness(1.3);
+        text-shadow:
+            0 0 8px rgba(0, 212, 255, 0.6),
+            0 0 12px rgba(0, 212, 255, 0.4);
+    }
+    100% {
+        transform: scale(1) translateX(0);
+        filter: brightness(1);
+        text-shadow: inherit;
+    }
+}
+
+/* Apply animation to completed lines */
+.line-completion-animation {
+    display: inline-block;
+    animation: line-complete-pulse 300ms ease-out;
+    transform-origin: left center;
+}
+
+/* ========================================
+   Syntax Overlay Line Wrapper
+   ======================================== */
+
+.syntax-line {
+    display: block;
+    min-height: 1.6em; /* Maintain line height for empty lines */
+    transition: transform 0.05s ease-out;
+}
+
+/* ========================================
+   Execution Highlighting Override
+   (Higher priority than syntax colors)
+   ======================================== */
+
+.code-editor-with-syntax.executing-line {
+    background: rgba(0, 212, 255, 0.15);
+    border-left: 3px solid #00D4FF;
+}
+
+/* Execution highlight in overlay (when code is running) */
+.syntax-overlay .executing-line {
+    background: rgba(0, 212, 255, 0.15);
+    border-left: 3px solid #00D4FF;
+    padding-left: 12px;
+    margin-left: -15px;
+}
+
+/* ========================================
+   Editor Container Positioning
+   ======================================== */
+
+.code-editor-wrapper {
+    position: relative;
+}
+
+.syntax-overlay-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 1;
+}
+
+/* ========================================
+   Responsive Adjustments
+   ======================================== */
+
+@media (max-width: 768px) {
+    .syntax-overlay {
+        font-size: 12px;
+        padding: 10px;
+    }
+}
+
+/* ========================================
+   Accessibility
+   ======================================== */
+
+/* High contrast mode adjustments */
+@media (prefers-contrast: high) {
+    .syntax-keywords,
+    .syntax-functionDecl,
+    .syntax-types,
+    .syntax-arduinoFunctions,
+    .syntax-pwmFunctions,
+    .syntax-numbers,
+    .syntax-strings {
+        text-shadow: none;
+        font-weight: bold;
+    }
+}
+
+/* Reduced motion mode */
+@media (prefers-reduced-motion: reduce) {
+    .line-completion-animation {
+        animation: none;
+        transition: none;
+    }
+}
