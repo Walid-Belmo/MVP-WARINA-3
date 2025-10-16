@@ -219,12 +219,13 @@ class CodeExecutor {
                 this.arduinoParser.executeLine(line, actualLineNumber);
                 this.updateVisualPinsFromParser(onPinChange);
 
-                // Keep highlight visible for 300ms so user can see what's executing
+                // Execute almost instantly (50ms) - just enough to see the highlight
+                // This reflects real microcontroller behavior where only delays take time
                 const timeout = setTimeout(() => {
                     if (this.isExecuting) {
                         executeNextLine();
                     }
-                }, 300);
+                }, 50);
                 this.executionTimeouts.push(timeout);
             } catch (error) {
                 console.error(`Error executing setup line: ${line}`, error);
@@ -339,12 +340,13 @@ class CodeExecutor {
                 this.arduinoParser.executeLine(line, actualLineNumber);
                 this.updateVisualPinsFromParser(onPinChange);
 
-                // Keep highlight visible for 300ms so user can see what's executing
+                // Execute almost instantly (50ms) - just enough to see the highlight
+                // This reflects real microcontroller behavior where only delays take time
                 const timeout = setTimeout(() => {
                     if (this.isExecuting) {
                         executeNextLine();
                     }
-                }, 300);
+                }, 50);
                 this.executionTimeouts.push(timeout);
             } catch (error) {
                 console.error(`Error executing loop line: ${line}`, error);
