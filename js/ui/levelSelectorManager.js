@@ -65,6 +65,13 @@ class LevelSelectorManager {
                     </div>
                 </div>
 
+                <div class="debug-menu-section">
+                    <h4>⚡ Serial Control Levels (21-23)</h4>
+                    <div class="level-buttons-container" id="serial-levels">
+                        <!-- Serial control level buttons will be added here -->
+                    </div>
+                </div>
+
                 <div class="debug-menu-footer">
                     <button class="close-menu-btn" id="close-level-menu">Close Menu</button>
                 </div>
@@ -85,25 +92,28 @@ class LevelSelectorManager {
     createLevelButtons() {
         const beginnerContainer = document.getElementById('beginner-levels');
         const intermediateContainer = document.getElementById('intermediate-levels');
-        
+        const serialContainer = document.getElementById('serial-levels');
+
         // Get all levels from level data
         const allLevels = window.LevelDataHelper.getAllLevels();
-        
+
         allLevels.forEach(level => {
             const button = document.createElement('button');
             button.className = `level-button ${level.difficulty}`;
             button.textContent = level.id;
             button.title = `${level.name}: ${level.description}`;
             button.dataset.levelId = level.id;
-            
+
             // Add click handler
             button.addEventListener('click', () => {
                 this.loadLevel(level.id);
             });
-            
+
             // Add to appropriate container based on difficulty
             if (level.difficulty === 'beginner') {
                 beginnerContainer.appendChild(button);
+            } else if (level.difficulty === 'serial') {
+                serialContainer.appendChild(button);
             } else {
                 intermediateContainer.appendChild(button);
             }

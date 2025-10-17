@@ -18,6 +18,7 @@ class UIManager {
         this.codeExecutor = null;
         this.gameFlowManager = null;
         this.validationManager = null;
+        this.serialControlManager = null;
     }
 
     /**
@@ -65,14 +66,20 @@ class UIManager {
         // Initialize Level Selector Manager
         this.levelSelectorManager = new LevelSelectorManager(this.gameFlowManager);
         this.levelSelectorManager.init();
-        
+
         // Make it globally available
         window.levelSelectorManager = this.levelSelectorManager;
-        
-        
+
+        // Initialize Serial Control Manager
+        this.serialControlManager = new SerialControlManager(this.gameState);
+        this.serialControlManager.init();
+
+        // Make it globally available
+        window.serialControlManager = this.serialControlManager;
+
         // Initialize the game
         this.gameFlowManager.initializeGame();
-        
+
         console.log('✅ UI Manager initialized');
     }
 
@@ -256,10 +263,15 @@ void loop() {
         
         // Reset Arduino parser
         this.arduinoParser.reset();
-        
+
         // Reset game state
         this.gameState.reset();
-        
+
+        // Reset serial control if it exists
+        if (this.serialControlManager) {
+            this.serialControlManager.reset();
+        }
+
         // Update visuals
         this.pinManager.initializePins();
         this.pinManager.updatePinSelection();
@@ -282,9 +294,24 @@ void loop() {
         console.log(`📥 Level ${level.id} loaded:`, level.name);
         console.log(`   Required pins:`, level.requiredPins);
         console.log(`   Auto-components:`, level.autoComponents);
+        console.log(`   Level type:`, level.type || 'standard');
 
         // Reset game state
         this.handleReset();
+
+        // Handle serial control levels
+        if (level.type === 'serial') {
+            console.log('⚡ Serial control level detected');
+            if (this.serialControlManager) {
+                this.serialControlManager.show();
+                this.serialControlManager.reset();
+            }
+        } else {
+            // Hide serial control for non-serial levels
+            if (this.serialControlManager) {
+                this.serialControlManager.hide();
+            }
+        }
 
         // Auto-spawn components if level has autoComponents defined
         if (level.autoComponents && Array.isArray(level.autoComponents)) {

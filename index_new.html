@@ -178,6 +178,36 @@
                 <div class="variables-content">Aucune variable</div>
             </div>
 
+            <!-- Serial Control Section (shown only for serial levels) -->
+            <div class="serial-control-section" id="serialControlSection">
+                <div class="serial-control-header">
+                    <div class="serial-control-icon"></div>
+                    <div class="serial-control-title">⚡ Serial Control</div>
+                </div>
+
+                <div class="serial-input-area">
+                    <div class="serial-input-label">Type a number and press Enter:</div>
+                    <div class="serial-input-wrapper">
+                        <input type="number"
+                               class="serial-input"
+                               id="serialInput"
+                               placeholder="Enter integer value...">
+                        <button class="serial-send-btn" id="serialSendBtn">SEND</button>
+                    </div>
+                </div>
+
+                <div class="serial-variable-display">
+                    <div class="serial-variable-label">📦 Variable Value:</div>
+                    <div class="serial-variable-box" id="serialVariableBox">
+                        <span class="serial-variable-name">value</span>
+                        <span class="serial-variable-equals">=</span>
+                        <span class="serial-variable-value" id="serialVariableValue">
+                            <span class="serial-variable-empty">No value yet</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
             <!-- Left Panel Buttons -->
             <div class="left-buttons">
                 <button class="btn btn-play">▶️ PLAY TARGET</button>
@@ -342,6 +372,7 @@ void loop() {
     <script src="js/ui/visualEffectsManager.js"></script>
     <script src="js/ui/eventManager.js"></script>
     <script src="js/ui/levelSelectorManager.js"></script>
+    <script src="js/ui/serialControlManager.js"></script>
     <script src="js/ui/audioManager.js"></script>
     <script src="js/ui/uiManager.js"></script>
     

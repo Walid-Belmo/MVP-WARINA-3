@@ -636,6 +636,98 @@ void loop() {
             { type: 'LED', pin: 11 },
             { type: 'MOTOR', pin: 13 }
         ]
+    },
+    {
+        id: 21,
+        name: "Serial Read First Step",
+        description: "Read a number from serial control and turn on pin 13 if the value is greater than 50",
+        timeLimit: 120000, // 2 minutes
+        type: "serial",
+        targetCode: `void setup() {
+  pinMode(13, OUTPUT);
+}
+
+void loop() {
+  int value = Serial.read();
+  if (value > 50) {
+    digitalWrite(13, HIGH);
+  } else {
+    digitalWrite(13, LOW);
+  }
+  delay(1000);
+}`,
+        hint: "Use Serial.read() to get the value, then compare it with 50 using if statement",
+        difficulty: "serial",
+        requiredPins: [13],
+        maxEvents: 4,
+        validationLoops: 1,
+        autoComponents: [
+            { type: 'LED', pin: 13 }
+        ]
+    },
+    {
+        id: 22,
+        name: "Serial Control LED",
+        description: "Turn on LED when serial value equals 1, turn it off when value equals 0",
+        timeLimit: 120000, // 2 minutes
+        type: "serial",
+        targetCode: `void setup() {
+  pinMode(13, OUTPUT);
+}
+
+void loop() {
+  int value = Serial.read();
+  if (value == 1) {
+    digitalWrite(13, HIGH);
+  }
+  if (value == 0) {
+    digitalWrite(13, LOW);
+  }
+  delay(1000);
+}`,
+        hint: "Check if value equals 1 or 0, then control the LED accordingly",
+        difficulty: "serial",
+        requiredPins: [13],
+        maxEvents: 4,
+        validationLoops: 1,
+        autoComponents: [
+            { type: 'LED', pin: 13 }
+        ]
+    },
+    {
+        id: 23,
+        name: "Serial Two LEDs",
+        description: "Turn on pin 13 if value > 30, turn on pin 12 if value > 70",
+        timeLimit: 150000, // 2.5 minutes
+        type: "serial",
+        targetCode: `void setup() {
+  pinMode(13, OUTPUT);
+  pinMode(12, OUTPUT);
+}
+
+void loop() {
+  int value = Serial.read();
+  if (value > 30) {
+    digitalWrite(13, HIGH);
+  } else {
+    digitalWrite(13, LOW);
+  }
+  if (value > 70) {
+    digitalWrite(12, HIGH);
+  } else {
+    digitalWrite(12, LOW);
+  }
+  delay(1000);
+}`,
+        hint: "Use two if statements to control each LED based on different thresholds",
+        difficulty: "serial",
+        requiredPins: [12, 13],
+        maxEvents: 6,
+        validationLoops: 1,
+        autoComponents: [
+            { type: 'LED', pin: 13 },
+            { type: 'LED', pin: 12 }
+        ]
     }
 ];
 
@@ -650,6 +742,11 @@ const LEVEL_CATEGORIES = {
         name: "Advanced - ESC Control",
         description: "ESP32 motor control using Servo library for ESC/motors",
         levels: [11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+    },
+    serial: {
+        name: "Serial Control",
+        description: "Interactive programming with serial input - control components based on user input",
+        levels: [21, 22, 23]
     }
 };
 

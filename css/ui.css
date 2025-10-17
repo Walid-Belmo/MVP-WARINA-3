@@ -345,6 +345,143 @@
     font-size: 12px;
 }
 
+/* Serial Control Section */
+.serial-control-section {
+    background: linear-gradient(135deg, #1a2a3a, #2a3a4a);
+    border-radius: 12px;
+    padding: 15px;
+    width: 100%;
+    max-width: 500px;
+    border: 2px solid #FFD700;
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+    display: none; /* Hidden by default, shown for serial levels */
+}
+
+.serial-control-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 15px;
+}
+
+.serial-control-icon {
+    width: 20px;
+    height: 20px;
+    background: linear-gradient(45deg, #FFD700, #FFA500);
+    border-radius: 4px;
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+.serial-control-title {
+    color: #FFD700;
+    font-size: 16px;
+    font-weight: bold;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+.serial-input-area {
+    background: #0a0a0a;
+    border: 2px solid #FFD700;
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 15px;
+}
+
+.serial-input-label {
+    color: #FFD700;
+    font-size: 12px;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.serial-input-wrapper {
+    display: flex;
+    gap: 8px;
+}
+
+.serial-input {
+    flex: 1;
+    background: #1a1a1a;
+    border: 1px solid #FFD700;
+    border-radius: 4px;
+    padding: 8px;
+    color: #00FF00;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+}
+
+.serial-input:focus {
+    outline: none;
+    border-color: #FFA500;
+    box-shadow: 0 0 8px rgba(255, 215, 0, 0.5);
+}
+
+.serial-send-btn {
+    background: linear-gradient(135deg, #FFD700, #FFA500);
+    border: none;
+    border-radius: 4px;
+    padding: 8px 16px;
+    color: #0a0a0a;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.serial-send-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
+}
+
+.serial-variable-display {
+    background: #0a0a0a;
+    border: 2px solid #00D4FF;
+    border-radius: 8px;
+    padding: 12px;
+}
+
+.serial-variable-label {
+    color: #00D4FF;
+    font-size: 12px;
+    margin-bottom: 8px;
+    font-weight: bold;
+}
+
+.serial-variable-box {
+    background: #1a1a1a;
+    border: 1px solid #00D4FF;
+    border-radius: 4px;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.serial-variable-name {
+    color: #FFD700;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.serial-variable-equals {
+    color: #b0b0b0;
+    font-size: 14px;
+}
+
+.serial-variable-value {
+    color: #00FF00;
+    font-family: 'Courier New', monospace;
+    font-size: 16px;
+    font-weight: bold;
+    flex: 1;
+}
+
+.serial-variable-empty {
+    color: #666;
+    font-style: italic;
+    font-size: 12px;
+}
+
 /* Buttons */
 .btn {
     padding: 12px 20px;
